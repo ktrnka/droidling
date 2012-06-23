@@ -100,6 +100,16 @@ public class WordDistribution
 		{
 		return getSmoothProb(word1) * getSmoothProb(word2);
 		}
+	
+	public double expectedFrequency(String word, double localTotal)
+		{
+		return getSmoothProb(word) * localTotal;
+		}
+	
+	public double expectedFrequency(String w1, String w2, String w3, double localTotal)
+		{
+		return getSmoothProb(w1) * getSmoothProb(w2) * getSmoothProb(w3) * localTotal;
+		}
 
 	public double getSmoothProb(String word)
 		{

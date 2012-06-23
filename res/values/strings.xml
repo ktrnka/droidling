@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <string name="hello"></string>
     <string name="app_name">SMS Linguistics</string>
-    <string name="button">Analyse Sent Messages!</string>
     <string name="about">About</string>
     <string name="personal">Personal Statistics</string>
     <string name="interpersonal">Interpersonal Statistics</string>
@@ -13,5 +10,6 @@
     <string name="key_phrases">Key Phrases</string>
     <string name="contacts">Top Contacts</string>
     <string name="stats">General Stats</string>
+    <string name="runtime">Runtime Stats (Development)</string>
 
 </resources>
