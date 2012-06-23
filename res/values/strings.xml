@@ -4,5 +4,14 @@
     <string name="hello"></string>
     <string name="app_name">SMS Linguistics</string>
     <string name="button">Analyse Sent Messages!</string>
+    <string name="about">About</string>
+    <string name="personal">Personal Statistics</string>
+    <string name="interpersonal">Interpersonal Statistics</string>
+    <string name="app_descrip">This app will analyse your text messages and tell you a little about what makes you unique!  It also analyses the conversations with your friends and tells you about your relationships.</string>
+    <string name="app_credits">Made by Keith Trnka</string>
+    <string name="nyi">Not yet implemented.</string>
+    <string name="key_phrases">Key Phrases</string>
+    <string name="contacts">Top Contacts</string>
+    <string name="stats">General Stats</string>
 
 </resources>

@@ -23,6 +23,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
+        
+        <activity android:name="edu.udel.trnka.pl.PersonalLingActivity" />
+        <activity android:name="edu.udel.trnka.pl.InterpersonalActivity" />
+        <activity android:name="edu.udel.trnka.pl.AboutActivity" />
+        </application>
 
 </manifest>
