@@ -27,6 +27,7 @@
         <activity android:name="edu.udel.trnka.pl.PersonalLingActivity" />
         <activity android:name="edu.udel.trnka.pl.InterpersonalActivity" />
         <activity android:name="edu.udel.trnka.pl.AboutActivity" />
+        <activity android:name="edu.udel.trnka.pl.TestActivity" />
         </application>
 
 </manifest>
