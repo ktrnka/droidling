@@ -17,11 +17,14 @@ import java.util.Locale;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.telephony.PhoneNumberUtils;
+import android.view.View;
+import android.view.View.OnLongClickListener;
 import android.widget.TextView;
 
 public class PersonalLingActivity extends Activity
@@ -45,6 +48,37 @@ public class PersonalLingActivity extends Activity
 		{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.personal_basic);
+		
+		TextView textView = (TextView) findViewById(R.id.phraseText);
+		textView.setOnLongClickListener(buildLongClickListener(getString(R.string.key_phrases)));
+		
+		textView = (TextView) findViewById(R.id.contactText);
+		textView.setOnLongClickListener(buildLongClickListener(getString(R.string.contacts)));
+		
+		textView = (TextView) findViewById(R.id.statText);
+		textView.setOnLongClickListener(buildLongClickListener(getString(R.string.stats)));
+
+		textView = (TextView) findViewById(R.id.runtimeText);
+		textView.setOnLongClickListener(buildLongClickListener(getString(R.string.runtime)));
+		}
+	
+	public OnLongClickListener buildLongClickListener(final String category)
+		{
+		return new OnLongClickListener()
+			{
+			public boolean onLongClick(View v)
+				{
+				String text = category + " from " + getString(R.string.app_name) + ":\n" + ((TextView)v).getText().toString();
+				
+				Intent sendIntent = new Intent(Intent.ACTION_SEND);
+				sendIntent.setType("text/plain");
+				sendIntent.putExtra(Intent.EXTRA_TEXT, text);
+				
+				startActivity(Intent.createChooser(sendIntent, "Share with..."));
+				
+				return true;
+				}
+			};
 		}
 	
 	public void onStart()

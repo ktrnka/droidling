@@ -18,7 +18,7 @@ public class HomeActivity extends ListActivity
 	private static final String[] descriptions = { "Analyse sent messages.", "Compare your messages to messages from your friends!", "", "" };
 	
 	// TODO:  I don't like how this uses parallel arrays.  I'd much rather do something like make an instance that has all this (could I do it by overriding toString in the Acitivites?)
-	private static final Class<?>[] activities = { PersonalLingActivity.class, null, null, AboutActivity.class };
+	private static final Class<?>[] activities = { PersonalLingActivity.class, InterpersonalActivity.class, null, AboutActivity.class };
 	
 	public void onCreate(Bundle savedInstanceState)
 		{
