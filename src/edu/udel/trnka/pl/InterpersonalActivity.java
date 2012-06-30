@@ -1,19 +1,14 @@
 package edu.udel.trnka.pl;
 
-import static edu.udel.trnka.pl.Tokenizer.isNonword;
-import static edu.udel.trnka.pl.Tokenizer.tokenize;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 
 import android.app.Activity;
-import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.database.Cursor;
@@ -21,12 +16,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.telephony.PhoneNumberUtils;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
-public class InterpersonalActivity extends ListActivity
+public class InterpersonalActivity extends Activity
 	{
 	private HashMap<String, Long> runtime;
 	private boolean scanned;
@@ -35,7 +32,7 @@ public class InterpersonalActivity extends ListActivity
 	public void onCreate(Bundle savedInstanceState)
 		{
 		super.onCreate(savedInstanceState);
-		//setContentView(R.layout.interpersonal);
+		setContentView(R.layout.personal_new);
 		}
 	
 	public void onStart()
@@ -159,6 +156,8 @@ public class InterpersonalActivity extends ListActivity
 		final HashMap<String, int[]> receivedCounts = new HashMap<String, int[]>();
 		final HashMap<String,CorpusStats> receivedStats = new HashMap<String,CorpusStats>();
 		
+		final CorpusStats overallReceivedStats = new CorpusStats();
+		
 		if (messages.moveToFirst())
 			{
 			do
@@ -187,7 +186,9 @@ public class InterpersonalActivity extends ListActivity
 					if (!receivedStats.containsKey(senderName))
 						receivedStats.put(senderName, new CorpusStats());
 					
-					receivedStats.get(senderName).train(messages.getString(messages.getColumnIndexOrThrow("body")));
+					String message = messages.getString(messages.getColumnIndexOrThrow("body"));
+					receivedStats.get(senderName).train(message);
+					overallReceivedStats.train(message);
 					}
 				} while (messages.moveToNext());
 			}
@@ -261,27 +262,65 @@ public class InterpersonalActivity extends ListActivity
 			// Jaccard coeffients
 			f.format("Vocabulary overlap with your texts to them: %.1f%%\n", 100 * sentStats.get(contactName).computeUnigramJaccard(receivedStats.get(contactName)));
 			f.format("Vocabulary overlap with ALL your texts: %.1f%%\n", 100 * overallSentStats.computeUnigramJaccard(receivedStats.get(contactName)));
+			
+			// figure out the vocabulary overlap
+			ArrayList<String> sortedOverlap = CorpusStats.computeRelationshipTerms(receivedStats.get(contactName), overallReceivedStats, sentStats.get(contactName), overallSentStats);
+			details.append("\nShared key phrases:\n");
+			for (int i = 0; i < 10 && i < sortedOverlap.size(); i++)
+				details.append(sortedOverlap.get(i) + "\n");
 
 			item.put("details", details.toString());
 			data.add(item);
 			}
-		
-		
-		final SimpleAdapter adapter = new SimpleAdapter(this, data,
-				android.R.layout.simple_list_item_2,
-				new String[] { "contact", "details" },
-				new int[] { android.R.id.text1, android.R.id.text2 });
-		
-		
-		
 		
 		/*************** SHOW IT *******************/
 		runOnUiThread(new Runnable()
 			{
 			public void run()
 				{
-				setListAdapter(adapter);
+				for (HashMap<String,String> item : data)
+					{
+					ViewGroup parent = (ViewGroup) findViewById(R.id.linear);
+					
+					LayoutInflater inflater = getLayoutInflater();
+					
+					// key phrases
+					parent.addView(inflateResults(inflater, item.get("contact"), item.get("details")));
+					}
 				}
 			});
 		}
-	}
+
+
+	public View inflateResults(LayoutInflater inflater, final String title, final String details)
+		{
+		// contacts
+		View view = inflater.inflate(R.layout.result,
+				null);
+	
+		TextView textView = (TextView) view.findViewById(android.R.id.text1);
+		textView.setText(title);
+		
+		textView = (TextView) view.findViewById(android.R.id.text2);
+		textView.setText(details);
+		
+		ImageView shareView = (ImageView) view.findViewById(R.id.share);
+		shareView.setOnClickListener(new View.OnClickListener()
+			{
+			public void onClick(View v)
+				{
+				String subject = "Shared stats from " + getString(R.string.app_name);
+				String text = "Stats: " + title + ":\n" + details;
+				
+				Intent sendIntent = new Intent(Intent.ACTION_SEND);
+				sendIntent.setType("text/plain");
+				sendIntent.putExtra(Intent.EXTRA_TEXT, text);
+				sendIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
+				
+				startActivity(Intent.createChooser(sendIntent, "Share with..."));
+				}
+			});
+		
+		return view;
+		}
+}

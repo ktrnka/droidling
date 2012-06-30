@@ -4,6 +4,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
+/**
+ * A collection of Dates, which we can use to compute various stats such
+ * as date range, day-of-week histogram, time-of-day histogram, etc.
+ * @author keith.trnka
+ *
+ */
 public class DateDistribution
 	{
 	private ArrayList<Date> dates;
@@ -40,7 +46,8 @@ public class DateDistribution
 	
 	/**
 	 * This is working under the assumption of approximately 30-day months.
-	 * @return The average number of texts per 30 days between your first and last text.
+	 * 
+	 * @return The average number of texts per 30 days between your first and last text.  If you have only one text or less than 30 days' worth, it'll return the total so far.
 	 */
 	public double computeTextsPerMonth()
 		{
@@ -53,6 +60,11 @@ public class DateDistribution
 		double monthMs = 1000L * 60 * 60 * 24 * 30;
 		
 		double months = (maxTime - minTime) / monthMs;
+		
+		// safety from crazy numbers
+		if (months < 1)
+			return dates.size();
+		
 		return dates.size() / months;
 		}
 	
@@ -71,5 +83,30 @@ public class DateDistribution
 			}
 		
 		return days;
+		}
+	
+	/**
+	 * Compute a histogram mapping the hour to the number of texts in
+	 * that hour.  Uses 24-hour format, starting from 1 (return array
+	 * is size 25).
+	 * 
+	 * TODO: There's a bug in this function cause Java actually returns
+	 * a 0-23 value.
+	 */
+	public int[] computeHourHistogram()
+		{
+		int[] hours = new int[25];
+		for (int i = 0; i < hours.length; i++)
+			hours[i] = 0;
+		
+		Calendar calendar = Calendar.getInstance();
+		
+		for (Date date : dates)
+			{
+			calendar.setTime(date);
+			hours[calendar.get(Calendar.HOUR_OF_DAY)]++;
+			}
+		
+		return hours;
 		}
 	}

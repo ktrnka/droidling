@@ -23,11 +23,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.telephony.PhoneNumberUtils;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnLongClickListener;
+import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-public class PersonalLingActivity extends Activity
+public class PersonalActivity extends Activity
 	{
 	public static final int maxPhrases = 50;
 	private boolean scanned = false;
@@ -47,8 +50,10 @@ public class PersonalLingActivity extends Activity
 	public void onCreate(Bundle savedInstanceState)
 		{
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.personal_basic);
+		//setContentView(R.layout.personal_basic);
+		setContentView(R.layout.personal_new);
 		
+		/*
 		TextView textView = (TextView) findViewById(R.id.phraseText);
 		textView.setOnLongClickListener(buildLongClickListener(getString(R.string.key_phrases)));
 		
@@ -60,6 +65,7 @@ public class PersonalLingActivity extends Activity
 
 		textView = (TextView) findViewById(R.id.runtimeText);
 		textView.setOnLongClickListener(buildLongClickListener(getString(R.string.runtime)));
+		*/
 		}
 	
 	public OnLongClickListener buildLongClickListener(final String category)
@@ -90,7 +96,7 @@ public class PersonalLingActivity extends Activity
 		if (!scanned)
 			{
 			// start progress
-			final ProgressDialog progress = ProgressDialog.show(PersonalLingActivity.this, "", "Scanning...", true);
+			final ProgressDialog progress = ProgressDialog.show(PersonalActivity.this, "", "Scanning...", true);
 			
 			// run thread with callback to stop progress
 			new Thread()
@@ -360,19 +366,17 @@ public class PersonalLingActivity extends Activity
 
 				String person = address;
 
-				if (contactMap.containsKey(address))
-					person = contactMap.get(address);
-				else
+				if (contactMap.containsKey(PhoneNumberUtils.formatNumber(address)))
 					{
-					address = PhoneNumberUtils.formatNumber(address);
-					if (contactMap.containsKey(address))
-						person = contactMap.get(address);
+					person = contactMap.get(PhoneNumberUtils.formatNumber(address));
+					
+					if (personCounts.containsKey(person))
+						personCounts.get(person)[0]++;
+					else
+						personCounts.put(person, new int[] { 1 });
 					}
 
-				if (personCounts.containsKey(person))
-					personCounts.get(person)[0]++;
-				else
-					personCounts.put(person, new int[] { 1 });
+
 				} while (messages.moveToNext());
 			}
 		messages.close();
@@ -523,32 +527,11 @@ public class PersonalLingActivity extends Activity
 					}
 			});
 
-		// analyse contacts
-		ArrayList<String> people = new ArrayList<String>(personCounts.keySet());
-		Collections.sort(people, new Comparator<String>()
-			{
-				public int compare(String a, String b)
-					{
-					return personCounts.get(b)[0] - personCounts.get(a)[0];
-					}
-			});
 
-		// build out the general stats
-		final StringBuilder statsBuilder = new StringBuilder();
-		Formatter f = new Formatter(statsBuilder, Locale.US);
-		statsBuilder.append(totalMessages + " sent messages\n");
-		statsBuilder.append((totalWords / totalMessages) + " words per message\n");
-		statsBuilder.append((totalChars / totalMessages) + " chars per message\n");
-		f.format("%.1f average word length\n", wordLength / (double)totalWords);
-		f.format("%.1f texts per month\n", dates.computeTextsPerMonth());
-		
-		// day of the week histogram
-		String[] days = new String[]{ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
-		int[] dayHist = dates.computeDayOfWeekHistogram();
-		for (int i = 0; i < dayHist.length; i++)
-			statsBuilder.append("Texts sent on " + days[i] + "s: " + dayHist[i] + "\n");
 
-		// build the display
+		/*********************** BUILD THE STRINGS ************************/
+
+		// KEY PHRASE DISPLAY
 		final StringBuilder phraseBuilder = new StringBuilder();
 		int current = 0;
 		for (String wordPair : pairs)
@@ -560,7 +543,21 @@ public class PersonalLingActivity extends Activity
 				break;
 			}
 		
+		if (phraseBuilder.length() == 0)
+			phraseBuilder.append("no phrases found");
+		
+		// CONTACT DISPLAY
 		final StringBuilder contactBuilder = new StringBuilder();
+
+		ArrayList<String> people = new ArrayList<String>(personCounts.keySet());
+		Collections.sort(people, new Comparator<String>()
+			{
+				public int compare(String a, String b)
+					{
+					return personCounts.get(b)[0] - personCounts.get(a)[0];
+					}
+			});
+		
 		for (String person : people)
 			{
 			if (personCounts.get(person)[0] <= 1)
@@ -571,23 +568,122 @@ public class PersonalLingActivity extends Activity
 			contactBuilder.append(personCounts.get(person)[0]);
 			contactBuilder.append(" messages\n");
 			}
+		
+		if (contactBuilder.length() == 0)
+			contactBuilder.append("no frequent contacts found");
+		
 		runtime.put("other", System.currentTimeMillis() - time);
 		
+		// build out the general stats
+		final StringBuilder statsBuilder = new StringBuilder();
+		Formatter f = new Formatter(statsBuilder, Locale.US);
+		statsBuilder.append(totalMessages + " sent messages\n");
+		statsBuilder.append((totalWords / totalMessages) + " words per message\n");
+		statsBuilder.append((totalChars / totalMessages) + " chars per message\n");
+		f.format("%.1f average word length\n", wordLength / (double)totalWords);
+		f.format("%.1f texts per month\n", dates.computeTextsPerMonth());
+		
+		// day of the week histogram
+		final StringBuilder dayBuilder = new StringBuilder();
+		String[] days = new String[]{ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+		int[] dayHist = dates.computeDayOfWeekHistogram();
+		for (int i = 0; i < dayHist.length; i++)
+			dayBuilder.append("Texts sent on " + days[i] + "s: " + dayHist[i] + "\n");
+		
+		
+		// time of day histogram
+		final StringBuilder hourBuilder = new StringBuilder();
+		f = new Formatter(hourBuilder, Locale.US);
+		int[] hourHist = dates.computeHourHistogram();
+		
+		// find the first and last nonzero
+		int first = 0, last = 24;
+		for (int i = 1; i < hourHist.length; i++)
+			{
+			if (first == 0 && hourHist[i] > 0)
+				first = i;
+			
+			if (hourHist[i] > 0)
+				last = i;
+			}
+		for (int i = first; i <= last; i++)
+			f.format("Texts at %2d:00: %d\n", i, hourHist[i]);
+
+		
+		// RUNTIME DISPLAY
 		final StringBuilder computeBuilder = new StringBuilder();
 		f = new Formatter(computeBuilder, Locale.US);
 		for (String unit : runtime.keySet())
 			{
 			f.format("%s: %.1fs\n", unit, runtime.get(unit)/1000.0);
 			}
+		
+		// build up a structure to populate a ListView
+		final ArrayList<HashMap<String,String>> listData = new ArrayList<HashMap<String,String>>();
+		listData.add(buildNameDesc(getString(R.string.key_phrases), phraseBuilder.toString()));
+		listData.add(buildNameDesc(getString(R.string.contacts), contactBuilder.toString()));
+		listData.add(buildNameDesc(getString(R.string.stats), statsBuilder.toString()));
+		listData.add(buildNameDesc(getString(R.string.runtime), computeBuilder.toString()));
+		
+		/*
+		final SimpleAdapter adapter = new SimpleAdapter(this, listData,
+				android.R.layout.simple_list_item_2,
+				new String[] { "name", "desc" },
+				new int[] { android.R.id.text1, android.R.id.text2 });
+				*/
+		
+		
+		
+		
+		/*************** SHOW IT *******************/
+		/*
+		runOnUiThread(new Runnable()
+			{
+			public void run()
+				{
+				setListAdapter(adapter);
+				//Toast.makeText(getApplicationContext(), "Tap Items to Share", Toast.LENGTH_LONG).show();
+				}
+			});
+			*/
 
 		runOnUiThread(new Runnable()
 			{
 			public void run()
 				{
-				TextView textView = (TextView) findViewById(R.id.phraseText);
+				ViewGroup parent = (ViewGroup) findViewById(R.id.linear);
 				
+				LayoutInflater inflater = getLayoutInflater();
+				
+				// key phrases
+				parent.addView(inflateResults(inflater, getString(R.string.key_phrases), phraseBuilder.toString()));
+				parent.addView(inflateResults(inflater, getString(R.string.contacts), contactBuilder.toString()));
+				parent.addView(inflateResults(inflater, getString(R.string.stats), statsBuilder.toString()));
+				parent.addView(inflateResults(inflater, getString(R.string.day_of_week), dayBuilder.toString()));
+				parent.addView(inflateResults(inflater, getString(R.string.time_of_day), hourBuilder.toString()));
+				parent.addView(inflateResults(inflater, getString(R.string.runtime), computeBuilder.toString()));
+/*				View view = inflater.inflate(R.layout.result,
+						null);
+				parent.addView(view);
+
+				TextView textView = (TextView) view.findViewById(android.R.id.text1);
+				textView.setText(R.string.key_phrases);
+				
+				textView = (TextView) view.findViewById(android.R.id.text2);
 				textView.setText(phraseBuilder.toString());
 
+				// contacts
+				view = inflater.inflate(R.layout.result,
+						null);
+				parent.addView(view);
+
+				textView = (TextView) view.findViewById(android.R.id.text1);
+				textView.setText(R.string.contacts);
+				
+				textView = (TextView) view.findViewById(android.R.id.text2);
+				textView.setText(contactBuilder.toString());
+
+				/*
 				textView = (TextView) findViewById(R.id.contactText);
 				textView.setText(contactBuilder.toString());
 
@@ -596,7 +692,48 @@ public class PersonalLingActivity extends Activity
 
 				textView = (TextView) findViewById(R.id.runtimeText);
 				textView.setText(computeBuilder.toString());
+				*/
 				}
 			});
+		}
+	
+	public static HashMap<String,String> buildNameDesc(String name, String desc)
+		{
+		HashMap<String,String> map = new HashMap<String,String>();
+		map.put("name", name);
+		map.put("desc", desc);
+		return map;
+		}
+	
+	public View inflateResults(LayoutInflater inflater, final String title, final String details)
+		{
+		// contacts
+		View view = inflater.inflate(R.layout.result,
+				null);
+
+		TextView textView = (TextView) view.findViewById(android.R.id.text1);
+		textView.setText(title);
+		
+		textView = (TextView) view.findViewById(android.R.id.text2);
+		textView.setText(details);
+		
+		ImageView shareView = (ImageView) view.findViewById(R.id.share);
+		shareView.setOnClickListener(new View.OnClickListener()
+			{
+			public void onClick(View v)
+				{
+				String subject = "Shared stats from " + getString(R.string.app_name);
+				String text = "Stats: " + title + ":\n" + details;
+				
+				Intent sendIntent = new Intent(Intent.ACTION_SEND);
+				sendIntent.setType("text/plain");
+				sendIntent.putExtra(Intent.EXTRA_TEXT, text);
+				sendIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
+				
+				startActivity(Intent.createChooser(sendIntent, "Share with..."));
+				}
+			});
+		
+		return view;
 		}
 	}

@@ -4,29 +4,34 @@ import static edu.udel.trnka.pl.Tokenizer.isNonword;
 import static edu.udel.trnka.pl.Tokenizer.tokenize;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 
 /**
  * Statistics about a homogeneous corpus, such as a single person's sent or received messages.
+ * Contains stats like unigrams, bigrams, trigrams, number of messages, message lengths, etc.
  * @author keith.trnka
  *
  */
 public class CorpusStats
 	{
-	int messages;
-	int filteredWords;
-	int unfilteredWords;
-	int chars;
-	int filteredWordLength;
+	private int messages;
+	private int filteredWords;
+	private int unfilteredWords;
+	private int chars;
+	private int filteredWordLength;
 	
-	HashMap<String,int[]> unigrams;
-	int unigramTotal;
+	private HashMap<String,int[]> unigrams;
+	private int unigramTotal;
 	
-	HashMap<String,HashMap<String, int[]>> bigrams;
-	int bigramTotal;
+	private HashMap<String,HashMap<String, int[]>> bigrams;
+	private int bigramTotal;
 	
-	HashMap<String,HashMap<String,HashMap<String, int[]>>> trigrams;
-	int trigramTotal;
+	private HashMap<String,HashMap<String,HashMap<String, int[]>>> trigrams;
+	private int trigramTotal;
+	
+	public static final double D = 0.3;
 	
 	public CorpusStats()
 		{
@@ -138,8 +143,108 @@ public class CorpusStats
 	public int getFilteredWords()
 		{
 		return filteredWords;
-		}	
+		}
 	
+	/**
+	 * Unigram probability (smoothed)
+	 */
+	public double getProb(String word)
+		{
+		if (unigrams.containsKey(word))
+			{
+			int count = unigrams.get(word)[0];
+			return (count - D) / unigramTotal;
+			}
+		else
+			{
+			// we discounted unigrams.size() of them, estimating unigrams.size() unknown words
+			return D / unigramTotal;
+			}
+		}
+
+	/**
+	 * Bigram joint probability (smoothed)
+	 */
+	public double getProb(String word1, String word2)
+		{
+		if (bigrams.containsKey(word1) && bigrams.get(word1).containsKey(word2))
+			{
+			int count = bigrams.get(word1).get(word2)[0];
+			return (count - D) / bigramTotal;
+			}
+		else
+			{
+			// we discounted bigrams.size() of them, estimating bigrams.size() unknown words
+			return D / bigramTotal;
+			}
+		}
+	
+	/**
+	 * Unigram probability (smoothed) minus any counts in subtractThis
+	 */
+	public double getProb(String word, CorpusStats subtractThis)
+		{
+		if (unigrams.containsKey(word))
+			{
+			int count = unigrams.get(word)[0];
+			
+			if (subtractThis.unigrams.containsKey(word))
+				count -= subtractThis.unigrams.get(word)[0];
+			
+			if (count == 0)
+				{
+				// we discounted unigrams.size() of them, estimating unigrams.size() unknown words
+				return D / (unigramTotal - subtractThis.unigramTotal);
+				}
+			else
+				{
+				return (count - D) / (unigramTotal - subtractThis.unigramTotal);
+				}
+			
+			}
+		else
+			{
+			// we discounted unigrams.size() of them, estimating unigrams.size() unknown words
+			return D / (unigramTotal - subtractThis.unigramTotal);
+			}
+		}
+
+	/**
+	 * Bigram joint probability (smoothed) minus any counts in subtractThis
+	 */
+	public double getProb(String word1, String word2, CorpusStats subtractThis)
+		{
+		if (bigrams.containsKey(word1) && bigrams.get(word1).containsKey(word2))
+			{
+			int count = bigrams.get(word1).get(word2)[0];
+			
+			if (subtractThis.bigrams.containsKey(word1) && subtractThis.bigrams.get(word1).containsKey(word2))
+				count -= subtractThis.bigrams.get(word1).get(word2)[0];
+			
+			if (count == 0)
+				{
+				// we discounted unigrams.size() of them, estimating unigrams.size() unknown words
+				return D / (bigramTotal - subtractThis.bigramTotal);
+				}
+			else
+				{
+				return (count - D) / (bigramTotal - subtractThis.bigramTotal);
+				}
+			
+			}
+		else
+			{
+			// we discounted unigrams.size() of them, estimating unigrams.size() unknown words
+			return D / (bigramTotal - subtractThis.bigramTotal);
+			}
+		}
+	
+	/**
+	 * Compute Jaccard coefficient over the full (unfiltered) vocabulary, which
+	 * is size(intersection)/size(union)
+	 * @param other
+	 * @return
+	 */
 	public double computeUnigramJaccard(CorpusStats other)
 		{
 		int intersection = 0;
@@ -157,5 +262,59 @@ public class CorpusStats
 				union++;
 		
 		return intersection / (double) union;
+		}
+	
+	/**
+	 * Assuming that the person measured in a and b are related, determine the interesting
+	 * terms that are unique to this association.
+	 */
+	public static ArrayList<String> computeRelationshipTerms(CorpusStats a, CorpusStats aSuperset, CorpusStats b, CorpusStats bSuperset)
+		{
+		// find unigrams in both, score them
+		final HashMap<String,int[]> candidates = new HashMap<String,int[]>();
+		for (String word : a.unigrams.keySet())
+			if (b.unigrams.containsKey(word))
+				if (!isNonword(word))
+					candidates.put(word, new int[] { (int)(100 * Math.log(a.getProb(word) / aSuperset.getProb(word, a))) + (int)(100 * Math.log(b.getProb(word) / bSuperset.getProb(word, b))) });
+		
+		// find bigrams in both, score them
+		for (String prev : a.bigrams.keySet())
+			if (b.bigrams.containsKey(prev) && !isNonword(prev))
+				for (String word : a.bigrams.get(prev).keySet())
+					if (b.bigrams.get(prev).containsKey(word) && !isNonword(word))
+						candidates.put(prev + " " + word, 
+								new int[] { (int)(100 * Math.log(a.getProb(prev, word) / aSuperset.getProb(prev, word, a))) + (int)(100 * Math.log(b.getProb(prev, word) / bSuperset.getProb(prev, word, b))) });
+
+		ArrayList<String> candidateList = new ArrayList<String>(candidates.keySet());
+		Collections.sort(candidateList, new Comparator<String>()
+			{
+			public int compare(String lhs, String rhs)
+				{
+				return candidates.get(rhs)[0] - candidates.get(lhs)[0];
+				}
+			});
+		
+		// basic ngram folding
+		for (int i = 0; i < 10 && i < candidateList.size(); i++)
+			{
+			String[] tokens = candidateList.get(i).split(" ");
+			
+			if (tokens.length == 2)
+				{
+				candidates.get(tokens[0])[0] = 0;
+				candidates.get(tokens[1])[0] = 0;
+				}
+			}
+		
+		// resort (should be fast - mostly in order)
+		Collections.sort(candidateList, new Comparator<String>()
+					{
+					public int compare(String lhs, String rhs)
+						{
+						return candidates.get(rhs)[0] - candidates.get(lhs)[0];
+						}
+					});
+
+		return candidateList;
 		}
 	}
