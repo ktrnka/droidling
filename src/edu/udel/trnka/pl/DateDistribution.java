@@ -91,7 +91,7 @@ public class DateDistribution
 	 * is size 25).
 	 * 
 	 * TODO: There's a bug in this function cause Java actually returns
-	 * a 0-23 value.
+	 * a 0-23 value and I didn't realize it.
 	 */
 	public int[] computeHourHistogram()
 		{

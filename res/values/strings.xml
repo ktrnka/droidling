@@ -12,8 +12,9 @@
     <string name="stats">General Stats</string>
     <string name="runtime">Runtime Stats (Development)</string>
     <string name="developer_email">keith.trnka@gmail.com</string>
-    <string name="time_of_day">Time of Day</string>
-    <string name="day_of_week">Day of Week</string>
+    <string name="time_of_day">Messages per hour</string>
+    <string name="day_of_week">Messages per day</string>
     <string name="share">Share</string>
-
+    <string name="loading">Scanning texts...</string>
+    
 </resources>

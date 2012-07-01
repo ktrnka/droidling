@@ -308,12 +308,15 @@ public class CorpusStats
 		
 		// resort (should be fast - mostly in order)
 		Collections.sort(candidateList, new Comparator<String>()
-					{
-					public int compare(String lhs, String rhs)
-						{
-						return candidates.get(rhs)[0] - candidates.get(lhs)[0];
-						}
-					});
+			{
+			public int compare(String lhs, String rhs)
+				{
+				return candidates.get(rhs)[0] - candidates.get(lhs)[0];
+				}
+			});
+		
+
+		// TODO: find an efficient way to remove any elements that have zero or negative score
 
 		return candidateList;
 		}

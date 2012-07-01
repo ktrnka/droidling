@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Locale;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.database.Cursor;
@@ -22,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class InterpersonalActivity extends Activity
 	{
@@ -29,10 +31,13 @@ public class InterpersonalActivity extends Activity
 	private boolean scanned;
 	private ArrayList<HashMap<String,String>> data;
 
+	static final int PROGRESS_DIALOG = 0;
+	private ProgressDialog progress;
+	
 	public void onCreate(Bundle savedInstanceState)
 		{
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.personal_new);
+		setContentView(R.layout.simple_scroll);
 		}
 	
 	public void onStart()
@@ -44,7 +49,8 @@ public class InterpersonalActivity extends Activity
 		if (!scanned)
 			{
 			// start progress
-			final ProgressDialog progress = ProgressDialog.show(InterpersonalActivity.this, "", "Scanning...", true);
+			// TODO: This is deprecated; I should use DialogFragment with FragmentManager via Android compatibility package
+			showDialog(PROGRESS_DIALOG);
 			
 			// run thread with callback to stop progress
 			new Thread()
@@ -57,6 +63,20 @@ public class InterpersonalActivity extends Activity
 					}
 				}.start();
 			scanned = true;
+			}
+		}
+
+	protected Dialog onCreateDialog(int id)
+		{
+		switch (id)
+			{
+			case PROGRESS_DIALOG:
+				progress = new ProgressDialog(InterpersonalActivity.this);
+				progress.setIndeterminate(true);
+				progress.setMessage(getString(R.string.loading));
+				return progress;
+			default:
+				return null;
 			}
 		}
 	
@@ -97,13 +117,17 @@ public class InterpersonalActivity extends Activity
 				contactMap.put(number, label);
 				} while (phones.moveToNext());
 			}
+		else
+			{
+			warning("No contacts found");
+			}
 		phones.close();
 		runtime.put("buildContactMap", System.currentTimeMillis() - time);
 		
 		/*************** PROCESS SENT MESSAGES *******************/
 		time = System.currentTimeMillis();
 		Uri uri = Uri.parse("content://sms/sent");
-		Cursor messages = getContentResolver().query(uri, new String[] { "body", "address" }, null, null, null);
+		Cursor messages = getContentResolver().query(uri, new String[] { "body", "address", "type" }, null, null, null);
 
 		final HashMap<String, int[]> sentCounts = new HashMap<String, int[]>();
 		
@@ -144,6 +168,12 @@ public class InterpersonalActivity extends Activity
 					overallSentStats.train(body);
 					}
 				} while (messages.moveToNext());
+			}
+		else
+			{
+			error("No sent messages found.");
+			messages.close();
+			return;
 			}
 		messages.close();
 		runtime.put("processSentTexts", System.currentTimeMillis() - time);
@@ -192,8 +222,90 @@ public class InterpersonalActivity extends Activity
 					}
 				} while (messages.moveToNext());
 			}
+		else
+			{
+			error("No received messages found.");
+			messages.close();
+			return;
+			}
 		messages.close();
 		runtime.put("processReceivedTexts", System.currentTimeMillis() - time);
+		
+		/*************** PROCESS IN THREADED VIEW ************************/
+		time = System.currentTimeMillis();
+		uri = Uri.parse("content://sms");
+		messages = getContentResolver().query(uri, new String[] { "address", "date", "type" }, null, null, "date asc");
+		
+		// mapping of (other person's parsed address) => [ type, date millis ]
+		HashMap<String,long[]> previousMessage = new HashMap<String,long[]>();
+		
+		HashMap<String,ArrayList<long[]>> theirReplyTimes = new HashMap<String,ArrayList<long[]>>();
+		HashMap<String,ArrayList<long[]>> yourReplyTimes = new HashMap<String,ArrayList<long[]>>();
+		
+		if (messages.moveToFirst())
+			{
+			do
+				{
+				// get the person's display string
+				String person = messages.getString(messages.getColumnIndexOrThrow("address"));
+				if (!contactMap.containsKey(PhoneNumberUtils.formatNumber(person)))
+					continue;
+				
+				person = contactMap.get(PhoneNumberUtils.formatNumber(person));
+				
+				long millis = messages.getLong(messages.getColumnIndexOrThrow("date"));
+				int type = messages.getInt(messages.getColumnIndexOrThrow("type"));
+				
+				// skip unknown message types (drafts, etc?)
+				if (type != 1 && type != 2)
+					continue;
+				
+				// figure out the time diff if possible
+				if (previousMessage.containsKey(person) && previousMessage.get(person)[0] != type)
+					{
+					// then treat it as a reply!
+					long diff = millis - previousMessage.get(person)[1];
+					
+					// responses within an hour
+					if (diff < 60l * 60 * 1000)
+						{
+						if (type == 1)
+							{
+							// received message
+							if (!theirReplyTimes.containsKey(person))
+								theirReplyTimes.put(person, new ArrayList<long[]>());
+							
+							theirReplyTimes.get(person).add(new long[] { diff });
+							}
+						else
+							{
+							// sent message
+							if (!yourReplyTimes.containsKey(person))
+								yourReplyTimes.put(person, new ArrayList<long[]>());
+							
+							yourReplyTimes.get(person).add(new long[] { diff });
+							}
+						}
+					}
+				
+				// update our tracking data structure
+				if (!previousMessage.containsKey(person))
+					previousMessage.put(person, new long[] { type, millis });
+				else
+					{
+					previousMessage.get(person)[0] = type;
+					previousMessage.get(person)[1] = millis;
+					}
+				} while (messages.moveToNext());
+
+			}
+		else
+			{
+			warning("Unable to scan all messages for response time.");
+			}
+		messages.close();
+		
+		
 		
 		/*************** ANALYSE, BUILD REPRESENTATION *******************/
 		
@@ -227,6 +339,8 @@ public class InterpersonalActivity extends Activity
 		data = new ArrayList<HashMap<String,String>>();
 		for (String contactName : contactList)
 			{
+			String firstName = extractPersonalName(contactName);
+			
 			int received = 0;
 			if (receivedCounts.containsKey(contactName))
 				received = receivedCounts.get(contactName)[0];
@@ -235,6 +349,7 @@ public class InterpersonalActivity extends Activity
 			if (sentCounts.containsKey(contactName))
 				sent = sentCounts.get(contactName)[0];
 			
+			// only summarize relationships with SOME symmetry
 			if (sent == 0 || received == 0)
 				continue;
 			
@@ -243,11 +358,11 @@ public class InterpersonalActivity extends Activity
 			
 			StringBuilder details = new StringBuilder();
 			Formatter f = new Formatter(details, Locale.US);
-			details.append("Received " + received + " texts\n");
-			f.format("Sent %d texts (%.1f%% of all sent)\n\n", sent, 100 * sent / (double)overallSentStats.getMessages());
+			details.append(firstName + " sent " + generateCountText(received, "text", "texts") + "\n");
+			f.format("You sent %s (%.1f%% of all sent)\n\n", generateCountText(sent, "text", "texts"), 100 * sent / (double)overallSentStats.getMessages());
 			
-			f.format("Received %d words\n", receivedStats.get(contactName).getFilteredWords());
-			f.format("Sent %d words\n\n", sentStats.get(contactName).getFilteredWords());
+			//f.format("Received %d words\n", receivedStats.get(contactName).getFilteredWords());
+			//f.format("Sent %d words\n\n", sentStats.get(contactName).getFilteredWords());
 
 			// these stats are eerie and boring
 			//f.format("Their avg word length: %.1f\n", receivedStats.get(contactName).getWordLength());
@@ -255,19 +370,34 @@ public class InterpersonalActivity extends Activity
 			//f.format("Your avg word length when texting THEM: %.1f\n", sentStats.get(contactName).getWordLength());
 			
 			// message length
-			f.format("Their avg message length: %.1f\n", receivedStats.get(contactName).getWordsPerMessage());
-			f.format("Your avg message length: %.1f\n", overallSentStats.getWordsPerMessage());
-			f.format("Your avg message length when texting THEM: %.1f\n\n", sentStats.get(contactName).getWordsPerMessage());
+			details.append("Average message length\n");
+			f.format(" %s: %.1f words\n", firstName, receivedStats.get(contactName).getWordsPerMessage());
+//			f.format("Your avg message length: %.1f\n", overallSentStats.getWordsPerMessage());
+			f.format(" You: %.1f words\n\n", sentStats.get(contactName).getWordsPerMessage());
 			
 			// Jaccard coeffients
-			f.format("Vocabulary overlap with your texts to them: %.1f%%\n", 100 * sentStats.get(contactName).computeUnigramJaccard(receivedStats.get(contactName)));
-			f.format("Vocabulary overlap with ALL your texts: %.1f%%\n", 100 * overallSentStats.computeUnigramJaccard(receivedStats.get(contactName)));
+			details.append("Shared vocabulary\n");
+			f.format(" with texts to them: %.1f%%\n", 100 * sentStats.get(contactName).computeUnigramJaccard(receivedStats.get(contactName)));
+			f.format(" with ALL your texts: %.1f%%\n", 100 * overallSentStats.computeUnigramJaccard(receivedStats.get(contactName)));
 			
 			// figure out the vocabulary overlap
 			ArrayList<String> sortedOverlap = CorpusStats.computeRelationshipTerms(receivedStats.get(contactName), overallReceivedStats, sentStats.get(contactName), overallSentStats);
-			details.append("\nShared key phrases:\n");
+			details.append("\nShared phrases:\n");
 			for (int i = 0; i < 10 && i < sortedOverlap.size(); i++)
-				details.append(sortedOverlap.get(i) + "\n");
+				details.append(" " + sortedOverlap.get(i) + "\n");
+			
+			details.append("\nAverage response time:\n");
+			// compute stats about the average response time
+			if (theirReplyTimes.containsKey(contactName))
+				{
+				ArrayList<long[]> replies = theirReplyTimes.get(contactName);
+				f.format(" %s: %s in %s\n", firstName, formatTime(averageSeconds(replies)), generateCountText(replies.size(), "text", "texts"));
+				}
+			if (yourReplyTimes.containsKey(contactName))
+				{
+				ArrayList<long[]> replies = yourReplyTimes.get(contactName);
+				f.format(" %s: %s in %s\n", "You", formatTime(averageSeconds(replies)), generateCountText(replies.size(), "text", "texts"));
+				}
 
 			item.put("details", details.toString());
 			data.add(item);
@@ -290,7 +420,6 @@ public class InterpersonalActivity extends Activity
 				}
 			});
 		}
-
 
 	public View inflateResults(LayoutInflater inflater, final String title, final String details)
 		{
@@ -323,4 +452,69 @@ public class InterpersonalActivity extends Activity
 		
 		return view;
 		}
-}
+	
+	public static double averageSeconds(ArrayList<long[]> list)
+		{
+		if (list.size() == 0)
+			return 0;
+
+		long total = 0;
+		for (long[] ms : list)
+			total += ms[0];
+		
+		return total / (1000.0 * list.size());
+		}
+	
+	public static String formatTime(double sec)
+		{
+		if (sec < 60)
+			{
+			Formatter f = new Formatter();
+			f.format("%d sec", (int)(sec + 0.5));
+			return f.toString();
+			}
+		else
+			{
+			Formatter f = new Formatter();
+			f.format("%d min", (int)(sec / 60));
+			return f.toString() + ", " + formatTime(sec % 60);
+			}
+		}
+	
+	public static String extractPersonalName(String displayName)
+		{
+		String[] tokens = displayName.split(" ");
+		
+		return tokens[0];
+		}
+	
+	public void warning(final String message)
+		{
+		runOnUiThread(new Runnable()
+			{
+				public void run()
+					{
+					Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+					}
+			});
+		}
+
+	public void error(final String message)
+		{
+		runOnUiThread(new Runnable()
+			{
+				public void run()
+					{
+					Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+					}
+			});
+		}
+	
+	public static String generateCountText(int number, String singular, String plural)
+		{
+		if (number == 1)
+			return number + " " + singular;
+		else
+			return number + " " + plural;
+		}
+	}

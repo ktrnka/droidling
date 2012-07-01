@@ -25,7 +25,7 @@ public class WordDistribution
 		{
 		this();
 		
-		BufferedReader in = new BufferedReader(new InputStreamReader(fin, Charset.forName("UTF-8")));
+		BufferedReader in = new BufferedReader(new InputStreamReader(fin, Charset.forName("UTF-8")), 8192);
 		String line = in.readLine();
 		total = Double.parseDouble(line.trim());
 		while ( (line = in.readLine()) != null)

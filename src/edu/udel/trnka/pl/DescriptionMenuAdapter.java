@@ -37,7 +37,7 @@ public class DescriptionMenuAdapter extends ArrayAdapter<String>
 			if (convertView == null)
 				{
 				LayoutInflater inflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-				convertView = inflater.inflate(android.R.layout.simple_list_item_2, null);
+				convertView = inflater.inflate(R.layout.listitem_2, null);
 				}
 			
 			// fill the data
@@ -56,7 +56,7 @@ public class DescriptionMenuAdapter extends ArrayAdapter<String>
 			if (convertView == null)
 				{
 				LayoutInflater inflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-				convertView = inflater.inflate(android.R.layout.simple_list_item_1, null);
+				convertView = inflater.inflate(R.layout.listitem_1, null);
 				}
 			
 			// fill the data
