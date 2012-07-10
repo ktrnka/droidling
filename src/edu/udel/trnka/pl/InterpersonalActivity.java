@@ -25,14 +25,22 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+/**
+ * An Activity for analysing relationships to your contacts.
+ * @author keith.trnka
+ *
+ */
 public class InterpersonalActivity extends Activity
 	{
 	private HashMap<String, Long> runtime;
 	private boolean scanned;
-	private ArrayList<HashMap<String,String>> data;
+	private ArrayList<HashMap<String,String>> listData;
 
-	static final int PROGRESS_DIALOG = 0;
+	private static final int PROGRESS_DIALOG = 0;
 	private ProgressDialog progress;
+	
+	private static final String CONTACT_NAME = "contact";
+	private static final String DETAILS = "details";
 	
 	public void onCreate(Bundle savedInstanceState)
 		{
@@ -84,14 +92,14 @@ public class InterpersonalActivity extends Activity
 		{
 		// figure out the text
 		String subject = "Shared stats from " + getString(R.string.app_name);
-		String body = "Analysis of SMS messages with " + data.get(position).get("contact") + ":\n" + data.get(position).get("details");
+		String body = "Analysis of SMS messages with " + listData.get(position).get(CONTACT_NAME) + ":\n" + listData.get(position).get(DETAILS);
 
 		Intent sendIntent = new Intent(Intent.ACTION_SEND);
 		sendIntent.setType("message/rfc822");
 		sendIntent.putExtra(Intent.EXTRA_TEXT, body);
 		sendIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
 		
-		startActivity(Intent.createChooser(sendIntent, "Share with..."));
+		startActivity(Intent.createChooser(sendIntent, getString(R.string.share_intent)));
 		}
 
 	private void scanSMS()
@@ -109,12 +117,15 @@ public class InterpersonalActivity extends Activity
 
 		if (phones.moveToFirst())
 			{
+			// TODO: Call getColumnIndex once, on the first message, and use the index the whole time (efficiency)
 			do
 				{
 				String number = phones.getString(phones.getColumnIndex(numberName));
 				String label = phones.getString(phones.getColumnIndex(labelName));
 
-				contactMap.put(number, label);
+				String formattedNumber = PhoneNumberUtils.formatNumber(number);
+				
+				contactMap.put(formattedNumber, label);
 				} while (phones.moveToNext());
 			}
 		else
@@ -232,6 +243,7 @@ public class InterpersonalActivity extends Activity
 		runtime.put("processReceivedTexts", System.currentTimeMillis() - time);
 		
 		/*************** PROCESS IN THREADED VIEW ************************/
+		// TODO:  switch all processing to use the FULL set of messages with this
 		time = System.currentTimeMillis();
 		uri = Uri.parse("content://sms");
 		messages = getContentResolver().query(uri, new String[] { "address", "date", "type" }, null, null, "date asc");
@@ -288,7 +300,7 @@ public class InterpersonalActivity extends Activity
 						}
 					}
 				
-				// update our tracking data structure
+				// update our tracking listData structure
 				if (!previousMessage.containsKey(person))
 					previousMessage.put(person, new long[] { type, millis });
 				else
@@ -336,7 +348,7 @@ public class InterpersonalActivity extends Activity
 			});
 		
 		// build the results into a list for SimpleAdapter
-		data = new ArrayList<HashMap<String,String>>();
+		listData = new ArrayList<HashMap<String,String>>();
 		for (String contactName : contactList)
 			{
 			String firstName = extractPersonalName(contactName);
@@ -354,7 +366,7 @@ public class InterpersonalActivity extends Activity
 				continue;
 			
 			HashMap<String,String> item = new HashMap<String,String>();
-			item.put("contact", contactName);
+			item.put(CONTACT_NAME, contactName);
 			
 			StringBuilder details = new StringBuilder();
 			Formatter f = new Formatter(details, Locale.US);
@@ -399,8 +411,8 @@ public class InterpersonalActivity extends Activity
 				f.format(" %s: %s in %s\n", "You", formatTime(averageSeconds(replies)), generateCountText(replies.size(), "text", "texts"));
 				}
 
-			item.put("details", details.toString());
-			data.add(item);
+			item.put(DETAILS, details.toString());
+			listData.add(item);
 			}
 		
 		/*************** SHOW IT *******************/
@@ -408,14 +420,14 @@ public class InterpersonalActivity extends Activity
 			{
 			public void run()
 				{
-				for (HashMap<String,String> item : data)
+				for (HashMap<String,String> item : listData)
 					{
 					ViewGroup parent = (ViewGroup) findViewById(R.id.linear);
 					
 					LayoutInflater inflater = getLayoutInflater();
 					
 					// key phrases
-					parent.addView(inflateResults(inflater, item.get("contact"), item.get("details")));
+					parent.addView(inflateResults(inflater, item.get(CONTACT_NAME), item.get(DETAILS)));
 					}
 				}
 			});
@@ -446,7 +458,7 @@ public class InterpersonalActivity extends Activity
 				sendIntent.putExtra(Intent.EXTRA_TEXT, text);
 				sendIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
 				
-				startActivity(Intent.createChooser(sendIntent, "Share with..."));
+				startActivity(Intent.createChooser(sendIntent, getString(R.string.share_intent)));
 				}
 			});
 		

@@ -4,7 +4,8 @@
     <string name="about">About</string>
     <string name="personal">Personal Statistics</string>
     <string name="interpersonal">Interpersonal Statistics</string>
-    <string name="app_descrip">This app will analyse your text messages and tell you a little about what makes you unique!  It also analyses the conversations with your friends and tells you about your relationships.</string>
+    <string name="app_descrip">Apply text analytics to your sent messages and see what makes your texts unique!
+        You can also apply analytics to your ongoing conversations with contacts to describe personal relationships.</string>
     <string name="app_credits">Made by Keith Trnka</string>
     <string name="nyi">Not yet implemented.</string>
     <string name="key_phrases">Key Phrases</string>
@@ -16,5 +17,6 @@
     <string name="day_of_week">Messages per day</string>
     <string name="share">Share</string>
     <string name="loading">Scanning texts...</string>
+    <string name="share_intent">Share with...</string>
     
 </resources>

@@ -28,15 +28,19 @@
         android:layout_above="@+id/graphGroup"
 	    />
 	 
-	
-   	<FrameLayout
+	<!-- 
+	This is the layout used by AChartEngine demo
+	<LinearLayout android:id="@+id/chart" android:orientation="horizontal"
+		android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_weight="1" />
+		 -->
+   	<LinearLayout
 	    android:id="@+id/graphGroup"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_below="@android:id/text1"
         >
-    </FrameLayout>
+    </LinearLayout>
 
 
 </RelativeLayout>

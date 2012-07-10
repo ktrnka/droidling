@@ -14,12 +14,13 @@ public final class R {
         public static final int icon=0x7f020000;
     }
     public static final class id {
-        public static final int about_credits=0x7f050000;
-        public static final int graphGroup=0x7f050002;
-        public static final int linear=0x7f050004;
-        public static final int scroll=0x7f050003;
-        public static final int share=0x7f050001;
-        public static final int testList=0x7f050005;
+        public static final int about_credits=0x7f050001;
+        public static final int about_description=0x7f050000;
+        public static final int graphGroup=0x7f050003;
+        public static final int linear=0x7f050005;
+        public static final int scroll=0x7f050004;
+        public static final int share=0x7f050002;
+        public static final int testList=0x7f050006;
     }
     public static final class layout {
         public static final int about=0x7f030000;
@@ -45,6 +46,7 @@ public final class R {
         public static final int personal=0x7f040002;
         public static final int runtime=0x7f04000a;
         public static final int share=0x7f04000e;
+        public static final int share_intent=0x7f040010;
         public static final int stats=0x7f040009;
         public static final int time_of_day=0x7f04000c;
     }

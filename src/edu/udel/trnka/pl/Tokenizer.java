@@ -11,7 +11,7 @@ public class Tokenizer
 	public static final Pattern backMatter = Pattern.compile("(.*\\w)(\\W+)");
 	public static final Pattern endsInAbbreviation = Pattern.compile(".*(Mr|Mrs|Dr|Jr|Ms|Prof|Sr|dept|Univ|Inc|Ltd|Co|Corp|Mt|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Sept|vs|etc|no)\\.");
 	public static final Pattern sentencePattern = Pattern.compile("(?<=[\\.?!][^\\w\\s]?)\\s+(?![a-z])");
-	public static final Pattern nonwordPattern = Pattern.compile("[^\\w']");
+	public static final Pattern nonwordPattern = Pattern.compile("[^\\w']|<s>|</s>");
 	
 	public static boolean isNonword(String word)
 		{

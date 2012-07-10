@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
@@ -21,7 +20,7 @@ public class TestActivity extends Activity implements OnItemClickListener
 		setContentView(R.layout.test);
 		
 		ListView list = (ListView) findViewById(R.id.testList);
-		String [] values = new String[] { "Personal Stats", "Interpersonal Stats", "About", "About2" };
+		
 		
 		//ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
 		//		android.R.layout.simple_list_item_1, android.R.id.text1, values);

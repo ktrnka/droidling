@@ -35,6 +35,7 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.MediaStore.Images;
 import android.telephony.PhoneNumberUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,6 +63,7 @@ public class PersonalActivity extends Activity
 
 	static final int PROGRESS_DIALOG = 0;
 	private ProgressDialog progress;
+	private static final String TAG = "edu.udel.trnka.pl/PersonalActivity";
 
 	public void onCreate(Bundle savedInstanceState)
 		{
@@ -215,8 +217,10 @@ public class PersonalActivity extends Activity
 				{
 				String number = phones.getString(phones.getColumnIndex(numberName));
 				String label = phones.getString(phones.getColumnIndex(labelName));
-
-				contactMap.put(number, label);
+				
+				String formattedNumber = PhoneNumberUtils.formatNumber(number);
+				
+				contactMap.put(formattedNumber, label);
 				} while (phones.moveToNext());
 			}
 		else
@@ -483,7 +487,7 @@ public class PersonalActivity extends Activity
 			{
 				public int compare(String a, String b)
 					{
-					return (int) (100 * (candidates.get(b)[0] - candidates.get(a)[0]));
+					return Double.compare(candidates.get(b)[0], candidates.get(a)[0]);
 					}
 			});
 
@@ -497,21 +501,26 @@ public class PersonalActivity extends Activity
 				// discount from the first word
 				if (candidates.containsKey(words[0]))
 					{
-					double ratio = bigrams.get(words[0]).get(words[1])[0] / unigrams.get(words[0])[0];
+					double ratio = bigrams.get(words[0]).get(words[1])[0] / (double) unigrams.get(words[0])[0];
 					double discount = ratio * candidates.get(words[0])[0];
 
 					candidates.get(words[0])[0] -= discount;
 					candidates.get(pairs.get(i))[0] += discount;
+					
+					if (Double.isNaN(ratio) || Double.isNaN(candidates.get(pairs.get(i))[0]))
+						Log.e(TAG, "NaN in " + pairs.get(i) + " / " + words[0]);
 					}
 
 				// discount from the second word
 				if (candidates.containsKey(words[1]))
 					{
-					double ratio = bigrams.get(words[0]).get(words[1])[0] / unigrams.get(words[1])[0];
+					double ratio = bigrams.get(words[0]).get(words[1])[0] / (double) unigrams.get(words[1])[0];
 					double discount = ratio * candidates.get(words[1])[0];
 
 					candidates.get(words[1])[0] -= discount;
 					candidates.get(pairs.get(i))[0] += discount;
+					if (Double.isNaN(ratio) || Double.isNaN(candidates.get(pairs.get(i))[0]))
+						Log.e(TAG, "NaN in " + pairs.get(i) + " / " + words[1]);
 					}
 				}
 			}
@@ -530,22 +539,28 @@ public class PersonalActivity extends Activity
 				if (candidates.containsKey(first))
 					{
 					double ratio = trigrams.get(words[0]).get(words[1]).get(words[2])[0]
-							/ bigrams.get(words[0]).get(words[1])[0];
+							/ (double) bigrams.get(words[0]).get(words[1])[0];
 					double discount = ratio * candidates.get(first)[0];
 
 					candidates.get(first)[0] -= discount;
 					candidates.get(pairs.get(i))[0] += discount;
+					if (Double.isNaN(ratio) || Double.isNaN(candidates.get(pairs.get(i))[0]))
+						Log.e(TAG, "NaN in " + pairs.get(i) + " / " + first);
+
 					}
 
 				// discount from the second word
 				if (candidates.containsKey(second))
 					{
 					double ratio = trigrams.get(words[0]).get(words[1]).get(words[2])[0]
-							/ bigrams.get(words[1]).get(words[2])[0];
+							/ (double) bigrams.get(words[1]).get(words[2])[0];
 					double discount = ratio * candidates.get(second)[0];
 
 					candidates.get(second)[0] -= discount;
 					candidates.get(pairs.get(i))[0] += discount;
+
+					if (Double.isNaN(ratio) || Double.isNaN(candidates.get(pairs.get(i))[0]))
+						Log.e(TAG, "NaN in " + pairs.get(i) + " / " + second);
 					}
 				}
 			}
@@ -555,7 +570,7 @@ public class PersonalActivity extends Activity
 			{
 				public int compare(String a, String b)
 					{
-					return (int) (100 * (candidates.get(b)[0] - candidates.get(a)[0]));
+					return Double.compare(candidates.get(b)[0], candidates.get(a)[0]);
 					}
 			});
 
@@ -647,10 +662,10 @@ public class PersonalActivity extends Activity
 				parent.addView(inflateResults(inflater, getString(R.string.contacts), contactBuilder.toString()));
 				parent.addView(inflateResults(inflater, getString(R.string.stats), statsBuilder.toString()));
 				
-				GraphicalView dayChart = buildDayChart(getApplicationContext(), dayHist);
+				GraphicalView dayChart = buildDayChart(PersonalActivity.this, dayHist);
 				parent.addView(inflateChart(inflater, getString(R.string.day_of_week), dayChart));
 				
-				GraphicalView hourChart = buildHourChart(getApplicationContext(), hourHist);
+				GraphicalView hourChart = buildHourChart(PersonalActivity.this, hourHist);
 				parent.addView(inflateChart(inflater, getString(R.string.time_of_day), hourChart));
 
 				parent.addView(inflateResults(inflater, getString(R.string.runtime), computeBuilder.toString()));
@@ -716,7 +731,7 @@ public class PersonalActivity extends Activity
 		textView.setText(title);
 		
 		// setup the graph
-		FrameLayout container = (FrameLayout) view.findViewById(R.id.graphGroup);
+		ViewGroup container = (ViewGroup) view.findViewById(R.id.graphGroup);
 
 		// TODO: This method for getting height is deprecated
 		int screenHeight = getWindowManager().getDefaultDisplay().getHeight();
@@ -732,7 +747,7 @@ public class PersonalActivity extends Activity
 				{
 	            Bitmap bitmap = graph.toBitmap();
 
-                String path = Images.Media.insertImage(getContentResolver(), bitmap, "title", null);
+                String path = Images.Media.insertImage(getContentResolver(), bitmap, title, null);
                 Uri screenshotUri = Uri.parse(path);
                 Intent intent = new Intent( android.content.Intent.ACTION_SEND);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -856,6 +871,8 @@ public class PersonalActivity extends Activity
 		// disable interaction
 		renderer.setPanEnabled(false, false);
 		renderer.setZoomEnabled(false);
+		
+		renderer.setInScroll(true);
 
 	    return renderer;
 		}

@@ -31,6 +31,9 @@ public class CorpusStats
 	private HashMap<String,HashMap<String,HashMap<String, int[]>>> trigrams;
 	private int trigramTotal;
 	
+	/**
+	 * parameter for absolute discounting
+	 */
 	public static final double D = 0.3;
 	
 	public CorpusStats()
@@ -319,5 +322,35 @@ public class CorpusStats
 		// TODO: find an efficient way to remove any elements that have zero or negative score
 
 		return candidateList;
+		}
+	
+	/**
+	 * Generate the single most probable message according to the trigram model.
+	 * If it's not built from much data, it's probably an exact message.
+	 * @return
+	 */
+	public String generateBestMessage()
+		{
+		return "";
+		}
+
+	/**
+	 * Generate N random messages according to the trigram/bigram model.
+	 * @param N
+	 * @return
+	 */
+	public ArrayList<String> generateRandomMessages(int N)
+		{
+		return null;
+		}
+	
+	/**
+	 * Find the N most probable messages of the input.
+	 * @param N
+	 * @return The most probable subset of the messages.
+	 */
+	public ArrayList<String> pickBest(ArrayList<String> messages, int N)
+		{
+		return messages;
 		}
 	}
