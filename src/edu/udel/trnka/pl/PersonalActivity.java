@@ -115,7 +115,8 @@ public class PersonalActivity extends Activity
 		long time = System.currentTimeMillis();
 		try
 			{
-			corpusUnigrams = new WordDistribution(getAssets().open("unigrams.utf8.txt"));
+			corpusUnigrams = new WordDistribution(getAssets().open("unigrams.utf8.txt"), false);
+			//corpusUnigrams = new WordDistribution(getAssets().open("unigrams.bin"), true);
 			}
 		catch (IOException e)
 			{

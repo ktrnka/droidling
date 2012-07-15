@@ -1,6 +1,8 @@
 package edu.udel.trnka.pl;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,26 +23,51 @@ public class WordDistribution
 		total = 0;
 		}
 	
-	public WordDistribution(InputStream fin) throws IOException
+	public WordDistribution(InputStream fin, boolean isBinary) throws IOException
 		{
 		this();
 		
-		BufferedReader in = new BufferedReader(new InputStreamReader(fin, Charset.forName("UTF-8")), 8192);
-		String line = in.readLine();
-		total = Integer.parseInt(line);
-		while ( (line = in.readLine()) != null)
+		if (!isBinary)
 			{
-			int tab = line.indexOf('\t');
-			if (tab != -1)
+			BufferedReader in = new BufferedReader(new InputStreamReader(fin, Charset.forName("UTF-8")), 8192);
+			String line = in.readLine();
+			total = Integer.parseInt(line);
+			while ( (line = in.readLine()) != null)
 				{
-				String word = line.substring(0, tab);
-				String numeric = line.substring(tab + 1);
-				counts.put(word, new int[] { Integer.parseInt(numeric) });
+				int tab = line.indexOf('\t');
+				if (tab != -1)
+					{
+					String word = line.substring(0, tab);
+					String numeric = line.substring(tab + 1);
+					counts.put(word, new int[] { Integer.parseInt(numeric) });
+					}
+				
+				// note: I originally used String.split for this but the performance was AWFUL (like 0.7s vs 2.4s)
 				}
-			//String[] parts = line.trim().split("\t");
-			//counts.put(parts[0], new int[] { Integer.parseInt(parts[1]) });
+			in.close();
 			}
-		in.close();
+		else
+			{
+			DataInputStream in = new DataInputStream(new BufferedInputStream(fin));
+			try
+				{
+				total = in.readInt();
+				String word;
+				while ((word = in.readUTF()) != null)
+					{
+					counts.put(word, new int[] { in.readInt() });
+					}
+				in.close();
+				}
+			catch (EOFException exc)
+				{
+				// this is normal for some awful reason
+				}
+			finally
+				{
+				in.close();
+				}
+			}
 		}
 
 	public void train(String filename) throws IOException
@@ -80,14 +107,7 @@ public class WordDistribution
 	 */
 	public void save(String filename) throws IOException
 		{
-		ArrayList<String> words = new ArrayList<String>(counts.keySet());
-		Collections.sort(words, new Comparator<String>()
-				{
-				public int compare(String a, String b)
-					{
-					return counts.get(b)[0] - counts.get(a)[0];
-					}
-				});
+		ArrayList<String> words = getSortedWords();
 		
 		PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(filename), Charset.forName("UTF-8")));
 		out.println(total);
@@ -96,6 +116,37 @@ public class WordDistribution
 			out.println(word + "\t" + counts.get(word)[0]);
 			}
 		out.close();
+		}
+	
+	public void saveBinary(String filename) throws IOException
+		{
+		ArrayList<String> words = getSortedWords();
+		
+		DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(filename)));
+		out.writeInt(total);
+		for (String word : words)
+			{
+			out.writeUTF(word);
+			out.writeInt(counts.get(word)[0]);
+			}
+		out.close();
+		}
+	
+	/**
+	 * Compute the list of words, ordered descening by frequency.
+	 * @return
+	 */
+	public ArrayList<String> getSortedWords()
+		{
+		ArrayList<String> words = new ArrayList<String>(counts.keySet());
+		Collections.sort(words, new Comparator<String>()
+				{
+				public int compare(String a, String b)
+					{
+					return counts.get(b)[0] - counts.get(a)[0];
+					}
+				});
+		return words;
 		}
 	
 	public double expectedFrequency(String word1, String word2, double localTotal)
@@ -136,6 +187,7 @@ public class WordDistribution
 		WordDistribution dist = new WordDistribution();
 		dist.train("C:/Users/keith.trnka/Documents/corpora/enronmobile/enronmobile/mobile_orig_simple.txt");
 		dist.save("C:/Users/keith.trnka/workspace/PersonalLinguistics/assets/unigrams.utf8.txt");
+		dist.saveBinary("C:/Users/keith.trnka/workspace/PersonalLinguistics/assets/unigrams.bin");
 		}
 
 	}
