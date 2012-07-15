@@ -13,8 +13,6 @@ import java.util.Date;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Locale;
-
 import org.achartengine.GraphicalView;
 import org.achartengine.chart.BarChart;
 import org.achartengine.model.CategorySeries;
@@ -39,7 +37,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -301,6 +298,7 @@ public class PersonalActivity extends Activity
 				for (String token : tokens)
 					{
 					// TODO: change this to truecasing
+					// TODO: first short term solution would be to run lowercase on the entire message in a single pass first
 					token = token.toLowerCase();
 
 					// unigrams
@@ -623,7 +621,8 @@ public class PersonalActivity extends Activity
 
 		// build out the general stats
 		final StringBuilder statsBuilder = new StringBuilder();
-		Formatter f = new Formatter(statsBuilder, Locale.US);
+		// TODO: confirm that this correctly uses Locale when it's German or a Euro Locale
+		Formatter f = new Formatter(statsBuilder);
 		statsBuilder.append(totalMessages + " sent messages\n");
 		f.format("%.1f texts per month\n", dates.computeTextsPerMonth());
 		statsBuilder.append((totalWords / totalMessages) + " words per message\n");
@@ -640,7 +639,7 @@ public class PersonalActivity extends Activity
 
 		// RUNTIME DISPLAY
 		final StringBuilder computeBuilder = new StringBuilder();
-		f = new Formatter(computeBuilder, Locale.US);
+		f = new Formatter(computeBuilder);
 		double totalSeconds = 0;
 		for (String unit : runtime.keySet())
 			{

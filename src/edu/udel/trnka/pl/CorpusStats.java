@@ -2,11 +2,15 @@ package edu.udel.trnka.pl;
 
 import static edu.udel.trnka.pl.Tokenizer.isNonword;
 import static edu.udel.trnka.pl.Tokenizer.tokenize;
+import static edu.udel.trnka.pl.Tokenizer.messageStart;
+import static edu.udel.trnka.pl.Tokenizer.messageEnd;
+import static edu.udel.trnka.pl.Tokenizer.nospacePunctPattern;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.regex.Matcher;
 
 /**
  * Statistics about a homogeneous corpus, such as a single person's sent or received messages.
@@ -58,7 +62,10 @@ public class CorpusStats
 		messages++;
 		chars += message.length();
 		
-		ArrayList<String> tokens = tokenize(message);
+		ArrayList<String> tokens = new ArrayList<String>();
+		tokens.add(messageStart);
+		tokens.addAll(tokenize(message));
+		tokens.add(messageEnd);
 		
 		// update the ngrams!
 		String previous = null, ppWord = null;
@@ -329,9 +336,169 @@ public class CorpusStats
 	 * If it's not built from much data, it's probably an exact message.
 	 * @return
 	 */
-	public String generateBestMessage()
+	public String generateBestMessage(boolean useTrigrams)
 		{
-		return "";
+		ArrayList<String> tokens = new ArrayList<String>();
+
+		String ppWord = null, prev = messageStart;
+		while (tokens.size() < 40)
+			{
+			// load the best trigram (or bigram if none available)
+			HashMap<String, int[]> distribution;
+			if (ppWord == null || !useTrigrams)
+				distribution = bigrams.get(prev);
+			else
+				{
+				HashMap<String,HashMap<String, int[]>> bigramDist = trigrams.get(ppWord);
+				distribution = bigramDist.get(prev);
+				}
+			
+			String bestWord = null;
+			int bestFreq = 0;
+			for (String word : distribution.keySet())
+				if (bestFreq == 0 || bestFreq < distribution.get(word)[0])
+					{
+					bestWord = word;
+					bestFreq = distribution.get(word)[0];
+					}
+			
+			if (bestWord.equals(messageEnd))
+				break;
+
+			tokens.add(bestWord);
+			
+			// advance
+			ppWord = prev;
+			prev = bestWord;
+			}
+		
+		StringBuilder b = new StringBuilder();
+		for (int i = 0; i < tokens.size(); i++)
+			if (i == 0)
+				b.append(tokens.get(i));
+			else
+				{
+				Matcher m = nospacePunctPattern.matcher(tokens.get(i));
+				if (!m.matches())
+					b.append(" ");
+
+				b.append(tokens.get(i));
+				}
+		return b.toString();
+		}
+	
+	public String generateRandomMessage(boolean useTrigrams)
+		{
+		ArrayList<String> tokens = new ArrayList<String>();
+
+		String ppWord = null, prev = messageStart;
+		while (tokens.size() < 40)
+			{
+			// load the best trigram (or bigram if none available)
+			HashMap<String, int[]> distribution;
+			int total;
+			if (ppWord == null || !useTrigrams)
+				{
+				distribution = bigrams.get(prev);
+				total = unigrams.get(prev)[0];
+				}
+			else
+				{
+				HashMap<String,HashMap<String, int[]>> bigramDist = trigrams.get(ppWord);
+				distribution = bigramDist.get(prev);
+				
+				total = bigrams.get(ppWord).get(prev)[0];
+				}
+			
+			// generate a rand, scale to total
+			int target = (int)(total * Math.random());
+			
+			int seenFrequency = 0;
+			String bestWord = null;
+			for (String word : distribution.keySet())
+				{
+				seenFrequency += distribution.get(word)[0];
+				if (seenFrequency > target)
+					{
+					bestWord = word;
+					break;
+					}
+				}
+			
+			if (bestWord.equals(messageEnd))
+				break;
+
+			tokens.add(bestWord);
+			
+			// advance
+			ppWord = prev;
+			prev = bestWord;
+			}
+		
+		StringBuilder b = new StringBuilder();
+		for (int i = 0; i < tokens.size(); i++)
+			if (i == 0)
+				b.append(tokens.get(i));
+			else
+				{
+				Matcher m = nospacePunctPattern.matcher(tokens.get(i));
+				if (!m.matches())
+					b.append(" ");
+
+				b.append(tokens.get(i));
+				}
+		return b.toString();
+		}
+	
+	public ArrayList<String> generateRandomMessageTokens(boolean useTrigrams)
+		{
+		ArrayList<String> tokens = new ArrayList<String>();
+
+		String ppWord = null, prev = messageStart;
+		while (tokens.size() < 40)
+			{
+			// load the best trigram (or bigram if none available)
+			HashMap<String, int[]> distribution;
+			int total;
+			if (ppWord == null || !useTrigrams)
+				{
+				distribution = bigrams.get(prev);
+				total = unigrams.get(prev)[0];
+				}
+			else
+				{
+				HashMap<String,HashMap<String, int[]>> bigramDist = trigrams.get(ppWord);
+				distribution = bigramDist.get(prev);
+				
+				total = bigrams.get(ppWord).get(prev)[0];
+				}
+			
+			// generate a rand, scale to total
+			int target = (int)(total * Math.random());
+			
+			int seenFrequency = 0;
+			String bestWord = null;
+			for (String word : distribution.keySet())
+				{
+				seenFrequency += distribution.get(word)[0];
+				if (seenFrequency > target)
+					{
+					bestWord = word;
+					break;
+					}
+				}
+			
+			if (bestWord.equals(messageEnd))
+				break;
+
+			tokens.add(bestWord);
+			
+			// advance
+			ppWord = prev;
+			prev = bestWord;
+			}
+		
+		return tokens;
 		}
 
 	/**
@@ -341,16 +508,37 @@ public class CorpusStats
 	 */
 	public ArrayList<String> generateRandomMessages(int N)
 		{
-		return null;
+		ArrayList<String> messages = new ArrayList<String>();
+		
+		for (int i = 0; i < N; i++)
+			{
+			messages.add(generateRandomMessage(false));
+			}
+		return messages;
 		}
 	
 	/**
-	 * Find the N most probable messages of the input.
-	 * @param N
+	 * Generate a set of messages of size M, then select the N most probable.
+	 * @param N The number of messages you want
+	 * @param M The number to pick N from (if you pick too many, you'll likely get similar messages, but too few and they'll be too random)
 	 * @return The most probable subset of the messages.
 	 */
-	public ArrayList<String> pickBest(ArrayList<String> messages, int N)
+	public ArrayList<String> generateSemiRandom(int N, int M)
 		{
-		return messages;
+		ArrayList<ArrayList<String>> messages = new ArrayList<ArrayList<String>>();
+		
+		// generate M
+		for (int i = 0; i < M; i++)
+			{
+			messages.add(generateRandomMessageTokens(false));
+			}
+		
+		// score them all
+		
+		// sort
+		
+		// pick the top
+		assert(false);
+		return null;
 		}
 	}

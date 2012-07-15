@@ -18,5 +18,7 @@
     <string name="share">Share</string>
     <string name="loading">Scanning texts...</string>
     <string name="share_intent">Share with...</string>
+    <string name="none">none</string>
+    <string name="not_enough_replies">Not enough replies from %s.</string>
     
 </resources>

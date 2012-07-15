@@ -6,8 +6,6 @@ import java.util.Comparator;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Locale;
-
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -369,7 +367,7 @@ public class InterpersonalActivity extends Activity
 			item.put(CONTACT_NAME, contactName);
 			
 			StringBuilder details = new StringBuilder();
-			Formatter f = new Formatter(details, Locale.US);
+			Formatter f = new Formatter(details);
 			details.append(firstName + " sent " + generateCountText(received, "text", "texts") + "\n");
 			f.format("You sent %s (%.1f%% of all sent)\n\n", generateCountText(sent, "text", "texts"), 100 * sent / (double)overallSentStats.getMessages());
 			
@@ -395,8 +393,16 @@ public class InterpersonalActivity extends Activity
 			// figure out the vocabulary overlap
 			ArrayList<String> sortedOverlap = CorpusStats.computeRelationshipTerms(receivedStats.get(contactName), overallReceivedStats, sentStats.get(contactName), overallSentStats);
 			details.append("\nShared phrases:\n");
-			for (int i = 0; i < 10 && i < sortedOverlap.size(); i++)
-				details.append(" " + sortedOverlap.get(i) + "\n");
+			if (sortedOverlap.size() == 0)
+				{
+				details.append(" " + getString(R.string.none));
+				details.append("\n");
+				}
+			else
+				{
+				for (int i = 0; i < 10 && i < sortedOverlap.size(); i++)
+					details.append(" " + sortedOverlap.get(i) + "\n");
+				}
 			
 			details.append("\nAverage response time:\n");
 			// compute stats about the average response time
@@ -405,11 +411,37 @@ public class InterpersonalActivity extends Activity
 				ArrayList<long[]> replies = theirReplyTimes.get(contactName);
 				f.format(" %s: %s in %s\n", firstName, formatTime(averageSeconds(replies)), generateCountText(replies.size(), "text", "texts"));
 				}
+			else
+				{
+				f.format(" " + getString(R.string.not_enough_replies) + "\n", firstName);
+				}
+
 			if (yourReplyTimes.containsKey(contactName))
 				{
 				ArrayList<long[]> replies = yourReplyTimes.get(contactName);
 				f.format(" %s: %s in %s\n", "You", formatTime(averageSeconds(replies)), generateCountText(replies.size(), "text", "texts"));
 				}
+			else
+				{
+				f.format(" " + getString(R.string.not_enough_replies) + "\n", "you");
+				}
+			
+			// generate the single most likely full messages
+			details.append("\nBest trigram generation\n");
+			f.format(" %s: %s\n", firstName, receivedStats.get(contactName).generateBestMessage(true));
+			f.format(" You: %s\n", sentStats.get(contactName).generateBestMessage(true));
+
+			details.append("\nBest bigram generation\n");
+			f.format(" %s: %s\n", firstName, receivedStats.get(contactName).generateBestMessage(false));
+			f.format(" You: %s\n", sentStats.get(contactName).generateBestMessage(false));
+
+			details.append("\nRandom trigram generation\n");
+			f.format(" %s: %s\n", firstName, receivedStats.get(contactName).generateRandomMessage(true));
+			f.format(" You: %s\n", sentStats.get(contactName).generateRandomMessage(true));
+
+			details.append("\nRandom bigram generation\n");
+			f.format(" %s: %s\n", firstName, receivedStats.get(contactName).generateRandomMessage(false));
+			f.format(" You: %s\n", sentStats.get(contactName).generateRandomMessage(false));
 
 			item.put(DETAILS, details.toString());
 			listData.add(item);

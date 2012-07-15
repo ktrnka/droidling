@@ -20,6 +20,8 @@ public class HomeActivity extends ListActivity
 	// TODO:  I don't like how this uses parallel arrays.  I'd much rather do something like make an instance that has all this (could I do it by overriding toString in the Activities?)
 	private static final Class<?>[] activities = { PersonalActivity.class, InterpersonalActivity.class, null, AboutActivity.class };
 	
+	public static final boolean DEVELOPER_MODE = true;
+	
 	public void onCreate(Bundle savedInstanceState)
 		{
 		super.onCreate(savedInstanceState);

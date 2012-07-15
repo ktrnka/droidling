@@ -42,6 +42,8 @@ public final class R {
         public static final int interpersonal=0x7f040003;
         public static final int key_phrases=0x7f040007;
         public static final int loading=0x7f04000f;
+        public static final int none=0x7f040011;
+        public static final int not_enough_replies=0x7f040012;
         public static final int nyi=0x7f040006;
         public static final int personal=0x7f040002;
         public static final int runtime=0x7f04000a;
