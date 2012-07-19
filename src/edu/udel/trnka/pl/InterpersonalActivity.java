@@ -36,6 +36,7 @@ public class InterpersonalActivity extends Activity
 
 	private static final int PROGRESS_DIALOG = 0;
 	private ProgressDialog progress;
+	private HashMap<String,ArrayList<String[]>> contactMap;
 	
 	private static final String CONTACT_NAME = "contact";
 	private static final String DETAILS = "details";
@@ -103,9 +104,12 @@ public class InterpersonalActivity extends Activity
 	private void scanSMS()
 		{
 		long time = System.currentTimeMillis();
-		final HashMap<String, String> contactMap = new HashMap<String, String>();
+		//final HashMap<String, String> contactMap = new HashMap<String, String>();
 
 		/*************** LOAD CONTACTS *******************/
+		buildContactMap();
+		
+		/*
 		String numberName = ContactsContract.CommonDataKinds.Phone.NUMBER;
 		String labelName = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME;
 		String[] phoneLookupProjection = new String[] { numberName, labelName };
@@ -132,6 +136,7 @@ public class InterpersonalActivity extends Activity
 			}
 		phones.close();
 		runtime.put("buildContactMap", System.currentTimeMillis() - time);
+		*/
 		
 		/*************** PROCESS SENT MESSAGES *******************/
 		time = System.currentTimeMillis();
@@ -151,8 +156,9 @@ public class InterpersonalActivity extends Activity
 				// figure out the name of the destination, store it in person
 				String recipientId = messages.getString(messages.getColumnIndexOrThrow("address"));
 
-				String recipientName = null;
+				String recipientName = lookupName(recipientId);
 
+				/*
 				if (contactMap.containsKey(recipientId))
 					recipientName = contactMap.get(recipientId);
 				else
@@ -160,7 +166,10 @@ public class InterpersonalActivity extends Activity
 					recipientId = PhoneNumberUtils.formatNumber(recipientId);
 					if (contactMap.containsKey(recipientId))
 						recipientName = contactMap.get(recipientId);
+					else
+						recipientName = PhoneNumberUtils.formatNumber(recipientId);
 					}
+					*/
 
 				if (recipientName != null)
 					{
@@ -204,8 +213,9 @@ public class InterpersonalActivity extends Activity
 				// figure out the name of the destination, store it in person
 				String senderId = messages.getString(messages.getColumnIndexOrThrow("address"));
 
-				String senderName = null;
+				String senderName = lookupName(senderId);
 
+				/*
 				if (contactMap.containsKey(senderId))
 					senderName = contactMap.get(senderId);
 				else
@@ -213,7 +223,10 @@ public class InterpersonalActivity extends Activity
 					senderId = PhoneNumberUtils.formatNumber(senderId);
 					if (contactMap.containsKey(senderId))
 						senderName = contactMap.get(senderId);
+					else
+						senderName = PhoneNumberUtils.formatNumber(senderId);
 					}
+					*/
 
 				if (senderName != null)
 					{
@@ -258,11 +271,20 @@ public class InterpersonalActivity extends Activity
 				{
 				// get the person's display string
 				String person = messages.getString(messages.getColumnIndexOrThrow("address"));
-				if (!contactMap.containsKey(PhoneNumberUtils.formatNumber(person)))
+				
+				person = lookupName(person);
+				if (person == null)
 					continue;
-				
-				person = contactMap.get(PhoneNumberUtils.formatNumber(person));
-				
+				/*
+				if (!contactMap.containsKey(PhoneNumberUtils.formatNumber(person)))
+					{
+					//continue;
+					}
+				else
+					{
+					person = contactMap.get(PhoneNumberUtils.formatNumber(person));
+					}
+				*/
 				long millis = messages.getLong(messages.getColumnIndexOrThrow("date"));
 				int type = messages.getInt(messages.getColumnIndexOrThrow("type"));
 				
@@ -321,7 +343,8 @@ public class InterpersonalActivity extends Activity
 		
 		// score the contacts for sorting
 		final HashMap<String,int[]> scoredContacts = new HashMap<String,int[]>();
-		HashSet<String> uniqueContacts = new HashSet<String>(contactMap.values());
+		HashSet<String> uniqueContacts = new HashSet<String>(sentStats.keySet());
+		uniqueContacts.addAll(sentStats.keySet());
 		for (String contact : uniqueContacts)
 			{
 			int score = 0;
@@ -427,6 +450,7 @@ public class InterpersonalActivity extends Activity
 				}
 			
 			// generate the single most likely full messages
+			/*
 			details.append("\nBest trigram generation\n");
 			f.format(" %s: %s\n", firstName, receivedStats.get(contactName).generateBestMessage(true));
 			f.format(" You: %s\n", sentStats.get(contactName).generateBestMessage(true));
@@ -434,6 +458,7 @@ public class InterpersonalActivity extends Activity
 			details.append("\nBest bigram generation\n");
 			f.format(" %s: %s\n", firstName, receivedStats.get(contactName).generateBestMessage(false));
 			f.format(" You: %s\n", sentStats.get(contactName).generateBestMessage(false));
+			*/
 
 			details.append("\nRandom trigram generation\n");
 			f.format(" %s: %s\n", firstName, receivedStats.get(contactName).generateRandomMessage(true));
@@ -463,6 +488,79 @@ public class InterpersonalActivity extends Activity
 					}
 				}
 			});
+		}
+	
+	private void buildContactMap()
+		{
+		long time = System.currentTimeMillis();
+		contactMap = new HashMap<String,ArrayList<String[]>>();
+
+		String numberName = ContactsContract.CommonDataKinds.Phone.NUMBER;
+		String labelName = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME;
+		String[] phoneLookupProjection = new String[] { numberName, labelName };
+
+		Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+				phoneLookupProjection, null, null, null);
+
+		if (phones.moveToFirst())
+			{
+			int phoneIndex = phones.getColumnIndex(numberName);
+			int labelIndex = phones.getColumnIndex(labelName);
+			
+			do
+				{
+				String number = phones.getString(phoneIndex);
+				String label = phones.getString(labelIndex);
+				
+				String minMatch = PhoneNumberUtils.toCallerIDMinMatch(number);
+				
+				if (contactMap.containsKey(minMatch))
+					{
+					contactMap.get(minMatch).add(new String[] { number, label });
+					}
+				else
+					{
+					ArrayList<String[]> matchList = new ArrayList<String[]>();
+					matchList.add(new String[] { number, label });
+					contactMap.put(minMatch, matchList);
+					}
+				
+				} while (phones.moveToNext());
+			}
+		else
+			{
+			warning("No contacts found.");
+			}
+		phones.close();
+		runtime.put("scanning contacts", System.currentTimeMillis() - time);
+		}
+	
+	/**
+	 * The number may be in a very different format than the way it's stored in contacts.
+	 * @param number
+	 * @return The display name value if found, null if not.
+	 */
+	private String lookupName(String number)
+		{
+		if (contactMap == null)
+			return null;
+		
+		String minMatch = PhoneNumberUtils.toCallerIDMinMatch(number);
+		
+		if (!contactMap.containsKey(minMatch))
+			return null;
+		
+		ArrayList<String[]> matchList = contactMap.get(minMatch);
+		if (matchList.size() == 1)
+			return matchList.get(0)[1];
+		
+		for (String[] pair : matchList)
+			{
+			if (PhoneNumberUtils.compare(number, pair[0]))
+				return pair[1];
+			}
+		
+		return null;
 		}
 
 	public View inflateResults(LayoutInflater inflater, final String title, final String details)

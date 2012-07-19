@@ -61,6 +61,8 @@ public class PersonalActivity extends Activity
 	static final int PROGRESS_DIALOG = 0;
 	private ProgressDialog progress;
 	private static final String TAG = "edu.udel.trnka.pl/PersonalActivity";
+	
+	private HashMap<String,ArrayList<String[]>> contactMap;
 
 	public void onCreate(Bundle savedInstanceState)
 		{
@@ -199,34 +201,8 @@ public class PersonalActivity extends Activity
 		loadStopwords();
 
 		// step 1: scan contacts, build a mapping of contact number to name
-		long time = System.currentTimeMillis();
-		final HashMap<String, String> contactMap = new HashMap<String, String>();
-
-		String numberName = ContactsContract.CommonDataKinds.Phone.NUMBER;
-		String labelName = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME;
-		String[] phoneLookupProjection = new String[] { numberName, labelName };
-
-		Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-				phoneLookupProjection, null, null, null);
-
-		if (phones.moveToFirst())
-			{
-			do
-				{
-				String number = phones.getString(phones.getColumnIndex(numberName));
-				String label = phones.getString(phones.getColumnIndex(labelName));
-				
-				String formattedNumber = PhoneNumberUtils.formatNumber(number);
-				
-				contactMap.put(formattedNumber, label);
-				} while (phones.moveToNext());
-			}
-		else
-			{
-			warning("No contacts found.");
-			}
-		phones.close();
-		runtime.put("scanning contacts", System.currentTimeMillis() - time);
+		long time;
+		buildContactMap();
 
 		// step 2: scan sent messages
 		time = System.currentTimeMillis();
@@ -390,19 +366,15 @@ public class PersonalActivity extends Activity
 
 				// figure out the name of the destination, store it in person
 				String address = messages.getString(messages.getColumnIndexOrThrow("address"));
-
-				String person = address;
-
-				if (contactMap.containsKey(PhoneNumberUtils.formatNumber(address)))
+				
+				String displayName = lookupName(address);
+				if (displayName != null)
 					{
-					person = contactMap.get(PhoneNumberUtils.formatNumber(address));
-
-					if (personCounts.containsKey(person))
-						personCounts.get(person)[0]++;
+					if (personCounts.containsKey(displayName))
+						personCounts.get(displayName)[0]++;
 					else
-						personCounts.put(person, new int[] { 1 });
+						personCounts.put(displayName, new int[] { 1 });
 					}
-
 				} while (messages.moveToNext());
 			}
 		else
@@ -672,6 +644,79 @@ public class PersonalActivity extends Activity
 				
 				}
 			});
+		}
+
+	private void buildContactMap()
+		{
+		long time = System.currentTimeMillis();
+		contactMap = new HashMap<String,ArrayList<String[]>>();
+
+		String numberName = ContactsContract.CommonDataKinds.Phone.NUMBER;
+		String labelName = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME;
+		String[] phoneLookupProjection = new String[] { numberName, labelName };
+
+		Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+				phoneLookupProjection, null, null, null);
+
+		if (phones.moveToFirst())
+			{
+			int phoneIndex = phones.getColumnIndex(numberName);
+			int labelIndex = phones.getColumnIndex(labelName);
+			
+			do
+				{
+				String number = phones.getString(phoneIndex);
+				String label = phones.getString(labelIndex);
+				
+				String minMatch = PhoneNumberUtils.toCallerIDMinMatch(number);
+				
+				if (contactMap.containsKey(minMatch))
+					{
+					contactMap.get(minMatch).add(new String[] { number, label });
+					}
+				else
+					{
+					ArrayList<String[]> matchList = new ArrayList<String[]>();
+					matchList.add(new String[] { number, label });
+					contactMap.put(minMatch, matchList);
+					}
+				
+				} while (phones.moveToNext());
+			}
+		else
+			{
+			warning("No contacts found.");
+			}
+		phones.close();
+		runtime.put("scanning contacts", System.currentTimeMillis() - time);
+		}
+	
+	/**
+	 * The number may be in a very different format than the way it's stored in contacts.
+	 * @param number
+	 * @return The display name value if found, null if not.
+	 */
+	private String lookupName(String number)
+		{
+		if (contactMap == null)
+			return null;
+		
+		String minMatch = PhoneNumberUtils.toCallerIDMinMatch(number);
+		
+		if (!contactMap.containsKey(minMatch))
+			return null;
+		
+		ArrayList<String[]> matchList = contactMap.get(minMatch);
+		if (matchList.size() == 1)
+			return matchList.get(0)[1];
+		
+		for (String[] pair : matchList)
+			{
+			if (PhoneNumberUtils.compare(number, pair[0]))
+				return pair[1];
+			}
+		
+		return null;
 		}
 
 	public static HashMap<String, String> buildNameDesc(String name, String desc)

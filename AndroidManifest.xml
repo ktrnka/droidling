@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="edu.udel.trnka.pl"
-    android:versionCode="6"
-    android:versionName="0.5" >
+    android:versionCode="7"
+    android:versionName="2012-07-18" >
 
     <uses-sdk
         android:minSdkVersion="7"
@@ -31,6 +31,7 @@
             android:configChanges="orientation|keyboardHidden"/>
         <activity android:name="edu.udel.trnka.pl.AboutActivity" />
         <activity android:name="edu.udel.trnka.pl.TestActivity" />
+        <activity android:name="edu.udel.trnka.pl.DiagnosticActivity" />
         <!--  <activity android:name="org.achartengine.GraphicalActivity" />  -->
         </application>
 
