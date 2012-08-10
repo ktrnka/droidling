@@ -11,7 +11,6 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.telephony.PhoneNumberUtils;
@@ -109,39 +108,9 @@ public class InterpersonalActivity extends Activity
 		/*************** LOAD CONTACTS *******************/
 		buildContactMap();
 		
-		/*
-		String numberName = ContactsContract.CommonDataKinds.Phone.NUMBER;
-		String labelName = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME;
-		String[] phoneLookupProjection = new String[] { numberName, labelName };
-
-		Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-				phoneLookupProjection, null, null, null);
-
-		if (phones.moveToFirst())
-			{
-			// TODO: Call getColumnIndex once, on the first message, and use the index the whole time (efficiency)
-			do
-				{
-				String number = phones.getString(phones.getColumnIndex(numberName));
-				String label = phones.getString(phones.getColumnIndex(labelName));
-
-				String formattedNumber = PhoneNumberUtils.formatNumber(number);
-				
-				contactMap.put(formattedNumber, label);
-				} while (phones.moveToNext());
-			}
-		else
-			{
-			warning("No contacts found");
-			}
-		phones.close();
-		runtime.put("buildContactMap", System.currentTimeMillis() - time);
-		*/
-		
 		/*************** PROCESS SENT MESSAGES *******************/
 		time = System.currentTimeMillis();
-		Uri uri = Uri.parse("content://sms/sent");
-		Cursor messages = getContentResolver().query(uri, new String[] { "body", "address", "type" }, null, null, null);
+		Cursor messages = getContentResolver().query(Sms.SENT_URI, new String[] { Sms.BODY, Sms.ADDRESS }, null, null, null);
 
 		final HashMap<String, int[]> sentCounts = new HashMap<String, int[]>();
 		
@@ -151,25 +120,14 @@ public class InterpersonalActivity extends Activity
 		
 		if (messages.moveToFirst())
 			{
+			final int addressIndex = messages.getColumnIndexOrThrow(Sms.ADDRESS);
+			final int bodyIndex = messages.getColumnIndexOrThrow(Sms.BODY);
 			do
 				{
 				// figure out the name of the destination, store it in person
-				String recipientId = messages.getString(messages.getColumnIndexOrThrow("address"));
+				String recipientId = messages.getString(addressIndex);
 
 				String recipientName = lookupName(recipientId);
-
-				/*
-				if (contactMap.containsKey(recipientId))
-					recipientName = contactMap.get(recipientId);
-				else
-					{
-					recipientId = PhoneNumberUtils.formatNumber(recipientId);
-					if (contactMap.containsKey(recipientId))
-						recipientName = contactMap.get(recipientId);
-					else
-						recipientName = PhoneNumberUtils.formatNumber(recipientId);
-					}
-					*/
 
 				if (recipientName != null)
 					{
@@ -178,7 +136,7 @@ public class InterpersonalActivity extends Activity
 					else
 						sentCounts.put(recipientName, new int[] { 1 });
 					
-					String body = messages.getString(messages.getColumnIndexOrThrow("body"));
+					String body = messages.getString(bodyIndex);
 					if (!sentStats.containsKey(recipientName))
 						sentStats.put(recipientName, new CorpusStats());
 					
@@ -198,8 +156,7 @@ public class InterpersonalActivity extends Activity
 		
 		/*************** PROCESS RECEIVED MESSAGES *******************/
 		time = System.currentTimeMillis();
-		uri = Uri.parse("content://sms/inbox");
-		messages = getContentResolver().query(uri, null, null, null, null);
+		messages = getContentResolver().query(Sms.RECEIVED_URI, new String[] { Sms.BODY, Sms.ADDRESS }, null, null, null);
 
 		final HashMap<String, int[]> receivedCounts = new HashMap<String, int[]>();
 		final HashMap<String,CorpusStats> receivedStats = new HashMap<String,CorpusStats>();
@@ -208,25 +165,15 @@ public class InterpersonalActivity extends Activity
 		
 		if (messages.moveToFirst())
 			{
+			final int addressIndex = messages.getColumnIndexOrThrow(Sms.ADDRESS);
+			final int bodyIndex = messages.getColumnIndexOrThrow(Sms.BODY);
+			
 			do
 				{
 				// figure out the name of the destination, store it in person
-				String senderId = messages.getString(messages.getColumnIndexOrThrow("address"));
+				String senderId = messages.getString(addressIndex);
 
 				String senderName = lookupName(senderId);
-
-				/*
-				if (contactMap.containsKey(senderId))
-					senderName = contactMap.get(senderId);
-				else
-					{
-					senderId = PhoneNumberUtils.formatNumber(senderId);
-					if (contactMap.containsKey(senderId))
-						senderName = contactMap.get(senderId);
-					else
-						senderName = PhoneNumberUtils.formatNumber(senderId);
-					}
-					*/
 
 				if (senderName != null)
 					{
@@ -238,7 +185,7 @@ public class InterpersonalActivity extends Activity
 					if (!receivedStats.containsKey(senderName))
 						receivedStats.put(senderName, new CorpusStats());
 					
-					String message = messages.getString(messages.getColumnIndexOrThrow("body"));
+					String message = messages.getString(bodyIndex);
 					receivedStats.get(senderName).train(message);
 					overallReceivedStats.train(message);
 					}
@@ -256,8 +203,7 @@ public class InterpersonalActivity extends Activity
 		/*************** PROCESS IN THREADED VIEW ************************/
 		// TODO:  switch all processing to use the FULL set of messages with this
 		time = System.currentTimeMillis();
-		uri = Uri.parse("content://sms");
-		messages = getContentResolver().query(uri, new String[] { "address", "date", "type" }, null, null, "date asc");
+		messages = getContentResolver().query(Sms.CONTENT_URI, new String[] { Sms.ADDRESS, Sms.DATE, Sms.TYPE }, null, null, "date asc");
 		
 		// mapping of (other person's parsed address) => [ type, date millis ]
 		HashMap<String,long[]> previousMessage = new HashMap<String,long[]>();
@@ -267,26 +213,21 @@ public class InterpersonalActivity extends Activity
 		
 		if (messages.moveToFirst())
 			{
+			final int addressIndex = messages.getColumnIndexOrThrow(Sms.ADDRESS);
+			final int dateIndex = messages.getColumnIndexOrThrow(Sms.DATE);
+			final int typeIndex = messages.getColumnIndexOrThrow(Sms.TYPE);
+			
 			do
 				{
 				// get the person's display string
-				String person = messages.getString(messages.getColumnIndexOrThrow("address"));
+				String person = messages.getString(addressIndex);
 				
 				person = lookupName(person);
 				if (person == null)
 					continue;
-				/*
-				if (!contactMap.containsKey(PhoneNumberUtils.formatNumber(person)))
-					{
-					//continue;
-					}
-				else
-					{
-					person = contactMap.get(PhoneNumberUtils.formatNumber(person));
-					}
-				*/
-				long millis = messages.getLong(messages.getColumnIndexOrThrow("date"));
-				int type = messages.getInt(messages.getColumnIndexOrThrow("type"));
+
+				long millis = messages.getLong(dateIndex);
+				int type = messages.getInt(typeIndex);
 				
 				// skip unknown message types (drafts, etc?)
 				if (type != 1 && type != 2)

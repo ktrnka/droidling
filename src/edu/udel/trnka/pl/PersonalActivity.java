@@ -124,7 +124,7 @@ public class PersonalActivity extends Activity
 			{
 			corpusUnigrams = null;
 			}
-		runtime.put("loadUnigrams", System.currentTimeMillis() - time);
+		runtime.put("load unigrams", System.currentTimeMillis() - time);
 		}
 
 	private void loadStopwords()
@@ -133,9 +133,8 @@ public class PersonalActivity extends Activity
 		smallStopwords = new HashSet<String>();
 		try
 			{
-			// load the small list
 			// TODO: move the filename somewhere else
-			BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open("stopwords2.txt")), 8192);
+			BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open("stopwords-small.txt")), 8192);
 			String line;
 			while ((line = in.readLine()) != null)
 				{
@@ -153,9 +152,8 @@ public class PersonalActivity extends Activity
 		largeStopwords = new HashSet<String>();
 		try
 			{
-			// load the small list
 			// TODO: move the filename somewhere else
-			BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open("stopwords.txt")), 8192);
+			BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open("stopwords-medium.txt")), 8192);
 			String line;
 			while ((line = in.readLine()) != null)
 				{
@@ -170,7 +168,7 @@ public class PersonalActivity extends Activity
 			// TODO: do something if we can't load
 			}
 
-		runtime.put("loadStopwords", System.currentTimeMillis() - time);
+		runtime.put("load stopwords", System.currentTimeMillis() - time);
 		}
 
 	public void warning(final String message)
@@ -206,9 +204,8 @@ public class PersonalActivity extends Activity
 
 		// step 2: scan sent messages
 		time = System.currentTimeMillis();
-		Uri uri = Uri.parse("content://sms/sent");
-		String[] sentColumns = new String[] { "body", "date", "address" };
-		Cursor messages = getContentResolver().query(uri, sentColumns, null, null, null);
+		String[] sentColumns = new String[] { Sms.BODY, Sms.DATE, Sms.ADDRESS };
+		Cursor messages = getContentResolver().query(Sms.SENT_URI, sentColumns, null, null, null);
 
 		final HashMap<String, int[]> personCounts = new HashMap<String, int[]>();
 
@@ -242,11 +239,15 @@ public class PersonalActivity extends Activity
 
 		if (messages.moveToFirst())
 			{
+			final int bodyIndex = messages.getColumnIndexOrThrow(Sms.BODY);
+			final int dateIndex = messages.getColumnIndexOrThrow(Sms.DATE);
+			final int addressIndex = messages.getColumnIndexOrThrow(Sms.ADDRESS);
+			
 			do
 				{
-				String body = messages.getString(messages.getColumnIndexOrThrow("body"));
+				String body = messages.getString(bodyIndex).toLowerCase();
 
-				long millis = messages.getLong(messages.getColumnIndexOrThrow("date"));
+				long millis = messages.getLong(dateIndex);
 				Date date = new Date(millis);
 				dates.add(date);
 
@@ -256,7 +257,7 @@ public class PersonalActivity extends Activity
 				// handle the simple message thing
 				if (body.length() <= maxShortMessageLength)
 					{
-					String text = body.toLowerCase();
+					String text = body;
 
 					if (shortMessages.containsKey(text))
 						shortMessages.get(text)[0]++;
@@ -276,7 +277,7 @@ public class PersonalActivity extends Activity
 					{
 					// TODO: change this to truecasing
 					// TODO: first short term solution would be to run lowercase on the entire message in a single pass first
-					token = token.toLowerCase();
+					//token = token.toLowerCase();
 
 					// unigrams
 					if (unigrams.containsKey(token))
@@ -365,7 +366,7 @@ public class PersonalActivity extends Activity
 					}
 
 				// figure out the name of the destination, store it in person
-				String address = messages.getString(messages.getColumnIndexOrThrow("address"));
+				String address = messages.getString(addressIndex);
 				
 				String displayName = lookupName(address);
 				if (displayName != null)
@@ -660,8 +661,8 @@ public class PersonalActivity extends Activity
 
 		if (phones.moveToFirst())
 			{
-			int phoneIndex = phones.getColumnIndex(numberName);
-			int labelIndex = phones.getColumnIndex(labelName);
+			final int phoneIndex = phones.getColumnIndex(numberName);
+			final int labelIndex = phones.getColumnIndex(labelName);
 			
 			do
 				{

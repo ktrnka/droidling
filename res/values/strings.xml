@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">SMS Linguistics</string>
     <string name="about">About</string>
+    <string name="changelog">What\'s new</string>
     <string name="personal">Personal Statistics</string>
     <string name="interpersonal">Interpersonal Statistics</string>
     <string name="app_descrip">Apply text analytics to your sent messages and see what makes your texts unique!
@@ -12,7 +13,7 @@
     <string name="contacts">Top Contacts</string>
     <string name="stats">General Stats</string>
     <string name="runtime">Runtime Stats (Development)</string>
-    <string name="developer_email">keith.trnka@gmail.com</string>
+    <string name="developer_email">trnka.dev@gmail.com</string>
     <string name="time_of_day">Messages per hour</string>
     <string name="day_of_week">Messages per day</string>
     <string name="share">Share</string>

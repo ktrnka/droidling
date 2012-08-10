@@ -1,5 +1,9 @@
 package edu.udel.trnka.pl;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 import android.app.Activity;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -33,27 +37,24 @@ public class AboutActivity extends Activity
 			about.append("\n\nError found in loading version number");
 			}
 		
-
-		/*
-        
-        
-		Account[] accounts = AccountManager.get(this).getAccountsByType("com.google");
-		
-		Cursor messages = getContentResolver().query(Uri.parse("content://gmail-ls/unread/" + accounts[0]), null, null, null, null);
-		if (messages.moveToFirst())
+		// load the changelog
+		TextView changelog = (TextView) findViewById(R.id.changelog);
+		try
 			{
-			do
+			BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open("changelog.txt")));
+			changelog.setText("");
+			String line;
+			while ( (line = in.readLine()) != null)
 				{
-				String[] columns = messages.getColumnNames();
-				//about.append(messages.getString(messages.getColumnIndexOrThrow("")))
-				} while (messages.moveToNext());
+				changelog.append(line);
+				changelog.append("\n");
+				}
+			in.close();
 			}
-		
-		for (Account account : accounts)
+		catch (IOException e)
 			{
-			about.append("\n" + account.name);
+			changelog.setText("Failed to load changelog.");
 			}
-			*/
 		}
     
 

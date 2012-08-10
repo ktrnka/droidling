@@ -1,0 +1,6 @@
+2012-08-06
+-More visible icon
+
+2012-07-20
+-Added changelog
+-Fixed issues in linking SMS numbers to contact numbers; Interpersonal Stats should work for more people now

@@ -62,6 +62,8 @@ public class CorpusStats
 		messages++;
 		chars += message.length();
 		
+		message = message.toLowerCase();
+		
 		ArrayList<String> tokens = new ArrayList<String>();
 		tokens.add(messageStart);
 		tokens.addAll(tokenize(message));
@@ -72,7 +74,7 @@ public class CorpusStats
 		for (String token : tokens)
 			{
 			// TODO: change this to truecasing
-			token = token.toLowerCase();
+			//token = token.toLowerCase();
 			
 			// unigrams
 			if (unigrams.containsKey(token))

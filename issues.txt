@@ -16,4 +16,4 @@ Interpersonal Stats:
 -Nested phrases aren't handled well when there isn't much text to analyse, such as "merry christmas" "merry" and "christmas" all being in the list
 
 GENUINE BUGS
--When someone has multiple cell numbers, only one of them is actually used
+-When someone has multiple cell numbers, only one of them is actually used... or is it?
