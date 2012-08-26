@@ -1,11 +1,16 @@
-package edu.udel.trnka.pl;
+package com.github.ktrnka.droidling;
 
-import static edu.udel.trnka.pl.Tokenizer.isNonword;
-import static edu.udel.trnka.pl.Tokenizer.tokenize;
+import static com.github.ktrnka.droidling.Tokenizer.isNonword;
+import static com.github.ktrnka.droidling.Tokenizer.tokenize;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -20,6 +25,8 @@ import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.renderer.SimpleSeriesRenderer;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYMultipleSeriesRenderer.Orientation;
+
+import com.github.ktrnka.droidling.R;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -27,9 +34,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Color;
+import android.graphics.Paint.Align;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.ContactsContract;
 import android.provider.MediaStore.Images;
 import android.telephony.PhoneNumberUtils;
@@ -60,7 +70,7 @@ public class PersonalActivity extends Activity
 
 	static final int PROGRESS_DIALOG = 0;
 	private ProgressDialog progress;
-	private static final String TAG = "edu.udel.trnka.pl/PersonalActivity";
+	private static final String TAG = "com.github.ktrnka.droidling/PersonalActivity";
 	
 	private HashMap<String,ArrayList<String[]>> contactMap;
 
@@ -791,23 +801,40 @@ public class PersonalActivity extends Activity
 			{
 			public void onClick(View v)
 				{
-	            Bitmap bitmap = graph.toBitmap();
-
-                String path = Images.Media.insertImage(getContentResolver(), bitmap, title, null);
-                Uri screenshotUri = Uri.parse(path);
-                Intent intent = new Intent( android.content.Intent.ACTION_SEND);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.putExtra(Intent.EXTRA_STREAM, screenshotUri);
-                intent.setType("image/png");
-                
-                String subject = "Shared: histogram of " + title;
-                intent.putExtra(Intent.EXTRA_SUBJECT, subject);
-
-                startActivity(Intent.createChooser(intent, "Send email.."));
+				share(graph.toBitmap(), title, "Shared: histogram of " + title.toLowerCase());
 				}
 			});
 
 		return view;
+		}
+	
+	public void share(Bitmap bitmap, String title, String subject)
+		{
+		// the problem with this method is that it adds to your gallery each time you share and can't remove
+        //String path = Images.Media.insertImage(getContentResolver(), bitmap, title, null);
+        //Uri screenshotUri = Uri.parse(path);
+        
+		// In the future, I should switch this to getExternalFilesDir
+        File file = new File(Environment.getExternalStorageDirectory(), "sms_ling.png");
+        try
+        	{
+        	OutputStream out = new BufferedOutputStream(new FileOutputStream(file));
+        	bitmap.compress(CompressFormat.PNG, 100, out);
+        	out.close();
+        	
+            Intent intent = new Intent( android.content.Intent.ACTION_SEND);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + file.getAbsolutePath()));
+            intent.setType("image/png");
+
+            intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+
+            startActivity(Intent.createChooser(intent, "Send email..."));
+        	}
+        catch (IOException e)
+        	{
+        	error("Unable to share image");
+        	}
 		}
 	
 	/**
@@ -878,33 +905,38 @@ public class PersonalActivity extends Activity
 		XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
 		
 		// text sizes
-		renderer.setAxisTitleTextSize(16);
+		renderer.setAxisTitleTextSize(18);
 		renderer.setChartTitleTextSize(20);
-		renderer.setLabelsTextSize(15);
-		renderer.setLegendTextSize(15);
+		renderer.setLabelsTextSize(14);
+		renderer.setLegendTextSize(14);
 
 		// data series settings
 		SimpleSeriesRenderer r = new SimpleSeriesRenderer();
-		r.setColor(Color.LTGRAY);
+		r.setColor(Color.DKGRAY);
 		r.setDisplayChartValues(false);
 	    r.setGradientEnabled(true);
-	    r.setGradientStart(0, Color.DKGRAY);
-	    r.setGradientStop(ymax, Color.LTGRAY);		
-		renderer.addSeriesRenderer(r);		
+	    r.setGradientStart(0, Color.rgb(25, 89, 115));
+	    r.setGradientStop(ymax, Color.rgb(17, 60, 77));
+		renderer.addSeriesRenderer(r);
 	    
 	    renderer.setOrientation(Orientation.HORIZONTAL);
 		renderer.setBarSpacing(0.2f);
 		
 		// colors
-	    renderer.setAxesColor(Color.GRAY);
-	    renderer.setLabelsColor(Color.LTGRAY);
-	    renderer.setBackgroundColor(Color.BLACK);
+	    renderer.setAxesColor(Color.DKGRAY);
+	    renderer.setLabelsColor(Color.DKGRAY);
+	    renderer.setBackgroundColor(Color.WHITE);
+	    renderer.setMarginsColor(Color.WHITE);
+	    renderer.setXLabelsColor(Color.DKGRAY);
+	    renderer.setYLabelsColor(0, Color.DKGRAY);
 	    
 	    // size
 	    renderer.setXAxisMin(xmin);
 	    renderer.setXAxisMax(xmax);
 	    renderer.setYAxisMin(ymin);
 	    renderer.setYAxisMax(ymax);
+	    
+	    renderer.setYLabelsAlign(Align.RIGHT);
 
 	    renderer.setShowAxes(true);
 	    renderer.setShowLabels(true);
@@ -968,10 +1000,10 @@ public class PersonalActivity extends Activity
 	    renderer.setYTitle("Messages");
 
 	    // TODO: These constant labels won't work for everyone
-	    renderer.addXTextLabel(8, "8 AM");
-	    renderer.addXTextLabel(12, "noon"); 
-	    renderer.addXTextLabel(18, "5 PM"); 
-	    renderer.addXTextLabel(22, "10 PM");    
+	    renderer.addXTextLabel(7.5, "8 AM");
+	    renderer.addXTextLabel(11.5, "noon"); 
+	    renderer.addXTextLabel(17.5, "5 PM"); 
+	    renderer.addXTextLabel(21.5, "10 PM");    
 	    
 	    /**************** BUILD THE VIEW *********************/
 	    final BarChart chart = new BarChart(dataset, renderer, BarChart.Type.DEFAULT);

@@ -1,10 +1,10 @@
-package edu.udel.trnka.pl;
+package com.github.ktrnka.droidling;
 
-import static edu.udel.trnka.pl.Tokenizer.isNonword;
-import static edu.udel.trnka.pl.Tokenizer.tokenize;
-import static edu.udel.trnka.pl.Tokenizer.messageStart;
-import static edu.udel.trnka.pl.Tokenizer.messageEnd;
-import static edu.udel.trnka.pl.Tokenizer.nospacePunctPattern;
+import static com.github.ktrnka.droidling.Tokenizer.isNonword;
+import static com.github.ktrnka.droidling.Tokenizer.messageEnd;
+import static com.github.ktrnka.droidling.Tokenizer.messageStart;
+import static com.github.ktrnka.droidling.Tokenizer.nospacePunctPattern;
+import static com.github.ktrnka.droidling.Tokenizer.tokenize;
 
 import java.util.ArrayList;
 import java.util.Collections;

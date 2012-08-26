@@ -5,7 +5,7 @@
  * should not be modified by hand.
  */
 
-package edu.udel.trnka.pl;
+package com.github.ktrnka.droidling;
 
 public final class R {
     public static final class attr {

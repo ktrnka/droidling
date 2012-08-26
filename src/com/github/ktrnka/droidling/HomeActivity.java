@@ -1,7 +1,9 @@
-package edu.udel.trnka.pl;
+package com.github.ktrnka.droidling;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import com.github.ktrnka.droidling.R;
 
 import android.app.ListActivity;
 import android.content.Intent;
@@ -14,11 +16,11 @@ import android.widget.Toast;
 public class HomeActivity extends ListActivity
 	{
 	// TODO: use strings.xml for localization
-	private static final String[] names = { "Personal Stats", "Interpersonal Stats", "Send Feedback", "About", "Diagnostics" };
-	private static String[] descriptions = { "Analyse sent messages.", "Compare SMS text analytics with contacts.", null, null, "If the contacts stuff isn't working, check to see if maybe the phone number formats are weird or if there are lots of MMS messages." };
+	private static final String[] names = { "Personal Stats", "Interpersonal Stats", "Send Feedback", "About" };
+	private static String[] descriptions = { "Analyse sent messages.", "Compare SMS text analytics with contacts.", null, null };
 	
 	// TODO:  I don't like how this uses parallel arrays.  I'd much rather do something like make an instance that has all this (could I do it by overriding toString in the Activities?)
-	private static final Class<?>[] activities = { PersonalActivity.class, InterpersonalActivity.class, null, AboutActivity.class, DiagnosticActivity.class };
+	private static final Class<?>[] activities = { PersonalActivity.class, InterpersonalActivity.class, null, AboutActivity.class };
 	
 	public static final boolean DEVELOPER_MODE = true;
 	

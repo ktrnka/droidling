@@ -1,5 +1,6 @@
-package edu.udel.trnka.pl;
+package com.github.ktrnka.droidling;
 
+import com.github.ktrnka.droidling.R;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;

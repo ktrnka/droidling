@@ -1,19 +1,21 @@
 Known issues
 
 Testing
--Personal Stats works for Igashu, contact-based stuff doesn't
+-All working for Seth and Marhsall.
+-Working more or less for Priscilla, except that it doesn't handle multilingual well.
 -System gracefully fails on ICS (Tab), ICS (emulator), and 2.3.3 (HTC EVO 4g) with no messages
 -System works properly on 2.2.1 (my phone) and ICS (emulator) when messages present
 -When you don't have many texts, the extracted phrases are heavily skewed to trigrams
 
 In Personal Stats:
+-The y-axis labels in graphs are overlapping with the y-axis title
 -The share icon is smaller on the graph displays
--When you share a graph, it shares as jpeg T_T
 -The share icon overlaps with the runtime stats
 -The runtime stats aren't in any particular order
 
 Interpersonal Stats:
 -Nested phrases aren't handled well when there isn't much text to analyse, such as "merry christmas" "merry" and "christmas" all being in the list
+-Random bigram and trigram generation isn't as cool as I'd like
 
 GENUINE BUGS
 -When someone has multiple cell numbers, only one of them is actually used... or is it?

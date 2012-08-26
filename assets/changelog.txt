@@ -1,3 +1,11 @@
+2012-08-24
+-Package renamed (it won't replace old version, sorry!)
+-Light theme
+-Sharing graphs uses SD card instead of polluting your gallery
+-Sharing graphs uses png instead of jpg
+-Share icon shouldn't be shrunk by the graphs
+-UI tweaks
+
 2012-08-06
 -More visible icon
 

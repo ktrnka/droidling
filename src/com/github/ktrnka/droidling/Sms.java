@@ -1,4 +1,4 @@
-package edu.udel.trnka.pl;
+package com.github.ktrnka.droidling;
 
 import android.net.Uri;
 

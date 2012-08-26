@@ -1,4 +1,4 @@
-package edu.udel.trnka.pl;
+package com.github.ktrnka.droidling;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;

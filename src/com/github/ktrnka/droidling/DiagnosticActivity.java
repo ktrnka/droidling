@@ -1,7 +1,9 @@
-package edu.udel.trnka.pl;
+package com.github.ktrnka.droidling;
 
 import java.util.HashMap;
 import java.util.HashSet;
+
+import com.github.ktrnka.droidling.R;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -23,7 +25,7 @@ public class DiagnosticActivity extends Activity
 	{
 	static final int PROGRESS_DIALOG = 0;
 	private ProgressDialog progress;
-	private static final String TAG = "edu.udel.trnka.pl/DiagnosticActivity";
+	private static final String TAG = "com.github.ktrnka.droidling/DiagnosticActivity";
 
 	public void onCreate(Bundle savedInstanceState)
 		{

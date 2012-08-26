@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="edu.udel.trnka.pl"
-    android:versionCode="9"
-    android:versionName="2012-08-09" 
+    package="com.github.ktrnka.droidling"
+    android:versionCode="10"
+    android:versionName="2012-08-24" 
     >
 
     <uses-sdk
@@ -11,13 +11,14 @@
 
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <!--  <uses-permission android:name="android.permission.GET_ACCOUNTS" /> -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     
     <application
         android:icon="@drawable/icon"
-        android:label="@string/app_name" >
+        android:label="@string/app_name"
+        android:theme="@android:style/Theme.Light" >
         <activity
-            android:name="edu.udel.trnka.pl.HomeActivity"
+            android:name="com.github.ktrnka.droidling.HomeActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,14 +27,12 @@
             </intent-filter>
         </activity>
         
-        <activity android:name="edu.udel.trnka.pl.PersonalActivity"
+        <activity android:name="com.github.ktrnka.droidling.PersonalActivity"
             android:configChanges="orientation|keyboardHidden"/>
-        <activity android:name="edu.udel.trnka.pl.InterpersonalActivity" 
+        <activity android:name="com.github.ktrnka.droidling.InterpersonalActivity" 
             android:configChanges="orientation|keyboardHidden"/>
-        <activity android:name="edu.udel.trnka.pl.AboutActivity" />
-        <!--  <activity android:name="edu.udel.trnka.pl.TestActivity" /> -->
-        <activity android:name="edu.udel.trnka.pl.DiagnosticActivity" />
-        <!--  <activity android:name="org.achartengine.GraphicalActivity" />  -->
+        <activity android:name="com.github.ktrnka.droidling.AboutActivity" />
+        <activity android:name="com.github.ktrnka.droidling.DiagnosticActivity" />
         </application>
 
 </manifest>

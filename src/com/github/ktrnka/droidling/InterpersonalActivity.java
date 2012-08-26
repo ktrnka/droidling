@@ -1,4 +1,4 @@
-package edu.udel.trnka.pl;
+package com.github.ktrnka.droidling;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -6,6 +6,8 @@ import java.util.Comparator;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
+
+import com.github.ktrnka.droidling.R;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -350,7 +352,7 @@ public class InterpersonalActivity extends Activity
 			f.format(" You: %.1f words\n\n", sentStats.get(contactName).getWordsPerMessage());
 			
 			// Jaccard coeffients
-			details.append("Shared vocabulary\n");
+			details.append("Shared vocabulary (Jaccard)\n");
 			f.format(" with texts to them: %.1f%%\n", 100 * sentStats.get(contactName).computeUnigramJaccard(receivedStats.get(contactName)));
 			f.format(" with ALL your texts: %.1f%%\n", 100 * overallSentStats.computeUnigramJaccard(receivedStats.get(contactName)));
 			

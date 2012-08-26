@@ -1,5 +1,5 @@
 /** Automatically generated file. DO NOT MODIFY */
-package edu.udel.trnka.pl;
+package com.github.ktrnka.droidling;
 
 public final class BuildConfig {
     public final static boolean DEBUG = true;

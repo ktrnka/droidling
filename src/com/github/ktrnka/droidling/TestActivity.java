@@ -1,7 +1,9 @@
-package edu.udel.trnka.pl;
+package com.github.ktrnka.droidling;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import com.github.ktrnka.droidling.R;
 
 import android.app.Activity;
 import android.os.Bundle;

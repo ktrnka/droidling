@@ -1,8 +1,10 @@
-package edu.udel.trnka.pl;
+package com.github.ktrnka.droidling;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+
+import com.github.ktrnka.droidling.R;
 
 import android.app.Activity;
 import android.content.pm.PackageInfo;

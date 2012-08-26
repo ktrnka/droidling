@@ -1,4 +1,4 @@
-package edu.udel.trnka.pl;
+package com.github.ktrnka.droidling;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.io.*;
 import java.nio.charset.Charset;
 
-import static edu.udel.trnka.pl.Tokenizer.tokenize;
+import static com.github.ktrnka.droidling.Tokenizer.tokenize;
 
 public class WordDistribution
 	{
