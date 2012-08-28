@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">SMS Linguistics</string>
     <string name="about">About</string>
     <string name="changelog">What\'s new</string>
@@ -21,5 +22,17 @@
     <string name="share_intent">Share with...</string>
     <string name="none">none</string>
     <string name="not_enough_replies">Not enough replies from %s.</string>
+    <string name="key_phrase_description">In personal stats, these are one, two, or three word phrases that are likely to be unique and common in your text. The primary score is pointwise mutual information of the phrase relative to a general English unigram model.  It\'s also weighted towards phrases you use frequently, biased away from phrases that begin or end with common words like \"the\" or \"of\", and several other factors.  We remove most phrases that are contained within other phrases so that the list is interesting.  The list is sorted with the highest scoring words at the top.</string>
     
+    <string name="shared_phrases_title">Shared Phrases</string>
+    <string name="shared_phrases_description">In interpersonal stats, these are one or two word phrases that both you and the contact have texted to each other.  They are scored as phrases that are common in both but uncommon in texts from other contacts and uncommon in texts you send to other contacts.</string>
+        
+    <string name="shared_vocab_title">Shared Vocabulary</string>
+    <string name="shared_vocab_description">This is the Jaccard coefficient, which is the percentage of words that both you and your contact used (out of the number of words either person used).  In linguistics, we\'d expect higher overlap between the communications with a contact rather than overlap with all of your communications.  But also, keep in mind that statistically speaking, the denominator may be much larger when computing overlap with all your messages.</string>
+    
+    <string name="response_time_title">Average Response Time</string>
+    <string name="response_time_description">We thread all messages with the contact, then filter out multiple sequential messages from the same person, then filter out any time differences over an hour.  The average of the remaining reply times is what you see.  The one-hour filter was necessary or else the stat was garbage.  It seems somewhat arbitrary, but the response times seem about right.</string>
+
+    <string name="random_generation_title">Random n-gram generation</string>
+    <string name="random_generation_description">Use the probabilistic model of each person\'s texts to the other to generate a message.  The messages are generated randomly according to the probability distributions for each word.  For example, at the start of the message it randomly generates some word the person used at the start of the message.  If the person has said \"Hi\" three times at the start and \"What\" once, there\'s a 75 percent chance it\'ll generate \"Hi\" and 25 percent chance it\'ll generate \"What\".  This continues until it generates an end of message symbol or it generates 40+ words.\n\nThe difference between bigram and trigram generation is that bigram generation uses a separate probability table for each possible previous word and trigram generation uses a separate probability table for each possible pair of words.  Statistically, there are so many possible pairs of words that in a small sample of text messages they may uniquely determine the next word.  So the trigram generation tends to reproduce full messages verbatim and bigram generation tends to be more random (but possibly too random).</string>
 </resources>

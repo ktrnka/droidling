@@ -28,15 +28,15 @@ public class AboutActivity extends Activity
 		// add version string
 		PackageManager manager = this.getPackageManager();
 		PackageInfo info;
-		TextView about = (TextView) findViewById(R.id.about_description);
+		TextView version = (TextView) findViewById(R.id.about_version);
 		try
 			{
 			info = manager.getPackageInfo(this.getPackageName(), 0);
-			about.append("\n\nVersion: " + info.versionName + " (" + info.versionCode + ")");
+			version.setText("Version " + info.versionName);
 			}
 		catch (NameNotFoundException e)
 			{
-			about.append("\n\nError found in loading version number");
+			version.setText("Version: error found in loading version number");
 			}
 		
 		// load the changelog

@@ -16,7 +16,6 @@
 	    android:layout_marginLeft="6dip"
 	    android:layout_marginTop="5dip"
 	    android:layout_toLeftOf="@+id/share"
-	    android:text="TITLE"
 	    android:textSize="26sp"
 	    android:textStyle="bold"
 	    android:gravity="center_vertical" />
@@ -36,7 +35,6 @@
         android:layout_marginLeft="10dip"
 	    android:layout_below="@android:id/text1"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="BODY"
 	/>
 
 

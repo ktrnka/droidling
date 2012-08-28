@@ -16,11 +16,11 @@ import android.widget.Toast;
 public class HomeActivity extends ListActivity
 	{
 	// TODO: use strings.xml for localization
-	private static final String[] names = { "Personal Stats", "Interpersonal Stats", "Send Feedback", "About" };
-	private static String[] descriptions = { "Analyse sent messages.", "Compare SMS text analytics with contacts.", null, null };
+	private static final String[] names = { "Personal Stats", "Interpersonal Stats", "Send Feedback", "About the stats", "About the app" };
+	private static String[] descriptions = { "Analyse sent messages.", "Compare SMS text analytics with contacts.", null, null, null };
 	
 	// TODO:  I don't like how this uses parallel arrays.  I'd much rather do something like make an instance that has all this (could I do it by overriding toString in the Activities?)
-	private static final Class<?>[] activities = { PersonalActivity.class, InterpersonalActivity.class, null, AboutActivity.class };
+	private static final Class<?>[] activities = { PersonalActivity.class, InterpersonalActivity.class, null, AboutStatsActivity.class, AboutActivity.class };
 	
 	public static final boolean DEVELOPER_MODE = true;
 	

@@ -12,10 +12,18 @@
     android:padding="20dip">
     
     <TextView
+        android:id="@+id/about_version"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+      	android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textSize="28sp"/>
+    
+    <TextView
         android:id="@+id/changelog_label"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/changelog"
+        android:paddingTop="20dip"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textSize="28sp"/>
 
@@ -30,6 +38,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/about"
+        android:paddingTop="20dip"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textSize="28sp"/>
     
@@ -40,13 +49,16 @@
         android:text="@string/app_descrip"
         android:textAppearance="?android:attr/textAppearanceMedium"/>
 
+
+    
     <TextView
         android:id="@+id/about_credits"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:paddingTop="20dip"
         android:text="@string/app_credits"
-        android:textAppearance="?android:attr/textAppearanceLarge"/>
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textSize="28sp"/>
 
 </LinearLayout>
 
