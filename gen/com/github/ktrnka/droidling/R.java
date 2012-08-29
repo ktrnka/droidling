@@ -16,15 +16,17 @@ public final class R {
     public static final class id {
         public static final int about_credits=0x7f050006;
         public static final int about_description=0x7f050005;
+        public static final int about_key_phrases=0x7f050007;
         public static final int about_label=0x7f050004;
+        public static final int about_shared_vocab=0x7f050008;
         public static final int about_version=0x7f050001;
         public static final int changelog=0x7f050003;
         public static final int changelog_label=0x7f050002;
-        public static final int graphGroup=0x7f050008;
-        public static final int linear=0x7f050009;
+        public static final int graphGroup=0x7f05000a;
+        public static final int linear=0x7f05000b;
         public static final int scroll=0x7f050000;
-        public static final int share=0x7f050007;
-        public static final int testList=0x7f05000a;
+        public static final int share=0x7f050009;
+        public static final int testList=0x7f05000c;
     }
     public static final class layout {
         public static final int about=0x7f030000;

@@ -18,6 +18,7 @@
         android:textSize="28sp"/>
 
     <TextView
+        android:id="@+id/about_key_phrases"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
@@ -30,6 +31,7 @@
         android:textSize="28sp"/>
 
     <TextView
+        android:id="@+id/about_shared_vocab"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"

@@ -8,9 +8,6 @@ Testing
 -When you don't have many texts, the extracted phrases are heavily skewed to trigrams
 
 In Personal Stats:
--The y-axis labels in graphs are overlapping with the y-axis title
--The share icon is smaller on the graph displays
--The share icon overlaps with the runtime stats
 -The runtime stats aren't in any particular order
 
 Interpersonal Stats:
