@@ -1,14 +1,9 @@
-2012-08-24
--Package renamed (it won't replace old version, sorry!)
--Light theme
--Sharing graphs uses SD card instead of polluting your gallery
--Sharing graphs uses png instead of jpg
--Share icon shouldn't be shrunk by the graphs
--UI tweaks
+2012-10-23
+-more general optimization, got some good speedups
+-[internal] moved lots of strings and formats into strings.xml to prepare for string localization
+-speedups in Personal Stats processing to compensate for the frequency-based sorting
+-"lol" and other chat terms won't be featured so prominently in Personal Stats > Phrases
+-added drop-down to select the phrase sorting for Personal Stats > Phrases, added a frequency option
 
-2012-08-06
--More visible icon
-
-2012-07-20
--Added changelog
--Fixed issues in linking SMS numbers to contact numbers; Interpersonal Stats should work for more people now
+2012-09-02
+-Initial release.

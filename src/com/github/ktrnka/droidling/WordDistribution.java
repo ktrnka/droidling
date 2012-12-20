@@ -151,12 +151,7 @@ public class WordDistribution
 	
 	public double expectedFrequency(String word1, String word2, double localTotal)
 		{
-		return expectedProb(word1, word2) * localTotal;
-		}
-	
-	public double expectedProb(String word1, String word2)
-		{
-		return getSmoothProb(word1) * getSmoothProb(word2);
+		return getSmoothProb(word1) * getSmoothProb(word2) * localTotal;
 		}
 	
 	public double expectedFrequency(String word, double localTotal)

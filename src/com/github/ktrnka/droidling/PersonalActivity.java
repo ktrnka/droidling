@@ -1,12 +1,12 @@
 package com.github.ktrnka.droidling;
 
 import static com.github.ktrnka.droidling.Tokenizer.isNonword;
+import static com.github.ktrnka.droidling.Tokenizer.split;
 import static com.github.ktrnka.droidling.Tokenizer.tokenize;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -41,17 +41,20 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.ContactsContract;
-import android.provider.MediaStore.Images;
 import android.telephony.PhoneNumberUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class PersonalActivity extends Activity
+public class PersonalActivity extends Activity implements OnItemSelectedListener
 	{
 	public static final int maxPhrases = 50;
 	private boolean scanned = false;
@@ -60,31 +63,44 @@ public class PersonalActivity extends Activity
 	private HashSet<String> largeStopwords;
 	private DateDistribution dates;
 
+	// constants to tweak the scoring of phrases.  This is probably language-specific and should be extracted to some config.
 	public double unigramScale = 0.25;
 	public double bigramScale = 0.9;
 	public double trigramScale = 1.2;
 	public double shortMessageFactor = 1.3;
 	public double simplePhraseFactor = 1.6;
 
-	public HashMap<String, Long> runtime;
+	public static HashMap<String, Long> runtime;
 
 	static final int PROGRESS_DIALOG = 0;
 	private ProgressDialog progress;
 	private static final String TAG = "com.github.ktrnka.droidling/PersonalActivity";
 	
 	private HashMap<String,ArrayList<String[]>> contactMap;
-
+	
+	private StringBuilder[] keyPhraseTexts;
+	private int previousItemSelected;
+	
+	private static int graphBarBottomColor = Color.rgb(25, 89, 115);
+	private static int graphBarTopColor = Color.rgb(17, 60, 77);
+	
 	public void onCreate(Bundle savedInstanceState)
 		{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.simple_scroll);
+		
+		keyPhraseTexts = new StringBuilder[2];
+		keyPhraseTexts[0] = new StringBuilder();
+		keyPhraseTexts[1] = new StringBuilder();
+		previousItemSelected = 0;
 		}
 
 	public void onStart()
 		{
 		super.onStart();
 
-		runtime = new HashMap<String, Long>();
+		if (runtime == null)
+			runtime = new HashMap<String, Long>();
 
 		if (!scanned)
 			{
@@ -121,13 +137,24 @@ public class PersonalActivity extends Activity
 			}
 		}
 
+	/**
+	 * Get the scaling factor to apply to fonts.
+	 */
+	private float getFontScale()
+		{
+		DisplayMetrics metrics = new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getMetrics(metrics);
+		return metrics.scaledDensity;
+		}
 
+	// TODO: Load locale-appropriate unigrams
 	private void loadUnigrams()
 		{
 		long time = System.currentTimeMillis();
 		try
 			{
-			corpusUnigrams = new WordDistribution(getAssets().open("unigrams.utf8.txt"), false);
+			corpusUnigrams = new WordDistribution(getAssets().open("unigrams.merged.utf8.txt"), false);
+			//corpusUnigrams = new WordDistribution(getAssets().open("unigrams.utf8.txt"), false);
 			//corpusUnigrams = new WordDistribution(getAssets().open("unigrams.bin"), true);
 			}
 		catch (IOException e)
@@ -181,6 +208,7 @@ public class PersonalActivity extends Activity
 		runtime.put("load stopwords", System.currentTimeMillis() - time);
 		}
 
+	// TODO: This code is duplicated in Interpersonal and shouldn't be.
 	public void warning(final String message)
 		{
 		runOnUiThread(new Runnable()
@@ -192,6 +220,7 @@ public class PersonalActivity extends Activity
 			});
 		}
 
+	// TODO: This code is duplicated in Interpersonal and shouldn't be.
 	public void error(final String message)
 		{
 		runOnUiThread(new Runnable()
@@ -319,7 +348,7 @@ public class PersonalActivity extends Activity
 							phraseBuilder.append(simplePhrase.get(0));
 							for (int i = 1; i < simplePhrase.size(); i++)
 								{
-								phraseBuilder.append(" ");
+								phraseBuilder.append(' ');
 								phraseBuilder.append(simplePhrase.get(i));
 								}
 
@@ -391,7 +420,7 @@ public class PersonalActivity extends Activity
 		else
 			{
 			messages.close();
-			error("No sent messages found, aborting.");
+			error(getString(R.string.error_no_sent_sms));
 			return;
 			}
 		messages.close();
@@ -400,23 +429,39 @@ public class PersonalActivity extends Activity
 		time = System.currentTimeMillis();
 		// generate candidates
 		final HashMap<String, double[]> candidates = new HashMap<String, double[]>();
+		
+		final HashMap<String,int[]> frequencyCandidates = new HashMap<String,int[]>();
 
 		// unigram candidates
 		for (String word : unigrams.keySet())
+			{
+			frequencyCandidates.put(word, new int[] { unigrams.get(word)[0] } );
+			
 			if (!isNonword(word) && !largeStopwords.contains(word))
 				candidates.put(
 						word,
 						new double[] { unigramScale
 								* (unigrams.get(word)[0] - corpusUnigrams.expectedFrequency(word, unigramTotal)) });
+			}
 
 		// analyse bigrams
+		StringBuilder ngramBuilder = new StringBuilder();
 		for (String word1 : bigrams.keySet())
 			{
-			if (isNonword(word1) || smallStopwords.contains(word1))
-				continue;
-
 			for (String word2 : bigrams.get(word1).keySet())
 				{
+				// concatenation with StringBuilder for performance
+				ngramBuilder.setLength(0);
+				ngramBuilder.append(word1);
+				ngramBuilder.append(' ');
+				ngramBuilder.append(word2);
+				String ngram = ngramBuilder.toString();
+				
+				frequencyCandidates.put(ngram, new int[] { bigrams.get(word1).get(word2)[0] } );
+
+				if (isNonword(word1) || smallStopwords.contains(word1))
+					continue;
+
 				if (isNonword(word2) || smallStopwords.contains(word2))
 					continue;
 
@@ -424,33 +469,60 @@ public class PersonalActivity extends Activity
 
 				double freqDiff = freq - corpusUnigrams.expectedFrequency(word1, word2, bigramTotal);
 
-				candidates.put(word1 + " " + word2, new double[] { bigramScale * freqDiff });
+				candidates.put(ngram, new double[] { bigramScale * freqDiff });
 				}
 			}
 
 		// analyse trigrams
 		for (String word1 : trigrams.keySet())
 			{
-			if (isNonword(word1) || smallStopwords.contains(word1))
-				continue;
-
 			for (String word2 : trigrams.get(word1).keySet())
 				{
-				if (isNonword(word2))
-					continue;
-
 				for (String word3 : trigrams.get(word1).get(word2).keySet())
 					{
+					// concatenation with StringBuilder for performance
+					ngramBuilder.setLength(0);
+					ngramBuilder.append(word1);
+					ngramBuilder.append(' ');
+					ngramBuilder.append(word2);
+					ngramBuilder.append(' ');
+					ngramBuilder.append(word3);
+					String ngram = ngramBuilder.toString();
+					
+					frequencyCandidates.put(ngram, new int[] { trigrams.get(word1).get(word2).get(word3)[0] } );
+					
+					if (isNonword(word1) || smallStopwords.contains(word1))
+						continue;
+					if (isNonword(word2))
+						continue;
 					if (isNonword(word3) || smallStopwords.contains(word3))
 						continue;
 
 					int freq = trigrams.get(word1).get(word2).get(word3)[0];
 					double expected = corpusUnigrams.expectedFrequency(word1, word2, word3, trigramTotal);
 
-					candidates
-							.put(word1 + " " + word2 + " " + word3, new double[] { trigramScale * (freq - expected) });
+					candidates.put(ngram, new double[] { trigramScale * (freq - expected) });
 					}
 				}
+			}
+		
+		ArrayList<String> basicPhrases = new ArrayList<String>(frequencyCandidates.keySet());
+		Collections.sort(basicPhrases, new Comparator<String>()
+			{
+			public int compare(String a, String b)
+				{
+				return Double.compare(frequencyCandidates.get(b)[0], frequencyCandidates.get(a)[0]);
+				}
+			});
+		
+		int basicCurrent = 0;
+		for (String wordPair : basicPhrases)
+			{
+			keyPhraseTexts[1].append(wordPair);
+			keyPhraseTexts[1].append('\n');
+
+			if (++basicCurrent >= maxPhrases)
+				break;
 			}
 
 		// adjust candidates based on phrases, etc
@@ -467,10 +539,10 @@ public class PersonalActivity extends Activity
 		ArrayList<String> pairs = new ArrayList<String>(candidates.keySet());
 		Collections.sort(pairs, new Comparator<String>()
 			{
-				public int compare(String a, String b)
-					{
-					return Double.compare(candidates.get(b)[0], candidates.get(a)[0]);
-					}
+			public int compare(String a, String b)
+				{
+				return Double.compare(candidates.get(b)[0], candidates.get(a)[0]);
+				}
 			});
 
 		// fold unigrams into bigrams (top K bigrams only)
@@ -514,8 +586,18 @@ public class PersonalActivity extends Activity
 
 			if (words.length == 3)
 				{
-				String first = words[0] + " " + words[1];
-				String second = words[1] + " " + words[2];
+				// This doesn't look pretty, but it's much faster than normal +
+				ngramBuilder.setLength(0);
+				ngramBuilder.append(words[0]);
+				ngramBuilder.append(' ');
+				ngramBuilder.append(words[1]);
+				String first = ngramBuilder.toString();
+				
+				ngramBuilder.setLength(0);
+				ngramBuilder.append(words[1]);
+				ngramBuilder.append(' ');
+				ngramBuilder.append(words[2]);
+				String second = ngramBuilder.toString();
 
 				// discount from the first pair
 				if (candidates.containsKey(first))
@@ -563,19 +645,19 @@ public class PersonalActivity extends Activity
 		/*********************** BUILD THE STRINGS ************************/
 
 		// KEY PHRASE DISPLAY
-		final StringBuilder phraseBuilder = new StringBuilder();
+		final StringBuilder phraseBuilder = keyPhraseTexts[0];
 		int current = 0;
 		for (String wordPair : pairs)
 			{
 			phraseBuilder.append(wordPair);
-			phraseBuilder.append("\n");
+			phraseBuilder.append('\n');
 
 			if (++current >= maxPhrases)
 				break;
 			}
 
 		if (phraseBuilder.length() == 0)
-			phraseBuilder.append("no phrases found");
+			phraseBuilder.append(getString(R.string.no_phrases));
 
 		// CONTACT DISPLAY
 		final StringBuilder contactBuilder = new StringBuilder();
@@ -594,24 +676,21 @@ public class PersonalActivity extends Activity
 			if (personCounts.get(person)[0] <= 1)
 				break;
 
-			contactBuilder.append(person);
-			contactBuilder.append(": ");
-			contactBuilder.append(personCounts.get(person)[0]);
-			contactBuilder.append(" messages\n");
+			contactBuilder.append(getString(R.string.num_messages_format, person, personCounts.get(person)[0]));
 			}
 
 		if (contactBuilder.length() == 0)
-			contactBuilder.append("no frequent contacts found");
+			contactBuilder.append(getString(R.string.no_frequent_contacts));
 
 		// build out the general stats
 		final StringBuilder statsBuilder = new StringBuilder();
-		// TODO: confirm that this correctly uses Locale when it's German or a Euro Locale
-		Formatter f = new Formatter(statsBuilder);
-		statsBuilder.append(totalMessages + " sent messages\n");
-		f.format("%.1f texts per month\n", dates.computeTextsPerMonth());
-		statsBuilder.append((totalWords / totalMessages) + " words per message\n");
-		statsBuilder.append((totalChars / totalMessages) + " chars per message\n");
-		f.format("%.1f average word length\n", wordLength / (double) totalWords);
+
+		statsBuilder.append(getString(R.string.num_sent_format, totalMessages));
+		statsBuilder.append(getString(R.string.num_sent_per_month_format, dates.computeTextsPerMonth()));
+		
+		statsBuilder.append(getString(R.string.words_per_text_format, totalWords / totalMessages));
+		statsBuilder.append(getString(R.string.chars_per_text_format, totalChars/totalMessages));
+		statsBuilder.append(getString(R.string.chars_per_word_format, wordLength / (double) totalWords));
 
 		// day of the week histogram
 		final int[] dayHist = dates.computeDayOfWeekHistogram();
@@ -622,15 +701,7 @@ public class PersonalActivity extends Activity
 		runtime.put("generating descriptions", System.currentTimeMillis() - time);
 
 		// RUNTIME DISPLAY
-		final StringBuilder computeBuilder = new StringBuilder();
-		f = new Formatter(computeBuilder);
-		double totalSeconds = 0;
-		for (String unit : runtime.keySet())
-			{
-			f.format("%s: %.1fs\n", unit, runtime.get(unit) / 1000.0);
-			totalSeconds += runtime.get(unit) / 1000.0;
-			}
-		f.format("Total: %.1fs", totalSeconds);
+		final String runtimeString = summarizeRuntime();
 
 		/*************** SHOW IT *******************/
 		runOnUiThread(new Runnable()
@@ -641,7 +712,7 @@ public class PersonalActivity extends Activity
 
 				LayoutInflater inflater = getLayoutInflater();
 
-				parent.addView(inflateResults(inflater, getString(R.string.key_phrases), phraseBuilder.toString()));
+				parent.addView(inflatePhraseResults(inflater, phraseBuilder.toString()));
 				parent.addView(inflateResults(inflater, getString(R.string.contacts), contactBuilder.toString()));
 				parent.addView(inflateResults(inflater, getString(R.string.stats), statsBuilder.toString()));
 				
@@ -651,10 +722,28 @@ public class PersonalActivity extends Activity
 				GraphicalView hourChart = buildHourChart(PersonalActivity.this, hourHist);
 				parent.addView(inflateChart(inflater, getString(R.string.time_of_day), hourChart));
 
-				parent.addView(inflateResults(inflater, getString(R.string.runtime), computeBuilder.toString()));
+				parent.addView(inflateResults(inflater, getString(R.string.runtime), runtimeString));
 				
 				}
 			});
+		}
+
+	public static String summarizeRuntime()
+		{
+		if (runtime == null)
+			return null;
+		
+		StringBuilder computeBuilder = new StringBuilder();
+		Formatter f = new Formatter(computeBuilder);
+		double totalSeconds = 0;
+		for (String unit : runtime.keySet())
+			{
+			// doesn't really need a localization; it's only for me
+			f.format("%s: %.1fs\n", unit, runtime.get(unit) / 1000.0);
+			totalSeconds += runtime.get(unit) / 1000.0;
+			}
+		f.format("Total: %.1fs", totalSeconds);
+		return computeBuilder.toString();
 		}
 
 	private void buildContactMap()
@@ -739,6 +828,44 @@ public class PersonalActivity extends Activity
 		}
 
 	/**
+	 * Inflates a R.layout.phrases with the specified details, using
+	 * the specified inflater, registers callbacks for the spinner, etc.
+	 * 
+	 * @param inflater
+	 * @param details
+	 * @return the inflated view
+	 */
+	public View inflatePhraseResults(LayoutInflater inflater, final String details)
+		{
+		View view = inflater.inflate(R.layout.phrases, null);
+
+		TextView textView = (TextView) view.findViewById(android.R.id.text2);
+		textView.setText(details);
+		
+		Spinner spinner = (Spinner) view.findViewById(R.id.spinner1);
+		spinner.setOnItemSelectedListener(this);
+
+		ImageView shareView = (ImageView) view.findViewById(R.id.share);
+		shareView.setOnClickListener(new View.OnClickListener()
+			{
+			public void onClick(View v)
+				{
+				String subject = "Shared stats from " + getString(R.string.app_name);
+				String text = "Stats: " + getString(R.string.key_phrases) + ":\n" + details;
+
+				Intent sendIntent = new Intent(Intent.ACTION_SEND);
+				sendIntent.setType("text/plain");
+				sendIntent.putExtra(Intent.EXTRA_TEXT, text);
+				sendIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
+
+				startActivity(Intent.createChooser(sendIntent, "Share with..."));
+				}
+			});
+
+		return view;
+		}
+	
+	/**
 	 * Inflates a R.layout.result with the specified title and details, using
 	 * the specified inflater
 	 * 
@@ -749,11 +876,10 @@ public class PersonalActivity extends Activity
 	 */
 	public View inflateResults(LayoutInflater inflater, final String title, final String details)
 		{
-		// contacts
 		View view = inflater.inflate(R.layout.result, null);
-
-		TextView textView = (TextView) view.findViewById(android.R.id.text1);
+		TextView  textView = (TextView) view.findViewById(android.R.id.text1);
 		textView.setText(title);
+
 
 		textView = (TextView) view.findViewById(android.R.id.text2);
 		textView.setText(details);
@@ -864,7 +990,7 @@ public class PersonalActivity extends Activity
 		ymax *= 1.05;
 		
 		/******************** BUILD THE RENDERER ********************/
-		XYMultipleSeriesRenderer renderer = createBaseChartTheme(0, 8, 0, ymax);
+		XYMultipleSeriesRenderer renderer = createBaseChartTheme(0, 8, 0, ymax, getFontScale());
 
 		// set the strings and we're good to go!
 	    renderer.setXTitle("Day");
@@ -876,20 +1002,6 @@ public class PersonalActivity extends Activity
 
 	    final BarChart chart = new BarChart(dataset, renderer, BarChart.Type.DEFAULT);
 	    GraphicalView view = new GraphicalView(c, chart);
-	    
-	    /*
-	    view.setOnClickListener(new View.OnClickListener()
-			{
-			public void onClick(View v)
-				{
-		    	Intent intent = new Intent(PersonalActivity.this, GraphicalActivity.class);
-		    	intent.putExtra(ChartFactory.CHART, chart);
-		    	intent.putExtra(ChartFactory.TITLE, "Days of the week");
-		    	startActivity(intent);
-				}
-			});
-	    view.setClickable(true);
-	    */
 
 		return view;
 		}
@@ -900,25 +1012,36 @@ public class PersonalActivity extends Activity
 	 * addXTextLabel and setXTitle, setYTitle.
 	 * @return
 	 */
-	private static XYMultipleSeriesRenderer createBaseChartTheme(int xmin, int xmax, int ymin, int ymax)
+	private static XYMultipleSeriesRenderer createBaseChartTheme(int xmin, int xmax, int ymin, int ymax, float scale)
 		{
 		XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
 		
 		// text sizes
-		renderer.setAxisTitleTextSize(18);
-		renderer.setChartTitleTextSize(20);
-		renderer.setLabelsTextSize(14);
-		renderer.setLegendTextSize(14);
+		renderer.setAxisTitleTextSize(18 * scale);
+		renderer.setChartTitleTextSize(20 * scale);
+		renderer.setLabelsTextSize(14 * scale);
+		renderer.setLegendTextSize(14 * scale);
+		
+		// a post on StackOverflow suggests the X/Y axis labels stick to margins, so if they aren't big enough it'll render labels on top of other things
+		// http://stackoverflow.com/a/12527041/1492373
+		// Margin order is { top, left, bottom, right }
+		int[] margins = renderer.getMargins();
+		// top margin:  This is a total hack; I saw a y-axis label near the top of the axis that had a small amount of the top of the number cutoff and this fixes it.
+		margins[0] += 2;
+		// left margin:  Also a hack.  I *think* the left margin needs to be enough for the y-axis labels, plus the y-axis title.  But I don't know how to get
+		// the pixel width of the y-axis labels (and this point of the code is graph-independent).  It'll take some refactoring to cleanse this unholy mess.
+		margins[1] = (int)(3 * renderer.getLabelsTextSize());
+		renderer.setMargins(margins);
 
 		// data series settings
 		SimpleSeriesRenderer r = new SimpleSeriesRenderer();
 		r.setColor(Color.DKGRAY);
 		r.setDisplayChartValues(false);
 	    r.setGradientEnabled(true);
-	    r.setGradientStart(0, Color.rgb(25, 89, 115));
-	    r.setGradientStop(ymax, Color.rgb(17, 60, 77));
+	    r.setGradientStart(0, graphBarBottomColor);	// start = bottom of the bar
+	    r.setGradientStop(ymax, graphBarTopColor);	// this color will be the top of the max height bar
 		renderer.addSeriesRenderer(r);
-	    
+		
 	    renderer.setOrientation(Orientation.HORIZONTAL);
 		renderer.setBarSpacing(0.2f);
 		
@@ -993,7 +1116,7 @@ public class PersonalActivity extends Activity
 		ymax *= 1.05;
 		
 		/******************** BUILD THE RENDERER ********************/
-		XYMultipleSeriesRenderer renderer = createBaseChartTheme(first - 1, last + 1, 0, ymax);
+		XYMultipleSeriesRenderer renderer = createBaseChartTheme(first - 1, last + 1, 0, ymax, getFontScale());
 
 		// set the strings and we're good to go!
 	    renderer.setXTitle("Hour");
@@ -1009,19 +1132,36 @@ public class PersonalActivity extends Activity
 	    final BarChart chart = new BarChart(dataset, renderer, BarChart.Type.DEFAULT);
 	    GraphicalView view = new GraphicalView(c, chart);
 	    
-	    /*
-	    view.setOnClickListener(new View.OnClickListener()
-			{
-			public void onClick(View v)
-				{
-		    	Intent intent = new Intent(PersonalActivity.this, GraphicalActivity.class);
-		    	intent.putExtra(ChartFactory.CHART, chart);
-		    	intent.putExtra(ChartFactory.TITLE, "Days of the week");
-		    	startActivity(intent);
-				}
-			});
-	    view.setClickable(true);
-*/
 		return view;
+		}
+
+	public void onItemSelected(AdapterView<?> parent, View view, int pos, long id)
+		{
+		if (pos == previousItemSelected)
+			return;
+		
+		// TODO Auto-generated method stub
+		View phrasesView = findViewById(R.id.phrase_layout);
+		if (phrasesView != null)
+			{
+			if (pos < keyPhraseTexts.length)
+				{
+				TextView textView = (TextView) phrasesView.findViewById(android.R.id.text2);
+				if (textView != null)
+					{
+					textView.setText(keyPhraseTexts[pos]);
+					}
+				}
+			}
+		else
+			Log.d(TAG, "Can't find phrase_layout");
+		
+		previousItemSelected = pos;
+		}
+
+	public void onNothingSelected(AdapterView<?> arg0)
+		{
+		// TODO Auto-generated method stub
+		
 		}
 	}

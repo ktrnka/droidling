@@ -508,7 +508,6 @@ netco	4
 3	4
 8	4
 join	4
-m	4
 resources	4
 lead	4
 room	4
@@ -638,9 +637,7 @@ touch	3
 5	3
 times	3
 sarah	3
-b	3
 red	3
-t	3
 peoples	3
 jan	3
 far	3

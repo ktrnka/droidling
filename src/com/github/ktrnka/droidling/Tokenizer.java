@@ -19,7 +19,73 @@ public class Tokenizer
 	
 	public static boolean isNonword(String word)
 		{
-		return nonwordPattern.matcher(word).find();
+		// This is the regular expression version of the code (and Java regex is slow)
+		//return nonwordPattern.matcher(word).find();
+		
+		for (int i = 0; i < word.length(); i++)
+			{
+			char c = word.charAt(i);
+			if (!Character.isLetter(c) && c != '\'')
+				{
+				return true;
+				}
+			}
+		
+		return false;
+		}
+	
+	/**
+	 * Regular expression-based anything in Java is slow as shit so I had to write this.
+	 * I haven't tested it thoroughly enough yet, seems to help in a minor way.
+	 * @param text
+	 * @param delim
+	 * @return
+	 */
+	public static String[] split(String text, char delim)
+		{
+		// count the delims
+		int numTokens = 0;
+		
+		int i = 0;
+		while (true)
+			{
+			// advance while it's a delim
+			while (i < text.length() && text.charAt(i) == delim)
+				i++;
+
+			if (i == text.length())
+				break;
+			
+			numTokens++;
+			
+			while (i < text.length() && text.charAt(i) != delim)
+				i++;
+			}
+		
+		// tokenize!
+		String[] tokens = new String[numTokens];
+		i = 0;
+		int currentToken = 0;
+		int tokenStart = 0;
+		while (true)
+			{
+			// advance while it's a delim
+			while (i < text.length() && text.charAt(i) == delim)
+				i++;
+
+			if (i == text.length())
+				break;
+			
+			tokenStart = i;
+			
+			while (i < text.length() && text.charAt(i) != delim)
+				i++;
+			
+			tokens[currentToken++] = text.substring(tokenStart, i);
+			}
+		
+		// return the thing
+		return tokens;
 		}
 	
 	public static ArrayList<String> tokenize(String in)

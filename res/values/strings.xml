@@ -21,6 +21,7 @@
     <string name="loading">Scanning texts...</string>
     <string name="share_intent">Share with...</string>
     <string name="none">none</string>
+    <string name="phrases_by">Phrases by</string>
     <string name="not_enough_replies">Not enough replies from %s.</string>
     <string name="key_phrase_description">In personal stats, these are one, two, or three word phrases that are common in your texts but uncommon in general English.  Each potential phrase goes through several linguistic scores before selecting the best phrases.  The primary score is <a href="http://en.wikipedia.org/wiki/Pointwise_mutual_information">pointwise mutual information</a> of the phrase relative to a general English <a href="http://en.wikipedia.org/wiki/N-gram">unigram</a> model.  It\'s weighted towards phrases you use frequently, biased away from phrases that begin or end with common words like \"the\" or \"of\", and several other heuristics.  We demote phrases that are contained within other phrases or else you\'ll get lists that contain \"Red Sox\" and \"Red\" and \"Sox\".</string>
     <string name="shared_phrases_title">Shared Phrases</string>
@@ -31,5 +32,30 @@
     <string name="response_time_description">We thread all messages with the contact, then filter out multiple sequential messages from the same person, then filter out any time differences over an hour.  The average of the remaining reply times is what you see.  The one-hour filter was necessary or else the stat was garbage.  It seems somewhat arbitrary, but the response times seem about right.</string>
     <string name="random_generation_title">Random n-gram generation</string>
     <string name="random_generation_description">Use the probabilistic model of each person\'s texts to the other to generate a message.  The messages are generated randomly according to the probability distributions for each word.  For example, at the start of the message it randomly generates some word the person used at the start of the message.  If the person has said \"Hi\" three times at the start and \"What\" once, there\'s a 75 percent chance it\'ll generate \"Hi\" and 25 percent chance it\'ll generate \"What\".  This continues until it generates an end of message symbol or it generates 40+ words.\n\nThe difference between bigram and trigram generation is that bigram generation uses a separate probability table for each possible previous word and trigram generation uses a separate probability table for each possible pair of words.  Statistically, there are so many possible pairs of words that in a small sample of text messages they may uniquely determine the next word.  So the trigram generation tends to reproduce full messages verbatim and bigram generation tends to be more random (but possibly too random).</string>
-
+    <string-array name="sort_phrases_by">
+        <item >magic</item>
+        <item >freq.</item>
+    </string-array>
+    <string name="send_email_with">Send email using...</string>
+    <string name="not_implemented">Not implemented yet</string>
+    <string name="error_no_sent_sms">No sent messages found, aborting.</string>
+    <string name="error_no_received_sms">No received messages found, aborting.</string>
+	<string name="no_phrases">No phrases found.</string>
+	<string name="num_messages_format" formatted="false">%s: %d messages\n</string>
+	<string name="no_frequent_contacts">No frequent contacts found.</string>
+	<string name="num_sent_format" formatted="false">%d sent messages\n</string>
+	<string name="words_per_text_format" formatted="false">%d words per message\n</string>
+	<string name="chars_per_text_format" formatted="false">%d chars per message\n</string>
+	<string name="chars_per_word_format" formatted="false">%.1f average word length\n</string>
+	<string name="num_sent_per_month_format" formatted="false">%.1f texts per month\n</string>
+	<string name="shared_stats_subject_format" formatted="false">Shared stats from %s</string>
+	<string name="interpersonal_share_body_format" formatted="false">Analysis of SMS messages with %s:</string>
+	<string name="interpersonal_received_format" formatted="false">%s sent %s</string>
+	<string name="interpersonal_sent_format" formatted="false">You send %s (%.1f%% of all sent)</string>
+	<string name="average_message_length_header">Average message length</string>
+	<string name="their_message_length" formatted="false">%s: %.1f words</string>
+	<string name="your_message_length" formatted="false">You: %.1f words</string>
+	<string name="shared_vocabulary_header">Shared vocabulary (Jaccard)</string>
+	<string name="shared_with_them">with texts to them: %.1f%%</string>
+	<string name="shared_with_all">with ALL your texts: %.1f%%</string>
 </resources>

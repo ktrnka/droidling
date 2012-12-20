@@ -21,6 +21,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+/**
+ * An activity to run diagnostics on the SMS and MMS datastores, contact provider, etc.
+ * Disabled in normal builds but it helped me figure out that the SMS number format can
+ * vary.
+ * 
+ * @author keith.trnka
+ *
+ */
 public class DiagnosticActivity extends Activity
 	{
 	static final int PROGRESS_DIALOG = 0;

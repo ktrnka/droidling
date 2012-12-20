@@ -28,7 +28,8 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/shared_vocab_title"
-        android:textSize="28sp"/>
+        android:textSize="28sp"
+        android:layout_marginTop="15sp"/>
 
     <TextView
         android:id="@+id/about_shared_vocab"
@@ -41,7 +42,8 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/shared_phrases_title"
-        android:textSize="28sp"/>
+        android:textSize="28sp"
+        android:layout_marginTop="15sp"/>
 
     <TextView
         android:layout_width="fill_parent"
@@ -53,7 +55,8 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/response_time_title"
-        android:textSize="28sp"/>
+        android:textSize="28sp"
+        android:layout_marginTop="15sp"/>
 
     <TextView
         android:layout_width="fill_parent"
@@ -65,7 +68,8 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/random_generation_title"
-        android:textSize="28sp"/>
+        android:textSize="28sp"
+        android:layout_marginTop="15sp"/>
 
     <TextView
         android:layout_width="fill_parent"

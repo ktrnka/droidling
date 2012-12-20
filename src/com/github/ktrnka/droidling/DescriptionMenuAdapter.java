@@ -8,6 +8,15 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+/**
+ * The adapter used for creating/inflating views in the HomeActivity.  The reason
+ * I'm not just using a system adapter is that some of the entries have a title and
+ * description but some just have a title and I want to use a different view depending
+ * on which it is.
+ * 
+ * @author keith.trnka
+ *
+ */
 public class DescriptionMenuAdapter extends ArrayAdapter<String>
 	{
 	private String[] names;

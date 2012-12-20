@@ -91,8 +91,8 @@ public class InterpersonalActivity extends Activity
 	public void onListItemClick(ListView list, View view, int position, long id)
 		{
 		// figure out the text
-		String subject = "Shared stats from " + getString(R.string.app_name);
-		String body = "Analysis of SMS messages with " + listData.get(position).get(CONTACT_NAME) + ":\n" + listData.get(position).get(DETAILS);
+		String subject = getString(R.string.shared_stats_subject_format, getString(R.string.app_name));
+		String body = getString(R.string.interpersonal_share_body_format, listData.get(position).get(CONTACT_NAME)) + "\n" + listData.get(position).get(DETAILS);
 
 		Intent sendIntent = new Intent(Intent.ACTION_SEND);
 		sendIntent.setType("message/rfc822");
@@ -149,7 +149,7 @@ public class InterpersonalActivity extends Activity
 			}
 		else
 			{
-			error("No sent messages found.");
+			error(getString(R.string.error_no_sent_sms));
 			messages.close();
 			return;
 			}
@@ -195,7 +195,7 @@ public class InterpersonalActivity extends Activity
 			}
 		else
 			{
-			error("No received messages found.");
+			error(getString(R.string.error_no_received_sms));
 			messages.close();
 			return;
 			}
@@ -346,19 +346,33 @@ public class InterpersonalActivity extends Activity
 			//f.format("Your avg word length when texting THEM: %.1f\n", sentStats.get(contactName).getWordLength());
 			
 			// message length
-			details.append("Average message length\n");
-			f.format(" %s: %.1f words\n", firstName, receivedStats.get(contactName).getWordsPerMessage());
+			details.append(getString(R.string.average_message_length_header) + "\n");
+			details.append(' ');
+			details.append(getString(R.string.their_message_length, firstName, receivedStats.get(contactName).getWordsPerMessage()));
+			details.append('\n');
+//			f.format(" %s: %.1f words\n", firstName, receivedStats.get(contactName).getWordsPerMessage());
 //			f.format("Your avg message length: %.1f\n", overallSentStats.getWordsPerMessage());
-			f.format(" You: %.1f words\n\n", sentStats.get(contactName).getWordsPerMessage());
+			details.append(' ');
+			details.append(getString(R.string.your_message_length, sentStats.get(contactName).getWordsPerMessage()));
+			details.append("\n\n");
+//			f.format(" You: %.1f words\n\n", sentStats.get(contactName).getWordsPerMessage());
 			
 			// Jaccard coeffients
-			details.append("Shared vocabulary (Jaccard)\n");
-			f.format(" with texts to them: %.1f%%\n", 100 * sentStats.get(contactName).computeUnigramJaccard(receivedStats.get(contactName)));
-			f.format(" with ALL your texts: %.1f%%\n", 100 * overallSentStats.computeUnigramJaccard(receivedStats.get(contactName)));
+			details.append(getString(R.string.shared_vocabulary_header));
+			details.append('\n');
+//			details.append("Shared vocabulary (Jaccard)\n");
+			details.append(' ');
+			details.append(getString(R.string.shared_with_them, 100 * sentStats.get(contactName).computeUnigramJaccard(receivedStats.get(contactName))));
+			details.append('\n');
+//			f.format(" with texts to them: %.1f%%\n", 100 * sentStats.get(contactName).computeUnigramJaccard(receivedStats.get(contactName)));
+			details.append(' ');
+			details.append(getString(R.string.shared_with_all, 100 * overallSentStats.computeUnigramJaccard(receivedStats.get(contactName))));
+			details.append('\n');
+//			f.format(" with ALL your texts: %.1f%%\n", 100 * overallSentStats.computeUnigramJaccard(receivedStats.get(contactName)));
 			
 			// figure out the vocabulary overlap
 			ArrayList<String> sortedOverlap = CorpusStats.computeRelationshipTerms(receivedStats.get(contactName), overallReceivedStats, sentStats.get(contactName), overallSentStats);
-			details.append("\nShared phrases:\n");
+			details.append("\n" + getString(R.string.shared_phrases_title) + ":\n");
 			if (sortedOverlap.size() == 0)
 				{
 				details.append(" " + getString(R.string.none));
@@ -370,7 +384,7 @@ public class InterpersonalActivity extends Activity
 					details.append(" " + sortedOverlap.get(i) + "\n");
 				}
 			
-			details.append("\nAverage response time:\n");
+			details.append("\n" + getString(R.string.response_time_title) + ":\n");
 			// compute stats about the average response time
 			if (theirReplyTimes.containsKey(contactName))
 				{

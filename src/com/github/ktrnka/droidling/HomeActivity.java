@@ -9,6 +9,7 @@ import android.app.ListActivity;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -58,12 +59,16 @@ public class HomeActivity extends ListActivity
 			}
 		else
 			{
-			Toast.makeText(getApplicationContext(), "Not Implemented Yet", Toast.LENGTH_SHORT).show();
+			Toast.makeText(getApplicationContext(), getString(R.string.not_implemented), Toast.LENGTH_SHORT).show();
 			}
 
 	
 		}
 	
+	/**
+	 * Email feedback to the development account.  Note that most of the strings
+	 * aren't from strings.xml, because we don't need to localize them (cause I need to be able to read them)
+	 */
 	public void sendFeedback()
 		{
 		// special case for the feedback option
@@ -76,6 +81,7 @@ public class HomeActivity extends ListActivity
 		Configuration config = getResources().getConfiguration();
 		StringBuilder configBuilder = new StringBuilder();
 		
+		/*
 		configBuilder.append("\n\nOrientation: ");
 		switch (config.orientation)
 		{
@@ -89,8 +95,15 @@ public class HomeActivity extends ListActivity
 			configBuilder.append("unknown (" + config.orientation + ")\n");
 			break;
 		}
+		*/
 
 		configBuilder.append("Locale: " + config.locale.toString() + "\n");
+		
+		/*
+		TelephonyManager tm = (TelephonyManager) getApplicationContext().getSystemService(TELEPHONY_SERVICE);
+		if (tm != null)
+			configBuilder.append("Network country: " + tm.getNetworkCountryIso() + "\n");
+		*/
 		
 		configBuilder.append("Size: ");
 		switch (config.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK)
@@ -114,12 +127,21 @@ public class HomeActivity extends ListActivity
 		configBuilder.append("Android version " + android.os.Build.VERSION.RELEASE + "\n");
 		configBuilder.append("SDK version " + android.os.Build.VERSION.SDK_INT + "\n");
 
+		/*
 		if (android.os.Build.BRAND != null)
 			configBuilder.append("Branding: " + android.os.Build.BRAND + "\n");
+		*/
+		
+		String personalStatsProfiling = PersonalActivity.summarizeRuntime();
+		if (personalStatsProfiling != null)
+			{
+			configBuilder.append("\nPersonal Stats Runtime Profiling:\n");
+			configBuilder.append(personalStatsProfiling);
+			}
 
 		sendIntent.putExtra(Intent.EXTRA_TEXT, configBuilder.toString());
 		
-		startActivity(Intent.createChooser(sendIntent, "Send email using..."));
+		startActivity(Intent.createChooser(sendIntent, getString(R.string.send_email_with)));
 		}
 
 

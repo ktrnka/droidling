@@ -5,6 +5,12 @@ import android.os.Bundle;
 import android.text.method.LinkMovementMethod;
 import android.widget.TextView;
 
+/**
+ * The activity that describes the app, the author, etc.  Not much code,
+ * most of the work is in the XML file.
+ * @author keith.trnka
+ *
+ */
 public class AboutStatsActivity extends Activity
 	{
     public void onCreate(Bundle savedInstanceState)

@@ -68,6 +68,9 @@ public class DateDistribution
 		return dates.size() / months;
 		}
 	
+	/**
+	 * Builds a day-of-week histogram, with Sunday as index 0 and Saturday as index 6.
+	 */
 	public int[] computeDayOfWeekHistogram()
 		{
 		int[] days = new int[7];
