@@ -1,7 +1,6 @@
 package com.github.ktrnka.droidling;
 
 import static com.github.ktrnka.droidling.Tokenizer.isNonword;
-import static com.github.ktrnka.droidling.Tokenizer.split;
 import static com.github.ktrnka.droidling.Tokenizer.tokenize;
 
 import java.io.BufferedOutputStream;
