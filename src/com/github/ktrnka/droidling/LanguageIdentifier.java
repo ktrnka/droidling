@@ -1,15 +1,16 @@
 package com.github.ktrnka.droidling;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
 /**
  * Code to load a data file and identify the language of
- * a piece of text.
+ * a unigram model.
  * @author keith.trnka
  *
  */
@@ -17,7 +18,64 @@ public class LanguageIdentifier
 	{
 	private ArrayList<LIDModel> models;
 	
-	private class LIDModel
+	public LanguageIdentifier(InputStream in) throws IOException
+		{
+		BufferedReader textIn = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+		
+		models = new ArrayList<LIDModel>();
+		
+		while (true)
+			{
+			try
+				{
+				LIDModel model = new LIDModel(textIn);
+				models.add(model);
+				}
+			catch (IOException e)
+				{
+				// This code is terribly ugly; the LIDModel constructor should really be replaced by a factory method
+				break;
+				}
+			}
+		textIn.close();
+		}
+	
+	public Identification identify(HashMap<String,int[]> unigrams)
+	{
+		Identification ident = new Identification();
+		
+		for (LIDModel model : models)
+			ident.scores.put(model, new double[] { model.score(unigrams) });
+		
+		return ident;
+	}
+	
+	public class Identification
+		{
+		public HashMap<LIDModel,double[]> scores;
+		
+		Identification()
+			{
+			scores = new HashMap<LIDModel,double[]>();
+			}
+		
+		public String findBest()
+			{
+			LIDModel best = null;
+			for (LIDModel model : scores.keySet())
+				{
+				if (best == null || scores.get(model)[0] > scores.get(best)[0])
+					best = model;
+				}
+			
+			if (best != null)
+				return best.languageName;
+			
+			return "unknown";
+			}
+		}
+	
+	public class LIDModel
 		{
 		/**
 		 * Note: Each String has only one character, but it's a String
@@ -30,8 +88,8 @@ public class LanguageIdentifier
 		private HashSet<String> words;
 		private HashSet<String> discriminativeWords;
 		
-		String languageName;
-		String languageCode2;
+		public final String languageName;
+		public final String languageCode2;
 		
 		LIDModel(BufferedReader in) throws IOException
 			{
