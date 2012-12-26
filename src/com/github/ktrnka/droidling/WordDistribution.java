@@ -72,7 +72,7 @@ public class WordDistribution
 
 	public void train(String filename) throws IOException
 		{
-		BufferedReader in = new BufferedReader(new FileReader(filename));
+		BufferedReader in = new BufferedReader(new FileReader(filename), 8192);
 		
 		// compute counts
 		String line;

@@ -43,7 +43,7 @@ public class AboutActivity extends Activity
 		TextView changelog = (TextView) findViewById(R.id.changelog);
 		try
 			{
-			BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open("changelog.txt")));
+			BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open("changelog.txt")), 8192);
 			changelog.setText("");
 			String line;
 			while ( (line = in.readLine()) != null)
