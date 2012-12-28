@@ -27,6 +27,10 @@ public class CorpusStats
 	private int filteredWordLength;
 	
 	private HashMap<String,int[]> unigrams;
+	public HashMap<String, int[]> getUnigrams() {
+		return unigrams;
+	}
+
 	private int unigramTotal;
 	
 	private HashMap<String,HashMap<String, int[]>> bigrams;

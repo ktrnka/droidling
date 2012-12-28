@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.github.ktrnka.droidling"
-    android:versionCode="20"
+    android:versionCode="21"
     android:versionName="0.83" 
     >
 
@@ -31,6 +31,8 @@
         <activity android:name="com.github.ktrnka.droidling.PersonalActivity"
             android:configChanges="orientation|keyboardHidden"/>
         <activity android:name="com.github.ktrnka.droidling.InterpersonalActivity" 
+            android:configChanges="orientation|keyboardHidden"/>
+        <activity android:name="com.github.ktrnka.droidling.LanguageIdentificationActivity" 
             android:configChanges="orientation|keyboardHidden"/>
         <activity android:name="com.github.ktrnka.droidling.AboutActivity" />
         <activity android:name="com.github.ktrnka.droidling.AboutStatsActivity" />

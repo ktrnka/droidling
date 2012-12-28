@@ -1,10 +1,12 @@
 package com.github.ktrnka.droidling;
 
 import java.io.BufferedReader;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -40,16 +42,31 @@ public class LanguageIdentifier
 		textIn.close();
 		}
 	
+	public ArrayList<String> getSupportedLanguages()
+		{
+		ArrayList<String> languages = new ArrayList<String>();
+		
+		for (LIDModel model : models)
+			{
+			languages.add(model.languageName);
+			}
+		
+		Collections.sort(languages);
+		
+		return languages;
+		}
+	
 	public Identification identify(HashMap<String,int[]> unigrams)
-	{
+		{
 		Identification ident = new Identification();
 		
 		for (LIDModel model : models)
 			ident.scores.put(model, new double[] { model.score(unigrams) });
 		
 		return ident;
-	}
+		}
 	
+	// TODO:  Add a function that explains why a particular language was picked as the top language
 	public class Identification
 		{
 		public HashMap<LIDModel,double[]> scores;
@@ -68,6 +85,7 @@ public class LanguageIdentifier
 					best = model;
 				}
 			
+			// TODO:  Add threshold to determine whether languages are known or unknown.
 			if (best != null)
 				return best.languageName;
 			
@@ -94,7 +112,12 @@ public class LanguageIdentifier
 		LIDModel(BufferedReader in) throws IOException
 			{
 			languageCode2 = in.readLine();
+			if (languageCode2 == null)
+				throw new EOFException();
+			
 			languageName = in.readLine();
+			if (languageName == null)
+				throw new EOFException();
 
 			words = new HashSet<String>();
 			String[] tokens = in.readLine().split(" ");
