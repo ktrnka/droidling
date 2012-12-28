@@ -129,8 +129,8 @@ public class LanguageIdentificationActivity extends Activity
 			{
 			LanguageIdentifier.Identification identification = identifications.get(contactName);
 			
-			titles.add("Sent messages to " + contactName);
-			descriptions.add("Identified as " + identification.findBest());
+			titles.add(contactName);
+			descriptions.add(identification.describeTopN() + "\nWhy?\n" + identification.explain());
 			}
 		
 		runOnUiThread(new Runnable()

@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -59,9 +61,10 @@ public class LanguageIdentifier
 	public Identification identify(HashMap<String,int[]> unigrams)
 		{
 		Identification ident = new Identification();
+		ident.setUnigrams(unigrams);
 		
 		for (LIDModel model : models)
-			ident.scores.put(model, new double[] { model.score(unigrams) });
+			ident.scores.put(model, new double[] { model.score(unigrams, null, null) });
 		
 		return ident;
 		}
@@ -70,6 +73,11 @@ public class LanguageIdentifier
 	public class Identification
 		{
 		public HashMap<LIDModel,double[]> scores;
+		
+		/**
+		 * The unigram model that this identification is for.
+		 */
+		private HashMap<String,int[]> unigrams;
 		
 		Identification()
 			{
@@ -90,6 +98,158 @@ public class LanguageIdentifier
 				return best.languageName;
 			
 			return "unknown";
+			}
+
+		public String describeTopN()
+			{
+			final ArrayList<LIDModel> modelList = new ArrayList<LIDModel>(scores.keySet());
+			
+			Collections.sort(modelList, new Comparator<LIDModel>()
+				{
+				public int compare(LIDModel a, LIDModel b)
+					{
+					return Double.compare(scores.get(b)[0], scores.get(a)[0]);
+					}
+				}
+				);
+			
+			Formatter f = new Formatter();
+			f.format("Probably %s (score %.2f)\n", modelList.get(0).languageName, scores.get(modelList.get(0))[0]);
+			f.format("2nd choice %s (score %.2f)\n", modelList.get(1).languageName, scores.get(modelList.get(1))[0]);
+			f.format("3rd choice %s (score %.2f)\n", modelList.get(2).languageName, scores.get(modelList.get(2))[0]);
+			return f.toString();
+			}
+		
+		public String explain()
+			{
+			// sort models to find top 2
+			final ArrayList<LIDModel> modelList = new ArrayList<LIDModel>(scores.keySet());
+			
+			Collections.sort(modelList, new Comparator<LIDModel>()
+				{
+				public int compare(LIDModel a, LIDModel b)
+					{
+					return Double.compare(scores.get(b)[0], scores.get(a)[0]);
+					}
+				}
+				);
+			
+			// re-score them with instrumentation
+			final HashMap<String,int[]> topWordFeatures = new HashMap<String,int[]>();
+			final HashMap<String,int[]> topCharFeatures = new HashMap<String,int[]>();
+			
+			modelList.get(0).score(unigrams, topWordFeatures, topCharFeatures);
+
+			HashMap<String,int[]> secondWordFeatures = new HashMap<String,int[]>();
+			HashMap<String,int[]> secondCharFeatures = new HashMap<String,int[]>();
+			
+			modelList.get(1).score(unigrams, secondWordFeatures, secondCharFeatures);
+			
+			// convert the features into diff-features
+			for (String word : topWordFeatures.keySet())
+				{
+				if (secondWordFeatures.containsKey(word))
+					{
+					topWordFeatures.get(word)[0] -= secondWordFeatures.get(word)[0];
+					}
+				}
+			for (String chars : topCharFeatures.keySet())
+				{
+				if (secondCharFeatures.containsKey(chars))
+					{
+					topCharFeatures.get(chars)[0] -= secondCharFeatures.get(chars)[0];
+					}
+				}
+			
+			// make a list and sort it!
+			final ArrayList<String> bestWords = new ArrayList<String>(topWordFeatures.keySet());
+			Collections.sort(bestWords, new Comparator<String>()
+				{
+				public int compare(String a, String b)
+					{
+					return topWordFeatures.get(b)[0] - topWordFeatures.get(a)[0];
+					}
+				});
+			
+			StringBuilder wordDescBuilder = new StringBuilder();
+			
+			// if there are some good words
+			if (bestWords.size() > 0 && topWordFeatures.get(bestWords.get(0))[0] > 0)
+				{
+				wordDescBuilder.append("You used the common words:\n");
+				for (int i = 0; i < bestWords.size() && i < 3; i++)
+					{
+					if (topWordFeatures.get(bestWords.get(i))[0] <= 0)
+						break;
+					
+					if (i > 0)
+						wordDescBuilder.append(", ");
+					
+					wordDescBuilder.append(bestWords.get(i));
+					}
+				}
+			
+			final ArrayList<String> bestChars = new ArrayList<String>(topCharFeatures.keySet());
+			Collections.sort(bestChars, new Comparator<String>()
+				{
+				public int compare(String a, String b)
+					{
+					return topCharFeatures.get(b)[0] - topCharFeatures.get(a)[0];
+					}
+				});
+
+			StringBuilder charDescBuilder = new StringBuilder();
+
+			if (bestChars.size() > 0 && topCharFeatures.get(bestChars.get(0))[0] > 0)
+				{
+				charDescBuilder.append("You used the common letters:\n");
+				
+				int found = 0;
+				for (int i = 0; i < bestWords.size() && found < 3; i++)
+					{
+					if (bestChars.get(i).length() != 1)
+						continue;
+
+					if (topCharFeatures.get(bestChars.get(i))[0] <= 0)
+						break;
+					
+					if (found > 0)
+						charDescBuilder.append(", ");
+					
+					charDescBuilder.append(bestChars.get(i));
+					found++;
+					}
+
+				charDescBuilder.append("\nYou used the common letter pairs:\n");
+				
+				found = 0;
+				for (int i = 0; i < bestWords.size() && found < 3; i++)
+					{
+					if (bestChars.get(i).length() != 2)
+						continue;
+
+					if (topCharFeatures.get(bestChars.get(i))[0] <= 0)
+						break;
+					
+					if (found > 0)
+						charDescBuilder.append(", ");
+					
+					charDescBuilder.append(bestChars.get(i).replace(" ", "_"));
+					found++;
+					}
+				}
+			
+			return wordDescBuilder.toString() + "\n\n" + charDescBuilder.toString();
+			}
+
+		public HashMap<String,int[]> getUnigrams()
+			{
+			return unigrams;
+			}
+
+		public void setUnigrams(HashMap<String,int[]> unigrams)
+			{
+			this.unigrams = unigrams;
 			}
 		}
 	
@@ -151,9 +311,11 @@ public class LanguageIdentifier
 		/**
 		 * It scores a unigram-based representation of the input
 		 * @param unigrams word unigram model
+		 * @param wordFeatureValues place to store word feature values (optional)
+		 * @param charFeatureValues place to store character features values (optional) 
 		 * @return a score between zero and one
 		 */
-		public double score(HashMap<String,int[]> unigrams)
+		public double score(HashMap<String,int[]> unigrams, HashMap<String,int[]> wordFeatureValues, HashMap<String,int[]> charFeatureValues)
 			{
 			int wordMatch = 0;
 			int discriminativeWordMatch = 0;
@@ -168,32 +330,113 @@ public class LanguageIdentifier
 			
 			for (String word : unigrams.keySet())
 				{
+				String lowercaseWord = word.toLowerCase();
+				
 				int count = unigrams.get(word)[0];
-				if (words.contains(word))
+				if (words.contains(lowercaseWord))
+					{
 					wordMatch += count;
-				if (discriminativeWords.contains(word))
+					
+					if (wordFeatureValues != null)
+						{
+						if (!wordFeatureValues.containsKey(lowercaseWord))
+							{
+							wordFeatureValues.put(lowercaseWord, new int[] { 1 });
+							}
+						else
+							{
+							wordFeatureValues.get(lowercaseWord)[0]++;
+							}
+						}
+					}
+				if (discriminativeWords.contains(lowercaseWord))
+					{
 					discriminativeWordMatch += count;
+					
+					if (wordFeatureValues != null)
+						{
+						if (!wordFeatureValues.containsKey(lowercaseWord))
+							{
+							wordFeatureValues.put(lowercaseWord, new int[] { 1 });
+							}
+						else
+							{
+							wordFeatureValues.get(lowercaseWord)[0]++;
+							}
+						}
+					}
 				wordTotal += count;
 				
 				char previousChar = ' ';
-				charTotal += word.length() * count;
-				for (int i = 0; i < word.length(); i++)
+				charTotal += lowercaseWord.length() * count;
+				for (int i = 0; i < lowercaseWord.length(); i++)
 					{
-					char c = word.charAt(i);
-					String charString = String.valueOf(c);
+					char c = lowercaseWord.charAt(i);
+
+					// we only care about normal letters; not all the LID models have numbers or punctuation (which can skew it)
+					if (Character.isLetter(c))
+						{
+						String charString = String.valueOf(c);
+						
+						// TODO:  It's terrible slow to create and destroy objects just to do a lookup like this.
+						if (chars.contains(charString))
+							{
+							charMatch += count;
+							
+							if (charFeatureValues != null)
+								{
+								if (!charFeatureValues.containsKey(charString))
+									{
+									charFeatureValues.put(charString, new int[] { 1 });
+									}
+								else
+									{
+									charFeatureValues.get(charString)[0]++;
+									}
+								}
+							}
+						
+						if (discriminativeChars.contains(charString))
+							{
+							discriminativeCharMatch += count;
+							
+							if (charFeatureValues != null)
+								{
+								if (!charFeatureValues.containsKey(charString))
+									{
+									charFeatureValues.put(charString, new int[] { 1 });
+									}
+								else
+									{
+									charFeatureValues.get(charString)[0]++;
+									}
+								}
+							}
+						charTotal++;
+						
+						// TODO:  Oh this is terrible...
+						String pair = String.valueOf(previousChar) + charString;
+						
+						if (charPairs.contains(pair))
+							{
+							charPairMatch += count;
+							
+							if (charFeatureValues != null)
+								{
+								if (!charFeatureValues.containsKey(pair))
+									{
+									charFeatureValues.put(pair, new int[] { 1 });
+									}
+								else
+									{
+									charFeatureValues.get(pair)[0]++;
+									}
+								}
+							}
+						charPairTotal++;
+						}
 					
-					// TODO:  It's terrible slow to create and destroy objects just to do a lookup like this.
-					if (chars.contains(charString))
-						charMatch += count;
-					
-					if (discriminativeChars.contains(charString))
-						discriminativeCharMatch += count;
-					
-					// TODO:  Oh this is terrible...
-					String pair = String.valueOf(previousChar) + charString;
-					
-					if (charPairs.contains(pair))
-						charPairMatch += count;
+					previousChar = c;
 					}
 				}
 			
