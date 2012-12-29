@@ -22,6 +22,11 @@ public class LanguageIdentifier
 	{
 	private ArrayList<LIDModel> models;
 	
+	/**
+	 * Languages at or below this score will be deemed "unknown".
+	 */
+	public static final double UNKNOWN_LANGUAGE_THRESHOLD = 0.1;
+	
 	public LanguageIdentifier(InputStream in) throws IOException
 		{
 		BufferedReader textIn = new BufferedReader(new InputStreamReader(in, "UTF-8"));
@@ -69,7 +74,6 @@ public class LanguageIdentifier
 		return ident;
 		}
 	
-	// TODO:  Add a function that explains why a particular language was picked as the top language
 	public class Identification
 		{
 		public HashMap<LIDModel,double[]> scores;
@@ -93,13 +97,18 @@ public class LanguageIdentifier
 					best = model;
 				}
 			
-			// TODO:  Add threshold to determine whether languages are known or unknown.
-			if (best != null)
+			if (best != null && scores.get(best)[0] > UNKNOWN_LANGUAGE_THRESHOLD)
 				return best.languageName;
 			
 			return "unknown";
 			}
 
+		/**
+		 * List the top 3 most likely languages in a string.
+		 * 
+		 * TODO:  This needs work to support localization.
+		 * @return
+		 */
 		public String describeTopN()
 			{
 			final ArrayList<LIDModel> modelList = new ArrayList<LIDModel>(scores.keySet());
@@ -125,6 +134,7 @@ public class LanguageIdentifier
 		 * the most likely language to the second most likely language.
 		 * 
 		 * TODO: This function needs localization support.
+		 * TODO: This code is huge and needs some simplification/refactoring.
 		 * @return textual description
 		 */
 		public String explain()
@@ -497,7 +507,7 @@ public class LanguageIdentifier
 									}
 								}
 							}
-						charTotal++;
+						charTotal += count;
 						
 						// TODO:  Oh this is terrible...
 						String pair = String.valueOf(previousChar) + charString;
@@ -518,11 +528,33 @@ public class LanguageIdentifier
 									}
 								}
 							}
-						charPairTotal++;
+						charPairTotal += count;
 						}
 					
 					previousChar = c;
 					}
+				
+				// the end of the word
+				// TODO:  Oh this is terrible...
+				String pair = String.valueOf(previousChar) + ' ';
+				
+				if (charPairs.contains(pair))
+					{
+					charPairMatch += count;
+					
+					if (charFeatureValues != null)
+						{
+						if (!charFeatureValues.containsKey(pair))
+							{
+							charFeatureValues.put(pair, new int[] { 1 });
+							}
+						else
+							{
+							charFeatureValues.get(pair)[0]++;
+							}
+						}
+					}
+				charPairTotal += count;
 				}
 			
 			// prevent divide-by-zero (if these are zero, the numerators are also zero, so the value doesn't matter so long as it's positive nonzero)
