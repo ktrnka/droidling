@@ -28,7 +28,11 @@ public class LanguageIdentificationActivity extends Activity
 	{
 	private boolean started = false;
 	private ProgressDialog progress;
+
 	private HashMap<String, ArrayList<String[]>> contactMap;
+	
+	private HashMap<String, Long> runtime;
+	
 	private LanguageIdentifier langID;
 	private HashMap<String,CorpusStats> sentStats;
 	private HashMap<String,LanguageIdentifier.Identification> identifications;
@@ -40,6 +44,7 @@ public class LanguageIdentificationActivity extends Activity
 		{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.simple_scroll);
+		runtime = new HashMap<String, Long>();
 		}
 	
 	public void onStart()
@@ -55,13 +60,13 @@ public class LanguageIdentificationActivity extends Activity
 			// run thread with callback to stop progress
 			new Thread()
 				{
-					public void run()
-						{
-						process();
-	
-						dismissDialog(PROGRESS_DIALOG);
-						progress.dismiss();
-						}
+				public void run()
+					{
+					process();
+
+					dismissDialog(PROGRESS_DIALOG);
+					progress.dismiss();
+					}
 				}.start();
 				started = true;
 			}
@@ -110,12 +115,53 @@ public class LanguageIdentificationActivity extends Activity
 	 */
 	public void process()
 		{
+		long time = System.currentTimeMillis();
 		buildContactMap();
-		buildUnigramModels();
-		identifyLanguages();
+		runtime.put("building contact map", System.currentTimeMillis() - time);
 		
+		time = System.currentTimeMillis();
+		buildUnigramModels();
+		runtime.put("scanning texts", System.currentTimeMillis() - time);
+		
+		time = System.currentTimeMillis();
+		identifyLanguages();
+		runtime.put("identifying languages", System.currentTimeMillis() - time);
+		
+		time = System.currentTimeMillis();
 		buildHelpDisplay();
+		runtime.put("building help display", System.currentTimeMillis() - time);
+
+		time = System.currentTimeMillis();
 		buildLIDDisplays();
+		runtime.put("building LID displays", System.currentTimeMillis() - time);
+		
+		if (HomeActivity.DEVELOPER_MODE)
+			buildRuntimeDisplay();
+		}
+
+	private void buildRuntimeDisplay()
+		{
+		final StringBuilder runtimeBuilder = new StringBuilder();
+
+		for (String key : runtime.keySet())
+			{
+			runtimeBuilder.append(key);
+			runtimeBuilder.append(": ");
+			runtimeBuilder.append( (runtime.get(key) / 100) / 10.0);
+			runtimeBuilder.append("sec\n");
+			}
+		
+		runOnUiThread(new Runnable()
+			{
+			public void run()
+				{
+				ViewGroup parent = (ViewGroup) findViewById(R.id.linear);
+	
+				LayoutInflater inflater = getLayoutInflater();
+				
+				parent.addView(inflateResults(inflater, getString(R.string.runtime), runtimeBuilder.toString()));
+				}
+			});
 		}
 
 	private void buildLIDDisplays()

@@ -279,11 +279,12 @@ public class InterpersonalActivity extends Activity
 			warning("Unable to scan all messages for response time.");
 			}
 		messages.close();
-		
+		runtime.put("processThreadedTexts", System.currentTimeMillis() - time);
+
 		
 		
 		/*************** ANALYSE, BUILD REPRESENTATION *******************/
-		
+		time = System.currentTimeMillis();
 		// score the contacts for sorting
 		final HashMap<String,int[]> scoredContacts = new HashMap<String,int[]>();
 		HashSet<String> uniqueContacts = new HashSet<String>(sentStats.keySet());
@@ -428,23 +429,46 @@ public class InterpersonalActivity extends Activity
 			item.put(DETAILS, details.toString());
 			listData.add(item);
 			}
+		runtime.put("analyzing", System.currentTimeMillis() - time);
+
 		
 		/*************** SHOW IT *******************/
 		runOnUiThread(new Runnable()
 			{
 			public void run()
 				{
+				ViewGroup parent = (ViewGroup) findViewById(R.id.linear);
+				
+				LayoutInflater inflater = getLayoutInflater();
+
 				for (HashMap<String,String> item : listData)
 					{
-					ViewGroup parent = (ViewGroup) findViewById(R.id.linear);
-					
-					LayoutInflater inflater = getLayoutInflater();
-					
 					// key phrases
 					parent.addView(inflateResults(inflater, item.get(CONTACT_NAME), item.get(DETAILS)));
 					}
+				
+				if (HomeActivity.DEVELOPER_MODE)
+					parent.addView(inflateResults(inflater, getString(R.string.runtime), summarizeRuntime()));
 				}
 			});
+		}
+	
+	public String summarizeRuntime()
+		{
+		if (runtime == null)
+			return null;
+		
+		StringBuilder computeBuilder = new StringBuilder();
+		Formatter f = new Formatter(computeBuilder);
+		double totalSeconds = 0;
+		for (String unit : runtime.keySet())
+			{
+			// doesn't really need a localization; it's only for me
+			f.format("%s: %.1fs\n", unit, runtime.get(unit) / 1000.0);
+			totalSeconds += runtime.get(unit) / 1000.0;
+			}
+		f.format("Total: %.1fs", totalSeconds);
+		return computeBuilder.toString();
 		}
 	
 	private void buildContactMap()

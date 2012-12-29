@@ -1,4 +1,5 @@
-2012-10-23
+2012-12-28
+-language identification playground - beta feature to see how lang ID works.
 -more general optimization, got some good speedups
 -[internal] moved lots of strings and formats into strings.xml to prepare for string localization
 -speedups in Personal Stats processing to compensate for the frequency-based sorting

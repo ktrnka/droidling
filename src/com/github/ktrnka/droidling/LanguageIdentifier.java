@@ -301,21 +301,21 @@ public class LanguageIdentifier
 			
 			if (wordBuilder.length() > 0)
 				{
-				overallBuilder.append("Common X words: ");
+				overallBuilder.append("Common words: ");
 				overallBuilder.append(wordBuilder);
 				overallBuilder.append("\n");
 				}
 			
 			if (singleCharBuilder.length() > 0)
 				{
-				overallBuilder.append("Common X letters: ");
+				overallBuilder.append("Common letters: ");
 				overallBuilder.append(singleCharBuilder);
 				overallBuilder.append("\n");
 				}
 			
 			if (charPairBuilder.length() > 0)
 				{
-				overallBuilder.append("Common X letter pairs: ");
+				overallBuilder.append("Common letter pairs: ");
 				overallBuilder.append(charPairBuilder);
 				overallBuilder.append("\n");
 				}
