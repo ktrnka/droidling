@@ -120,6 +120,13 @@ public class LanguageIdentifier
 			return f.toString();
 			}
 		
+		/**
+		 * Produce a textual explanation of this particular identification.  It compares
+		 * the most likely language to the second most likely language.
+		 * 
+		 * TODO: This function needs localization support.
+		 * @return textual description
+		 */
 		public String explain()
 			{
 			// sort models to find top 2
@@ -171,21 +178,20 @@ public class LanguageIdentifier
 					}
 				});
 			
-			StringBuilder wordDescBuilder = new StringBuilder();
+			StringBuilder wordBuilder = new StringBuilder();
 			
 			// if there are some good words
 			if (bestWords.size() > 0 && topWordFeatures.get(bestWords.get(0))[0] > 0)
 				{
-				wordDescBuilder.append("You used the common words:\n");
 				for (int i = 0; i < bestWords.size() && i < 3; i++)
 					{
 					if (topWordFeatures.get(bestWords.get(i))[0] <= 0)
 						break;
 					
 					if (i > 0)
-						wordDescBuilder.append(", ");
+						wordBuilder.append(", ");
 					
-					wordDescBuilder.append(bestWords.get(i));
+					wordBuilder.append(bestWords.get(i));
 					}
 				}
 			
@@ -198,15 +204,17 @@ public class LanguageIdentifier
 					}
 				});
 
-			StringBuilder charDescBuilder = new StringBuilder();
+			StringBuilder singleCharBuilder = new StringBuilder();
+			StringBuilder charPairBuilder = new StringBuilder();
+			StringBuilder startsWithBuilder = new StringBuilder();
+			StringBuilder endsWithBuilder = new StringBuilder();
 
 			if (bestChars.size() > 0 && topCharFeatures.get(bestChars.get(0))[0] > 0)
 				{
-				charDescBuilder.append("You used the common letters:\n");
-				
 				int found = 0;
 				for (int i = 0; i < bestWords.size() && found < 3; i++)
 					{
+					// filter to single-char strings
 					if (bestChars.get(i).length() != 1)
 						continue;
 
@@ -214,32 +222,109 @@ public class LanguageIdentifier
 						break;
 					
 					if (found > 0)
-						charDescBuilder.append(", ");
+						singleCharBuilder.append(", ");
 					
-					charDescBuilder.append(bestChars.get(i));
+					singleCharBuilder.append(bestChars.get(i));
 					found++;
 					}
 
-				charDescBuilder.append("\nYou used the common letter pairs:\n");
-				
 				found = 0;
 				for (int i = 0; i < bestWords.size() && found < 3; i++)
 					{
-					if (bestChars.get(i).length() != 2)
+					String pair = bestChars.get(i);
+					// filter to the two-char without spaces
+					if (pair.length() != 2 || pair.startsWith(" ") || pair.endsWith(" "))
 						continue;
 
-					if (topCharFeatures.get(bestChars.get(i))[0] <= 0)
+					if (topCharFeatures.get(pair)[0] <= 0)
 						break;
 					
 					if (found > 0)
-						charDescBuilder.append(", ");
+						charPairBuilder.append(", ");
 					
-					charDescBuilder.append(bestChars.get(i).replace(" ", "_"));
+					charPairBuilder.append(pair);
 					found++;
 					}
+
+				found = 0;
+				for (int i = 0; i < bestWords.size() && found < 3; i++)
+					{
+					String pair = bestChars.get(i);
+
+					// filter to "starts with"
+					if (pair.length() != 2 || !pair.startsWith(" "))
+						continue;
+
+					if (topCharFeatures.get(pair)[0] <= 0)
+						break;
+					
+					if (found > 0)
+						startsWithBuilder.append(", ");
+					
+					startsWithBuilder.append(pair.charAt(1));
+					found++;
+					}
+
+				found = 0;
+				for (int i = 0; i < bestWords.size() && found < 3; i++)
+					{
+					String pair = bestChars.get(i);
+
+					// filter to "starts with"
+					if (pair.length() != 2 || !pair.endsWith(" "))
+						continue;
+
+					if (topCharFeatures.get(pair)[0] <= 0)
+						break;
+					
+					if (found > 0)
+						endsWithBuilder.append(", ");
+					
+					endsWithBuilder.append(pair.charAt(0));
+					found++;
+					}
+
 				}
 			
-			return wordDescBuilder.toString() + "\n\n" + charDescBuilder.toString();
+			// compose the individual strings
+			StringBuilder overallBuilder = new StringBuilder();
+			
+			if (wordBuilder.length() > 0)
+				{
+				overallBuilder.append("Common X words: ");
+				overallBuilder.append(wordBuilder);
+				overallBuilder.append("\n");
+				}
+			
+			if (singleCharBuilder.length() > 0)
+				{
+				overallBuilder.append("Common X letters: ");
+				overallBuilder.append(singleCharBuilder);
+				overallBuilder.append("\n");
+				}
+			
+			if (charPairBuilder.length() > 0)
+				{
+				overallBuilder.append("Common X letter pairs: ");
+				overallBuilder.append(charPairBuilder);
+				overallBuilder.append("\n");
+				}
+			
+			if (startsWithBuilder.length() > 0)
+				{
+				overallBuilder.append("Words starting with: ");
+				overallBuilder.append(startsWithBuilder);
+				overallBuilder.append("\n");
+				}
+			
+			if (endsWithBuilder.length() > 0)
+				{
+				overallBuilder.append("Words ending with: ");
+				overallBuilder.append(endsWithBuilder);
+				overallBuilder.append("\n");
+				}
+			
+			return overallBuilder.toString();
 			}
 
 		public HashMap<String,int[]> getUnigrams()
