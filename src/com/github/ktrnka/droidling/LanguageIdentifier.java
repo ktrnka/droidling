@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Formatter;
@@ -239,7 +240,7 @@ public class LanguageIdentifier
 					}
 
 				found = 0;
-				for (int i = 0; i < bestWords.size() && found < 3; i++)
+				for (int i = 0; i < bestChars.size() && found < 3; i++)
 					{
 					String pair = bestChars.get(i);
 					// filter to the two-char without spaces
@@ -257,7 +258,7 @@ public class LanguageIdentifier
 					}
 
 				found = 0;
-				for (int i = 0; i < bestWords.size() && found < 3; i++)
+				for (int i = 0; i < bestChars.size() && found < 3; i++)
 					{
 					String pair = bestChars.get(i);
 
@@ -276,7 +277,7 @@ public class LanguageIdentifier
 					}
 
 				found = 0;
-				for (int i = 0; i < bestWords.size() && found < 3; i++)
+				for (int i = 0; i < bestChars.size() && found < 3; i++)
 					{
 					String pair = bestChars.get(i);
 
@@ -356,7 +357,10 @@ public class LanguageIdentifier
 		 * and Character would require an additional conversion.
 		 */
 		private HashSet<String> chars;
+		private char[] charArray;
+		
 		private HashSet<String> discriminativeChars;
+		private char[] discriminativeCharArray;
 		private HashSet<String> charPairs;
 		private HashSet<String> words;
 		private HashSet<String> discriminativeWords;
@@ -383,6 +387,12 @@ public class LanguageIdentifier
 			tokens = in.readLine().split(" ");
 			for (String token : tokens)
 				chars.add(token);
+
+			// the sorted array form
+			charArray = new char[chars.size()];
+			for (int i = 0; i < tokens.length; i++)
+				charArray[i] = tokens[i].charAt(0);
+			Arrays.sort(charArray);
 			
 			charPairs = new HashSet<String>();
 			tokens = in.readLine().split("\\|");
@@ -397,9 +407,17 @@ public class LanguageIdentifier
 			discriminativeChars = new HashSet<String>();
 			tokens = in.readLine().split(" ");
 			for (String token : tokens)
-				discriminativeChars.add(token);
+				if (token.length() > 0)
+					discriminativeChars.add(token);
 			
-			// skip the discriminative charpairs
+			discriminativeCharArray = new char[discriminativeChars.size()];
+			int i = 0;
+			for (int j = 0; j < tokens.length; j++)
+				if (tokens[j].length() > 0)
+					discriminativeCharArray[i++] = tokens[j].charAt(0);
+			Arrays.sort(discriminativeCharArray);
+			
+			// skip the discriminative charpairs; they don't seem to help
 			in.readLine();
 			}
 		
@@ -422,6 +440,8 @@ public class LanguageIdentifier
 			
 			int charPairMatch = 0;
 			int charPairTotal = 0;
+			
+			StringBuilder scratch = new StringBuilder();
 			
 			for (String word : unigrams.keySet())
 				{
@@ -471,6 +491,7 @@ public class LanguageIdentifier
 					// we only care about normal letters; not all the LID models have numbers or punctuation (which can skew it)
 					if (Character.isLetter(c))
 						{
+						/*
 						String charString = String.valueOf(c);
 						
 						// TODO:  It's terrible slow to create and destroy objects just to do a lookup like this.
@@ -507,10 +528,51 @@ public class LanguageIdentifier
 									}
 								}
 							}
+						*/
+						String charString = null;
+						if (charFeatureValues != null)
+							charString = String.valueOf(c);
+						
+						if (Arrays.binarySearch(charArray, c) >= 0)
+							{
+							charMatch += count;
+							
+							if (charFeatureValues != null)
+								{
+								if (!charFeatureValues.containsKey(charString))
+									{
+									charFeatureValues.put(charString, new int[] { 1 });
+									}
+								else
+									{
+									charFeatureValues.get(charString)[0]++;
+									}
+								}
+							}
+						if (Arrays.binarySearch(discriminativeCharArray, c) >= 0)
+							{
+							discriminativeCharMatch += count;
+							
+							if (charFeatureValues != null)
+								{
+								if (!charFeatureValues.containsKey(charString))
+									{
+									charFeatureValues.put(charString, new int[] { 1 });
+									}
+								else
+									{
+									charFeatureValues.get(charString)[0]++;
+									}
+								}
+							}
 						charTotal += count;
 						
 						// TODO:  Oh this is terrible...
-						String pair = String.valueOf(previousChar) + charString;
+						/*
+						scratch.setLength(0);
+						scratch.append(previousChar);
+						scratch.append(c);
+						String pair = scratch.toString(); //String.valueOf(previousChar) + String.valueOf(c);
 						
 						if (charPairs.contains(pair))
 							{
@@ -528,6 +590,7 @@ public class LanguageIdentifier
 									}
 								}
 							}
+						*/
 						charPairTotal += count;
 						}
 					
