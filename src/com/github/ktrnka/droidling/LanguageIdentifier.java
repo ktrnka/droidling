@@ -76,7 +76,9 @@ public class LanguageIdentifier
 		}
 	
 	/*
-	 * compute a unique int version of this char pair
+	 * compute a unique int version of this char pair.
+	 * This *barely* fits within a 4-byte int without collisions.
+	 * And even then, it's using up the negative space too.
 	 */
 	public static final int hash(char a, char b)
 		{
@@ -136,6 +138,30 @@ public class LanguageIdentifier
 			f.format("2nd choice %s (score %.2f)\n", modelList.get(1).languageName, scores.get(modelList.get(1))[0]);
 			f.format("3rd choice %s (score %.2f)\n", modelList.get(2).languageName, scores.get(modelList.get(2))[0]);
 			return f.toString();
+			}
+		
+		/**
+		 * List the top few languages.
+		 * @return
+		 */
+		public String[] getTopN()
+			{
+			final ArrayList<LIDModel> modelList = new ArrayList<LIDModel>(scores.keySet());
+			
+			Collections.sort(modelList, new Comparator<LIDModel>()
+				{
+				public int compare(LIDModel a, LIDModel b)
+					{
+					return Double.compare(scores.get(b)[0], scores.get(a)[0]);
+					}
+				}
+				);
+			
+			String[] topLanguages = new String[3];
+			for (int i = 0; i < topLanguages.length && i < modelList.size(); i++)
+				topLanguages[i] = modelList.get(i).languageName;
+			
+			return topLanguages;
 			}
 		
 		/**

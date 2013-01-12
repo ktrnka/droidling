@@ -176,7 +176,8 @@ public class LanguageIdentificationActivity extends Activity
 			LanguageIdentifier.Identification identification = identifications.get(contactName);
 			
 			titles.add(contactName);
-			descriptions.add(identification.describeTopN() + "\nWhy?\n" + identification.explain());
+			String[] topLanguages = identification.getTopN();
+			descriptions.add(identification.describeTopN() + "\nWhy " + topLanguages[0] + " and not " + topLanguages[1] + "?\n" + identification.explain());
 			}
 		
 		runOnUiThread(new Runnable()
