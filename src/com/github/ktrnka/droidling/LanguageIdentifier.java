@@ -75,6 +75,14 @@ public class LanguageIdentifier
 		return ident;
 		}
 	
+	/*
+	 * compute a unique int version of this char pair
+	 */
+	public static final int hash(char a, char b)
+		{
+		return a * 0x10000 + b;
+		}
+	
 	public class Identification
 		{
 		public HashMap<LIDModel,double[]> scores;
@@ -361,7 +369,10 @@ public class LanguageIdentifier
 		
 		private HashSet<String> discriminativeChars;
 		private char[] discriminativeCharArray;
+		
 		private HashSet<String> charPairs;
+		private int[] charPairCodes;
+		
 		private HashSet<String> words;
 		private HashSet<String> discriminativeWords;
 		
@@ -397,8 +408,16 @@ public class LanguageIdentifier
 			charPairs = new HashSet<String>();
 			tokens = in.readLine().split("\\|");
 			for (String token : tokens)
-				charPairs.add(token);
+				if (token.length() == 2)
+					charPairs.add(token);
 			
+			charPairCodes = new int[charPairs.size()];
+			for (int i = 0, j = 0; j < tokens.length; j++)
+				if (tokens[j].length() == 2)
+					charPairCodes[i++] = hash(tokens[j].charAt(0), tokens[j].charAt(1));
+			Arrays.sort(charPairCodes);
+				
+				
 			discriminativeWords = new HashSet<String>();
 			tokens = in.readLine().split(" ");
 			for (String token : tokens)
@@ -491,44 +510,7 @@ public class LanguageIdentifier
 					// we only care about normal letters; not all the LID models have numbers or punctuation (which can skew it)
 					if (Character.isLetter(c))
 						{
-						/*
-						String charString = String.valueOf(c);
-						
-						// TODO:  It's terrible slow to create and destroy objects just to do a lookup like this.
-						if (chars.contains(charString))
-							{
-							charMatch += count;
-							
-							if (charFeatureValues != null)
-								{
-								if (!charFeatureValues.containsKey(charString))
-									{
-									charFeatureValues.put(charString, new int[] { 1 });
-									}
-								else
-									{
-									charFeatureValues.get(charString)[0]++;
-									}
-								}
-							}
-						
-						if (discriminativeChars.contains(charString))
-							{
-							discriminativeCharMatch += count;
-							
-							if (charFeatureValues != null)
-								{
-								if (!charFeatureValues.containsKey(charString))
-									{
-									charFeatureValues.put(charString, new int[] { 1 });
-									}
-								else
-									{
-									charFeatureValues.get(charString)[0]++;
-									}
-								}
-							}
-						*/
+						// this var is optionally set if we're tracing the feature values
 						String charString = null;
 						if (charFeatureValues != null)
 							charString = String.valueOf(c);
@@ -567,6 +549,28 @@ public class LanguageIdentifier
 							}
 						charTotal += count;
 						
+						if (Arrays.binarySearch(charPairCodes, hash(previousChar, c)) >= 0)
+							{
+							charPairMatch += count;
+							
+							if (charFeatureValues != null)
+								{
+								scratch.setLength(0);
+								scratch.append(previousChar);
+								scratch.append(c);
+								String pair = scratch.toString();
+
+								if (!charFeatureValues.containsKey(pair))
+									{
+									charFeatureValues.put(pair, new int[] { 1 });
+									}
+								else
+									{
+									charFeatureValues.get(pair)[0]++;
+									}
+								}
+							}
+						
 						// TODO:  Oh this is terrible...
 						/*
 						scratch.setLength(0);
@@ -597,8 +601,32 @@ public class LanguageIdentifier
 					previousChar = c;
 					}
 				
+				if (Arrays.binarySearch(charPairCodes, hash(previousChar, ' ')) >= 0)
+					{
+					charPairMatch += count;
+					
+					if (charFeatureValues != null)
+						{
+						scratch.setLength(0);
+						scratch.append(previousChar);
+						scratch.append(' ');
+						String pair = scratch.toString();
+	
+						if (!charFeatureValues.containsKey(pair))
+							{
+							charFeatureValues.put(pair, new int[] { 1 });
+							}
+						else
+							{
+							charFeatureValues.get(pair)[0]++;
+							}
+						}
+					}
+
+				
 				// the end of the word
 				// TODO:  Oh this is terrible...
+				/*
 				String pair = String.valueOf(previousChar) + ' ';
 				
 				if (charPairs.contains(pair))
@@ -617,6 +645,7 @@ public class LanguageIdentifier
 							}
 						}
 					}
+				*/
 				charPairTotal += count;
 				}
 			
