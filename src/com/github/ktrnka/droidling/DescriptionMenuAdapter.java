@@ -28,7 +28,7 @@ public class DescriptionMenuAdapter extends ArrayAdapter<String>
 		// this super call isn't pretty; the simple_list_item_1 probably isn't necessary, but passing in names is
 		// so that the number of list elements is correct
 		super(context, android.R.layout.simple_list_item_1, names);
-
+		
 		this.names = names;
 		this.descriptions = descriptions;
 		c = context;

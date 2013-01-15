@@ -3,9 +3,6 @@ package com.github.ktrnka.droidling;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import com.github.ktrnka.droidling.R;
 
 import android.app.AlertDialog;
@@ -15,6 +12,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -24,12 +22,14 @@ import android.widget.Toast;
 
 public class HomeActivity extends ListActivity
 	{
-	// TODO: use strings.xml for localization
-	private static final String[] names = { "Personal Stats", "Interpersonal Stats", "Language ID Playground", "Send Feedback", "About the stats", "About the app" };
-	private static String[] descriptions = { "Analyse sent messages.", "Compare SMS text analytics with contacts.", null, null, null, null };
+	public static final String PACKAGE_NAME = "com.github.ktrnka.droidling";
+//	private static final String[] names = { "Personal Stats", "Interpersonal Stats", "Language ID Playground", "Send Feedback", "About the stats", "About the app" };
+	private static final int[] nameIDs = { R.string.personal_name, R.string.interpersonal_name, R.string.lid_name, R.string.email_name, R.string.rate_name, R.string.about_stats_name, R.string.about_app_name };
+//	private static String[] descriptions = { "Analyse sent messages.", "Compare SMS text analytics with contacts.", null, null, null, null };
+	private static final int[] descriptionIDs = { R.string.personal_description, R.string.interpersonal_description, 0, R.string.email_description, R.string.rate_description, 0, 0 };
 	
 	// TODO:  I don't like how this uses parallel arrays.  I'd much rather do something like make an instance that has all this (could I do it by overriding toString in the Activities?)
-	private static final Class<?>[] activities = { PersonalActivity.class, InterpersonalActivity.class, LanguageIdentificationActivity.class, null, AboutStatsActivity.class, AboutActivity.class };
+	private static final Class<?>[] activities = { PersonalActivity.class, InterpersonalActivity.class, LanguageIdentificationActivity.class, null, null, AboutStatsActivity.class, AboutActivity.class };
 	
 	public static final boolean DEVELOPER_MODE = true;
 	
@@ -40,7 +40,7 @@ public class HomeActivity extends ListActivity
 		super.onCreate(savedInstanceState);
 		
 		// I don't like this code AT ALL, but getString is an instance method :(
-		descriptions[3] = "Send email to " + getString(R.string.developer_email);
+		//descriptions[3] = "Send email to " + getString(R.string.developer_email);
 		
 		try
 			{
@@ -66,6 +66,7 @@ public class HomeActivity extends ListActivity
 			}
 		
 		// build the structure we need to pass to SimpleAdapter
+		/*
 		ArrayList<HashMap<String,String>> fields = new ArrayList<HashMap<String,String>>();
 		for (int i = 0; i < names.length; i++)
 			{
@@ -74,38 +75,78 @@ public class HomeActivity extends ListActivity
 			item.put("desc", descriptions[i]);
 			fields.add(item);
 			}
+			*/
 		
-		setListAdapter(new DescriptionMenuAdapter(this, names, descriptions));
+		setListAdapter(new DescriptionMenuAdapter(this, getStrings(nameIDs), getStrings(descriptionIDs)));
+		}
+	
+	/**
+	 * Utility function to get strings for an array of IDs.
+	 * @param stringIDs
+	 * @return
+	 */
+	private String[] getStrings(int[] stringIDs)
+		{
+		if (stringIDs == null)
+			return null;
+		
+		String[] strings = new String[stringIDs.length];
+		for (int i = 0; i < stringIDs.length; i++)
+			if (stringIDs[i] != 0)
+				strings[i] = getString(stringIDs[i]);
+			else
+				strings[i] = null;
+		
+		return strings;
 		}
 
+	/**
+	 * Show the welcome message.  Intended for first load
+	 * and app updates.
+	 */
 	private void showWelcome()
 		{
-		try 
-			{
-			// try loading the changelog file
-			StringBuilder changeLogBuilder = new StringBuilder();
-			BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open("changelog.txt")));
-			String line;
-			while ( (line = in.readLine()) != null)
+		new Thread()
+		{
+			public void run()
 				{
-				changeLogBuilder.append(line);
-				changeLogBuilder.append("\n");
-				}
-			in.close();
-		
-			AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
-			alertBuilder.setTitle("What's New");
-			alertBuilder.setMessage(changeLogBuilder);
-			
-			alertBuilder.setPositiveButton("Close", null);
-			alertBuilder.show();
+				try 
+					{
+					// try loading the changelog file
+					final StringBuilder changeLogBuilder = new StringBuilder();
+					BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open("changelog.txt")));
+					String line;
+					while ( (line = in.readLine()) != null)
+						{
+						changeLogBuilder.append(line);
+						changeLogBuilder.append("\n");
+						}
+					in.close();
 
-			} 
-		catch (IOException e)
-			{
-			Log.e(TAG, "Failure to load changelog");
-			Log.e(TAG, Log.getStackTraceString(e));
-			}
+					runOnUiThread(new Runnable()
+						{
+						public void run()
+							{
+							AlertDialog.Builder alertBuilder = new AlertDialog.Builder(HomeActivity.this);
+							alertBuilder.setTitle("What's New");
+							alertBuilder.setMessage(changeLogBuilder);
+							alertBuilder.setIcon(android.R.drawable.ic_menu_help);
+							
+							alertBuilder.setPositiveButton("Close", null);
+							alertBuilder.show();
+							}
+						});
+		
+					} 
+				catch (IOException e)
+					{
+					Log.e(TAG, "Failure to load changelog");
+					Log.e(TAG, Log.getStackTraceString(e));
+					}
+				}
+		}.start();
+
+
 		}
 
 	public void onListItemClick(ListView list, View view, int position, long id)
@@ -116,18 +157,25 @@ public class HomeActivity extends ListActivity
 			Intent intent = new Intent(this, activities[position]);
 			startActivity(intent);
 			}
-		else if (position < names.length && names[position].equals("Send Feedback"))
+		else if (position < nameIDs.length && nameIDs[position] == R.string.email_name)
 			{
 			sendFeedback();
+			}
+		else if (position < nameIDs.length && nameIDs[position] == R.string.rate_name)
+			{
+			rateApp();
 			}
 		else
 			{
 			Toast.makeText(getApplicationContext(), getString(R.string.not_implemented), Toast.LENGTH_SHORT).show();
 			}
-
-	
 		}
 	
+	private void rateApp()
+		{
+		this.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + PACKAGE_NAME)));
+		}
+
 	/**
 	 * Email feedback to the development account.  Note that most of the strings
 	 * aren't from strings.xml, because we don't need to localize them (cause I need to be able to read them)
@@ -143,30 +191,8 @@ public class HomeActivity extends ListActivity
 		// read the config and make it pretty
 		Configuration config = getResources().getConfiguration();
 		StringBuilder configBuilder = new StringBuilder();
-		
-		/*
-		configBuilder.append("\n\nOrientation: ");
-		switch (config.orientation)
-		{
-		case Configuration.ORIENTATION_LANDSCAPE:
-			configBuilder.append("landscape\n");
-			break;
-		case Configuration.ORIENTATION_PORTRAIT:
-			configBuilder.append("portrait\n");
-			break;
-		default:
-			configBuilder.append("unknown (" + config.orientation + ")\n");
-			break;
-		}
-		*/
 
 		configBuilder.append("Locale: " + config.locale.toString() + "\n");
-		
-		/*
-		TelephonyManager tm = (TelephonyManager) getApplicationContext().getSystemService(TELEPHONY_SERVICE);
-		if (tm != null)
-			configBuilder.append("Network country: " + tm.getNetworkCountryIso() + "\n");
-		*/
 		
 		configBuilder.append("Size: ");
 		switch (config.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK)
@@ -189,11 +215,6 @@ public class HomeActivity extends ListActivity
 		
 		configBuilder.append("Android version " + android.os.Build.VERSION.RELEASE + "\n");
 		configBuilder.append("SDK version " + android.os.Build.VERSION.SDK_INT + "\n");
-
-		/*
-		if (android.os.Build.BRAND != null)
-			configBuilder.append("Branding: " + android.os.Build.BRAND + "\n");
-		*/
 		
 		String personalStatsProfiling = PersonalActivity.summarizeRuntime();
 		if (personalStatsProfiling != null)
