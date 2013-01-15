@@ -11,6 +11,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
+import android.text.method.LinkMovementMethod;
 import android.widget.TextView;
 
 /**
@@ -38,6 +39,12 @@ public class AboutActivity extends Activity
 			{
 			version.setText("Version: error found in loading version number");
 			}
+		
+		// these lines are necessary for clickable TextViews with <a href> in the strings
+		TextView textView = (TextView) findViewById(R.id.about_author);
+		textView.setMovementMethod(LinkMovementMethod.getInstance());
+		textView = (TextView) findViewById(R.id.about_other_credits);
+		textView.setMovementMethod(LinkMovementMethod.getInstance());
 		
 		// load the changelog
 		TextView changelog = (TextView) findViewById(R.id.changelog);

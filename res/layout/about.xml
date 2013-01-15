@@ -60,6 +60,24 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textSize="28sp"/>
 
+	<TextView
+        android:id="@+id/about_author"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="4dip"
+        android:text="@string/credits_author"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="22sp"/>
+
+	<TextView
+        android:id="@+id/about_other_credits"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="6dip"
+        android:text="@string/credits_other"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="22sp"/>
+    
 </LinearLayout>
 
 </ScrollView>

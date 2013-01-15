@@ -4,12 +4,20 @@
     <string name="app_name">SMS Linguistics</string>
     <string name="about">About</string>
     <string name="changelog">What\'s new</string>
-    <string name="personal">Personal Statistics</string>
-    <string name="interpersonal">Interpersonal Statistics</string>
+    <string name="personal_name">Personal Statistics</string>
+    <string name="personal_description">Analyse sent messages.</string>
+    <string name="interpersonal_name">Interpersonal Statistics</string>
+    <string name="interpersonal_description">Compare SMS text analytics with contacts.</string>
+    <string name="email_description">Send email to trnka.dev@gmail.com</string>
+    <string name="lid_name">Language Identification Demo</string>
+    <string name="email_name">Send Feedback</string>
+    <string name="rate_name">Rate the App</string>
+    <string name="rate_description">Rate and provide feedback on Google Play.</string>
+    <string name="about_stats_name">About the Stats</string>
+    <string name="about_app_name">About the App</string>
     <string name="app_descrip">Apply text analytics to your sent messages and see what makes your texts unique!
         You can also apply analytics to your ongoing conversations with contacts to describe personal relationships.</string>
-    <string name="app_credits">Made by Keith Trnka</string>
-    <string name="nyi">Not yet implemented.</string>
+    <string name="app_credits">Made by</string>
     <string name="key_phrases">Key Phrases</string>
     <string name="contacts">Top Contacts</string>
     <string name="stats">General Stats</string>
@@ -50,12 +58,12 @@
 	<string name="num_sent_per_month_format" formatted="false">%.1f texts per month\n</string>
 	<string name="shared_stats_subject_format" formatted="false">Shared stats from %s</string>
 	<string name="interpersonal_share_body_format" formatted="false">Analysis of SMS messages with %s:</string>
-	<string name="interpersonal_received_format" formatted="false">%s sent %s</string>
-	<string name="interpersonal_sent_format" formatted="false">You send %s (%.1f%% of all sent)</string>
 	<string name="average_message_length_header">Average message length</string>
 	<string name="their_message_length" formatted="false">%s: %.1f words</string>
 	<string name="your_message_length" formatted="false">You: %.1f words</string>
 	<string name="shared_vocabulary_header">Shared vocabulary (Jaccard)</string>
 	<string name="shared_with_them">with texts to them: %.1f%%</string>
 	<string name="shared_with_all">with ALL your texts: %.1f%%</string>
+	<string name="credits_other">Language resources provided by Hans Christensen (<a href="http://corpora.heliohost.org/index.html">web</a>, <a href="mailto:hc.corpus@gmail.com">email</a>), Hermit Dave (<a href="http://invokeit.wordpress.com/frequency-word-lists/">web</a>), and Keith Vertanen (<a href="http://www.keithv.com/software/">web</a>)</string>
+	<string name="credits_author">Keith Trnka (<a href="mailto:trnka.dev@gmail.com">email</a>)</string>
 </resources>
