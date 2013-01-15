@@ -218,7 +218,7 @@ public class LanguageIdentificationActivity extends Activity
 	
 				LayoutInflater inflater = getLayoutInflater();
 				
-				parent.addView(inflateResults(inflater, "Supported Languages", languageBuilder.toString()));
+				parent.addView(inflateResults(inflater, "Languages", languageBuilder.toString()));
 				}
 			});
 		}
