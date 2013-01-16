@@ -1,10 +1,13 @@
-2012-12-28
--language identification playground - beta feature to see how lang ID works.
--more general optimization, got some good speedups
--[internal] moved lots of strings and formats into strings.xml to prepare for string localization
--speedups in Personal Stats processing to compensate for the frequency-based sorting
--"lol" and other chat terms won't be featured so prominently in Personal Stats > Phrases
--added drop-down to select the phrase sorting for Personal Stats > Phrases, added a frequency option
+Version 1.0 (2012-12-28)
+-Added What's New popup on first install and app updates.
+-Added language identification - demonstration of identifying which language you use with each contact.
+-Phrases in Personal Stats are improved in Spanish, German, Portuguese, French, Italian, Dutch, Russian, Norwegian, and Korean. 
+-Phrases in Personal Stats in English should be less skewed to chat terms like "lol".
+-Sort phrases by frequency in Personal Stats - You can see what ordering by frequency is like compared to ordering by phraseness.
+-Runtime optimization - Personal and Interpersonal Stats load faster.
+-Text in graphs should be more readable on all devices now.
+-Added quick link to rate on Google Play.
+-Source code now available on GitHub at http://www.github.com/ktrnka/droidling
 
-2012-09-02
+Version 0.821 (2012-09-02)
 -Initial release.

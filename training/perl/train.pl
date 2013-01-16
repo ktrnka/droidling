@@ -144,6 +144,12 @@ foreach my $subdir (@files)
 
 	}
 
+### SAVE UNIGRAM MODELS ###
+foreach my $model (@models)
+	{
+	$model->save_word_unigrams(6000, "$outdir/$model->{'code2'}.unigrams.utf8.txt");
+	}
+
 ### PRUNE/ETC THE MODELS, SAVE THEM ###
 foreach my $model (@models)
 	{

@@ -131,6 +131,25 @@ sub train_hc
 
 	}
 
+sub save_word_unigrams
+	{
+	my ($this, $topN, $outfile) = @_;
+	
+	my @words = sort { $this->{'word_ngrams'}->{$b} <=> $this->{'word_ngrams'}->{$a} } keys %{$this->{'word_ngrams'}};
+	open(my $out, '>:encoding(UTF-8)', $outfile) or die "$!\n";
+	print $out "$this->{'total_word_unigrams'}\n";
+	for (my $i = 0; $i < @words and $i < $topN; $i++)
+		{
+		print $out "$words[$i] $this->{'word_ngrams'}->{$words[$i]}\n";
+		}
+	close $out;
+	
+	if (@words < $topN)
+		{
+		warn "$this->{code2} has fewer then $topN words.\n";
+		}
+	}
+
 # alternative training for languages that aren't space-segmented
 sub train_hc_nonspace
 	{

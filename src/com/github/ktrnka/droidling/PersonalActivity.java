@@ -17,6 +17,8 @@ import java.util.Date;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
+
 import org.achartengine.GraphicalView;
 import org.achartengine.chart.BarChart;
 import org.achartengine.model.CategorySeries;
@@ -62,7 +64,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 	private HashSet<String> largeStopwords;
 	private DateDistribution dates;
 
-	// constants to tweak the scoring of phrases.  This is probably language-specific and should be extracted to some config.
+	// constants to tweak the scoring of phrases.  This is probably language-specific and should be extracted to a config.
 	public double unigramScale = 0.25;
 	public double bigramScale = 0.9;
 	public double trigramScale = 1.2;
@@ -145,20 +147,63 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 		return metrics.scaledDensity;
 		}
+	
+	/**
+	 * Gets a file like en.unigrams.utf8.txt if it exists in the assets.  If not, returns null.
+	 * 
+	 * TODO: Basically this is mimicking Resources.  I need to double-check why I chose to
+	 * use Assets intead.
+	 * 
+	 * @param suffix The suffix to append to the language and/or country code.
+	 * @return The filename if it exists.  Null if not.
+	 */
+	private String getLocalizedAsset(String suffix)
+		{
+		try
+			{
+			String languageCode2 = Locale.getDefault().getLanguage();
+			String filename = languageCode2 + suffix;
+	
+			String[] assets = getAssets().list("");
+			for (String asset : assets)
+				{
+				if (asset.equals(filename))
+					{
+					return filename;
+					}
+				}
+			}
+		catch (IOException e)
+			{
+			Log.e(TAG, "getLocalizedAsset failed to list assets");
+			}
+		
+		return null;
+		}
 
-	// TODO: Load locale-appropriate unigrams
 	private void loadUnigrams()
 		{
 		long time = System.currentTimeMillis();
+
 		try
 			{
-			corpusUnigrams = new WordDistribution(getAssets().open("unigrams.merged.utf8.txt"), false);
-			//corpusUnigrams = new WordDistribution(getAssets().open("unigrams.utf8.txt"), false);
-			//corpusUnigrams = new WordDistribution(getAssets().open("unigrams.bin"), true);
+			String unigramFilename = getLocalizedAsset(".unigrams.utf8.txt");
+			
+			if (unigramFilename != null)
+				{
+				corpusUnigrams = new WordDistribution(getAssets().open(unigramFilename), false);
+				}
+			else
+				{
+				// There isn't a unigram file for this language.
+				// TODO: Build a baseline unigram model from the set of received messages.
+				corpusUnigrams = null;
+				}
 			}
 		catch (IOException e)
 			{
 			corpusUnigrams = null;
+			Log.e(TAG, "loadUnigrams failed");
 			}
 		runtime.put("load unigrams", System.currentTimeMillis() - time);
 		}
@@ -167,41 +212,50 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		{
 		long time = System.currentTimeMillis();
 		smallStopwords = new HashSet<String>();
+		
 		try
 			{
-			// TODO: move the filename somewhere else
-			BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open("stopwords-small.txt")), 8192);
-			String line;
-			while ((line = in.readLine()) != null)
+			String smallStopwordsFile = getLocalizedAsset(".stopwords.small.utf8.txt");
+			
+			if (smallStopwordsFile != null)
 				{
-				line = line.trim();
-				if (line.length() > 0)
-					smallStopwords.add(line.toLowerCase());
+				BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open(smallStopwordsFile)), 8192);
+				String line;
+				while ((line = in.readLine()) != null)
+					{
+					line = line.trim();
+					if (line.length() > 0)
+						smallStopwords.add(line.toLowerCase());
+					}
+				in.close();				
 				}
-			in.close();
 			}
 		catch (IOException e)
 			{
-			// TODO: do something if we can't load
+			Log.e(TAG, "loadStopwords failed for small file");
 			}
 
 		largeStopwords = new HashSet<String>();
 		try
 			{
-			// TODO: move the filename somewhere else
-			BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open("stopwords-medium.txt")), 8192);
-			String line;
-			while ((line = in.readLine()) != null)
+			String largeStopwordsFile = getLocalizedAsset(".stopwords.medium.utf8.txt");
+			
+			if (largeStopwordsFile != null)
 				{
-				line = line.trim();
-				if (line.length() > 0)
-					largeStopwords.add(line.toLowerCase());
+				BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open(largeStopwordsFile)), 8192);
+				String line;
+				while ((line = in.readLine()) != null)
+					{
+					line = line.trim();
+					if (line.length() > 0)
+						largeStopwords.add(line.toLowerCase());
+					}
+				in.close();
 				}
-			in.close();
 			}
 		catch (IOException e)
 			{
-			// TODO: do something if we can't load
+			Log.e(TAG, "loadStopwords failed for large file");
 			}
 
 		runtime.put("load stopwords", System.currentTimeMillis() - time);
@@ -283,6 +337,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 			
 			do
 				{
+				// TODO: Replace this with truecasing
 				String body = messages.getString(bodyIndex).toLowerCase();
 
 				long millis = messages.getLong(dateIndex);
@@ -313,10 +368,6 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 				String previous = null, ppWord = null;
 				for (String token : tokens)
 					{
-					// TODO: change this to truecasing
-					// TODO: first short term solution would be to run lowercase on the entire message in a single pass first
-					//token = token.toLowerCase();
-
 					// unigrams
 					if (unigrams.containsKey(token))
 						unigrams.get(token)[0]++;
