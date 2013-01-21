@@ -61,6 +61,12 @@ public class CorpusStats
 		trigramTotal = 0;
 		}
 	
+	/**
+	 * Train from the specified text message.
+	 * 
+	 * TODO:  There are OutOfMemory crash bugs that can be triggered from this in put calls to HashMap when it doubles in size
+	 * @param message
+	 */
 	public void train(String message)
 		{
 		messages++;
@@ -84,7 +90,7 @@ public class CorpusStats
 			if (unigrams.containsKey(token))
 				unigrams.get(token)[0]++;
 			else
-				unigrams.put(token, new int[] { 1 });
+				unigrams.put(token, new int[] { 1 });	// OutOfMemory error here in the put call at HashMap.doubleCapacity
 			unigramTotal++;
 			unfilteredWords++;
 			
@@ -112,7 +118,7 @@ public class CorpusStats
 				if (ppWord != null)
 					{
 					if (!trigrams.containsKey(ppWord))
-						trigrams.put(ppWord, new HashMap<String,HashMap<String, int[]>>());
+						trigrams.put(ppWord, new HashMap<String,HashMap<String, int[]>>());	// OutOfMemory error here in the put call at HashMap.doubleCapacity
 					
 					HashMap<String,HashMap<String, int[]>> bigramSubdist = trigrams.get(ppWord);
 					
