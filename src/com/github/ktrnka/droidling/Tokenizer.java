@@ -17,6 +17,13 @@ public class Tokenizer
 	public static final String messageStart = "<s>";
 	public static final String messageEnd = "</s>";
 	
+	/**
+	 * Check if a word isn't appropriate to list in the various displays.  Examples
+	 * include numeric tokens and such.
+	 * 
+	 * TODO: This isn't appropriate for many languages that have hyphenated words.
+	 * It's also inappropriate to filter out a trigram like "3rd and Seneca"
+	 */
 	public static boolean isNonword(String word)
 		{
 		// This is the regular expression version of the code (and Java regex is slow)
