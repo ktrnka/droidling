@@ -1,7 +1,7 @@
-Version 1.0 (2012-12-28)
+Version 1.01 (2013-01-20)
 -Added What's New popup on first install and app updates.
 -Added language identification - demonstration of identifying which language you use with each contact.
--Phrases in Personal Stats are improved in Spanish, German, Portuguese, French, Italian, Dutch, Russian, Norwegian, and Korean. 
+-Phrases in Personal Stats are improved in Spanish, German, Portuguese, French, Italian, Dutch, Russian, Norwegian, and Korean.  It checks the language your phone is set to.
 -Phrases in Personal Stats in English should be less skewed to chat terms like "lol".
 -Sort phrases by frequency in Personal Stats - You can see what ordering by frequency is like compared to ordering by phraseness.
 -Runtime optimization - Personal and Interpersonal Stats load faster.
