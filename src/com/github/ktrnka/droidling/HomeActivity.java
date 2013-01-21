@@ -3,6 +3,7 @@ package com.github.ktrnka.droidling;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+
 import com.github.ktrnka.droidling.R;
 
 import android.app.AlertDialog;
@@ -23,24 +24,19 @@ import android.widget.Toast;
 public class HomeActivity extends ListActivity
 	{
 	public static final String PACKAGE_NAME = "com.github.ktrnka.droidling";
-//	private static final String[] names = { "Personal Stats", "Interpersonal Stats", "Language ID Playground", "Send Feedback", "About the stats", "About the app" };
 	private static final int[] nameIDs = { R.string.personal_name, R.string.interpersonal_name, R.string.lid_name, R.string.email_name, R.string.rate_name, R.string.about_stats_name, R.string.about_app_name };
-//	private static String[] descriptions = { "Analyse sent messages.", "Compare SMS text analytics with contacts.", null, null, null, null };
 	private static final int[] descriptionIDs = { R.string.personal_description, R.string.interpersonal_description, 0, R.string.email_description, R.string.rate_description, 0, 0 };
 	
-	// TODO:  I don't like how this uses parallel arrays.  I'd much rather do something like make an instance that has all this (could I do it by overriding toString in the Activities?)
+	// TODO:  I don't like how this uses parallel arrays.  I'd much rather do something like make an instance that has all this
 	private static final Class<?>[] activities = { PersonalActivity.class, InterpersonalActivity.class, LanguageIdentificationActivity.class, null, null, AboutStatsActivity.class, AboutActivity.class };
 	
-	public static final boolean DEVELOPER_MODE = true;
+	public static final boolean DEVELOPER_MODE = false;
 	
-	public static final String TAG = "com.github.ktrnka.droidling";
+	public static final String TAG = "com.github.ktrnka.droidling.HomeActivity";
 	
 	public void onCreate(Bundle savedInstanceState)
 		{
 		super.onCreate(savedInstanceState);
-		
-		// I don't like this code AT ALL, but getString is an instance method :(
-		//descriptions[3] = "Send email to " + getString(R.string.developer_email);
 		
 		try
 			{
@@ -64,18 +60,6 @@ public class HomeActivity extends ListActivity
 			Log.e(TAG, "PackageManager lookup failed");
 			Log.e(TAG, Log.getStackTraceString(exc));
 			}
-		
-		// build the structure we need to pass to SimpleAdapter
-		/*
-		ArrayList<HashMap<String,String>> fields = new ArrayList<HashMap<String,String>>();
-		for (int i = 0; i < names.length; i++)
-			{
-			HashMap<String,String> item = new HashMap<String,String>();
-			item.put("name", names[i]);
-			item.put("desc", descriptions[i]);
-			fields.add(item);
-			}
-			*/
 		
 		setListAdapter(new DescriptionMenuAdapter(this, getStrings(nameIDs), getStrings(descriptionIDs)));
 		}
