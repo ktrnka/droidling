@@ -3,6 +3,9 @@ package com.github.ktrnka.droidling;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
+
+import com.github.ktrnka.droidling.R;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -236,10 +239,11 @@ public class LanguageIdentificationActivity extends Activity
 			}
 		
 		identifications = new HashMap<String, LanguageIdentifier.Identification>();
+		String localeLanguageCode2 = Locale.getDefault().getLanguage();
 		for (String contactName : sentStats.keySet())
 			{
 			CorpusStats stats = sentStats.get(contactName);
-			LanguageIdentifier.Identification identification = langID.identify(stats.getUnigrams());
+			LanguageIdentifier.Identification identification = langID.identify(stats.getUnigrams(), localeLanguageCode2, 1.1);
 			identifications.put(contactName, identification);
 			}
 		}

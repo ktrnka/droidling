@@ -64,13 +64,27 @@ public class LanguageIdentifier
 		return languages;
 		}
 	
-	public Identification identify(HashMap<String,int[]> unigrams)
+	/**
+	 * 
+	 * @param unigrams
+	 * @param localeLanguage The two-character language code for the device.
+	 * @param localeLanguageMultiplier The score for localeLanguage will be multiplied by this param.
+	 * @return
+	 */
+	public Identification identify(HashMap<String,int[]> unigrams, String localeLanguage, double localeLanguageMultiplier)
 		{
 		Identification ident = new Identification();
 		ident.setUnigrams(unigrams);
 		
 		for (LIDModel model : models)
-			ident.scores.put(model, new double[] { model.score(unigrams, null, null) });
+			{
+			double score = model.score(unigrams, null, null);
+			
+			if (model.languageCode2.equals(localeLanguage))
+				score *= localeLanguageMultiplier;
+			
+			ident.scores.put(model, new double[] { score });
+			}
 		
 		return ident;
 		}
@@ -597,30 +611,6 @@ public class LanguageIdentifier
 								}
 							}
 						
-						// TODO:  Oh this is terrible...
-						/*
-						scratch.setLength(0);
-						scratch.append(previousChar);
-						scratch.append(c);
-						String pair = scratch.toString(); //String.valueOf(previousChar) + String.valueOf(c);
-						
-						if (charPairs.contains(pair))
-							{
-							charPairMatch += count;
-							
-							if (charFeatureValues != null)
-								{
-								if (!charFeatureValues.containsKey(pair))
-									{
-									charFeatureValues.put(pair, new int[] { 1 });
-									}
-								else
-									{
-									charFeatureValues.get(pair)[0]++;
-									}
-								}
-							}
-						*/
 						charPairTotal += count;
 						}
 					
@@ -649,29 +639,6 @@ public class LanguageIdentifier
 						}
 					}
 
-				
-				// the end of the word
-				// TODO:  Oh this is terrible...
-				/*
-				String pair = String.valueOf(previousChar) + ' ';
-				
-				if (charPairs.contains(pair))
-					{
-					charPairMatch += count;
-					
-					if (charFeatureValues != null)
-						{
-						if (!charFeatureValues.containsKey(pair))
-							{
-							charFeatureValues.put(pair, new int[] { 1 });
-							}
-						else
-							{
-							charFeatureValues.get(pair)[0]++;
-							}
-						}
-					}
-				*/
 				charPairTotal += count;
 				}
 			
@@ -685,7 +652,7 @@ public class LanguageIdentifier
 			if (charPairTotal == 0)
 				charPairTotal = 1;
 			
-			return (wordMatch / (double)wordTotal + discriminativeWordMatch / (double)wordTotal + charMatch / (double)charTotal + discriminativeCharMatch / (double)charTotal + charPairMatch / (double)charPairTotal) / 5.0;
+			return (2 * wordMatch / (double)wordTotal + 2 * discriminativeWordMatch / (double)wordTotal + charMatch / (double)charTotal + discriminativeCharMatch / (double)charTotal + charPairMatch / (double)charPairTotal) / 7.0;
 			}
 		}
 	}
