@@ -5,7 +5,7 @@
     <string name="about">About</string>
     <string name="changelog">What\'s new</string>
     <string name="personal_name">Personal Statistics</string>
-    <string name="personal_description">Analyse sent messages.</string>
+    <string name="personal_description">Analyze sent messages.</string>
     <string name="interpersonal_name">Interpersonal Statistics</string>
     <string name="interpersonal_description">Compare SMS text analytics with contacts.</string>
     <string name="email_description">Send email to trnka.dev@gmail.com</string>
@@ -26,8 +26,8 @@
     <string name="time_of_day">Messages per hour</string>
     <string name="day_of_week">Messages per day</string>
     <string name="share">Share</string>
-    <string name="loading">Scanning texts...</string>
-    <string name="share_intent">Share with...</string>
+    <string name="loading">Scanning texts&#x2026;</string>
+    <string name="share_intent">Share with&#x2026;</string>
     <string name="none">none</string>
     <string name="phrases_by">Phrases by</string>
     <string name="not_enough_replies">Not enough replies from %s.</string>
@@ -44,7 +44,7 @@
         <item >magic</item>
         <item >freq.</item>
     </string-array>
-    <string name="send_email_with">Send email using...</string>
+    <string name="send_email_with">Send email using&#x2026;</string>
     <string name="not_implemented">Not implemented yet</string>
     <string name="error_no_sent_sms">No sent messages found, aborting.</string>
     <string name="error_no_received_sms">No received messages found, aborting.</string>
@@ -64,6 +64,6 @@
 	<string name="shared_vocabulary_header">Shared vocabulary (Jaccard)</string>
 	<string name="shared_with_them">with texts to them: %.1f%%</string>
 	<string name="shared_with_all">with ALL your texts: %.1f%%</string>
-	<string name="credits_other">Language resources provided by Hans Christensen (<a href="http://corpora.heliohost.org/index.html">web</a>, <a href="mailto:hc.corpus@gmail.com">email</a>), Hermit Dave (<a href="http://invokeit.wordpress.com/frequency-word-lists/">web</a>), and Keith Vertanen (<a href="http://www.keithv.com/software/">web</a>)</string>
+	<string name="credits_other">Language resources provided by Hans Christensen (<a href="http://corpora.heliohost.org">web</a>, <a href="mailto:hc.corpus@gmail.com">email</a>), Hermit Dave (<a href="http://invokeit.wordpress.com/frequency-word-lists/">web</a>), and Keith Vertanen (<a href="http://www.keithv.com/software/">web</a>)</string>
 	<string name="credits_author">Keith Trnka (<a href="mailto:trnka.dev@gmail.com">email</a>)</string>
 </resources>
