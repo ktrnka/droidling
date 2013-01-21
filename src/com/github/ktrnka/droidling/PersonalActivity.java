@@ -28,6 +28,7 @@ import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYMultipleSeriesRenderer.Orientation;
 
 import com.github.ktrnka.droidling.R;
+
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -75,7 +76,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 
 	static final int PROGRESS_DIALOG = 0;
 	private ProgressDialog progress;
-	private static final String TAG = "com.github.ktrnka.droidling/PersonalActivity";
+	private static final String TAG = "com.github.ktrnka.droidling.PersonalActivity";
 	
 	private HashMap<String,ArrayList<String[]>> contactMap;
 	
@@ -485,7 +486,8 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		// unigram candidates
 		for (String word : unigrams.keySet())
 			{
-			frequencyCandidates.put(word, new int[] { unigrams.get(word)[0] } );
+			if (!isNonword(word))
+				frequencyCandidates.put(word, new int[] { unigrams.get(word)[0] } );
 			
 			if (!isNonword(word) && !largeStopwords.contains(word))
 				candidates.put(
@@ -498,8 +500,14 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		StringBuilder ngramBuilder = new StringBuilder();
 		for (String word1 : bigrams.keySet())
 			{
+			if (isNonword(word1))
+				continue;
+			
 			for (String word2 : bigrams.get(word1).keySet())
 				{
+				if (isNonword(word2))
+					continue;
+				
 				// concatenation with StringBuilder for performance
 				ngramBuilder.setLength(0);
 				ngramBuilder.append(word1);
@@ -509,10 +517,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 				
 				frequencyCandidates.put(ngram, new int[] { bigrams.get(word1).get(word2)[0] } );
 
-				if (isNonword(word1) || smallStopwords.contains(word1))
-					continue;
-
-				if (isNonword(word2) || smallStopwords.contains(word2))
+				if (smallStopwords.contains(word1) || smallStopwords.contains(word2))
 					continue;
 
 				int freq = bigrams.get(word1).get(word2)[0];
@@ -526,10 +531,19 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		// analyse trigrams
 		for (String word1 : trigrams.keySet())
 			{
+			if (isNonword(word1))
+				continue;
+			
 			for (String word2 : trigrams.get(word1).keySet())
 				{
+				if (isNonword(word2))
+					continue;
+				
 				for (String word3 : trigrams.get(word1).get(word2).keySet())
 					{
+					if (isNonword(word3))
+						continue;
+					
 					// concatenation with StringBuilder for performance
 					ngramBuilder.setLength(0);
 					ngramBuilder.append(word1);
@@ -541,11 +555,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 					
 					frequencyCandidates.put(ngram, new int[] { trigrams.get(word1).get(word2).get(word3)[0] } );
 					
-					if (isNonword(word1) || smallStopwords.contains(word1))
-						continue;
-					if (isNonword(word2))
-						continue;
-					if (isNonword(word3) || smallStopwords.contains(word3))
+					if (smallStopwords.contains(word1) || smallStopwords.contains(word3))
 						continue;
 
 					int freq = trigrams.get(word1).get(word2).get(word3)[0];
@@ -751,7 +761,11 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		runtime.put("generating descriptions", System.currentTimeMillis() - time);
 
 		// RUNTIME DISPLAY
-		final String runtimeString = summarizeRuntime();
+		final String runtimeString;
+		if (HomeActivity.DEVELOPER_MODE)
+			runtimeString = summarizeRuntime();
+		else
+			runtimeString = null;
 
 		/*************** SHOW IT *******************/
 		runOnUiThread(new Runnable()
@@ -772,8 +786,8 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 				GraphicalView hourChart = buildHourChart(PersonalActivity.this, hourHist);
 				parent.addView(inflateChart(inflater, getString(R.string.time_of_day), hourChart));
 
-				parent.addView(inflateResults(inflater, getString(R.string.runtime), runtimeString));
-				
+				if (runtimeString != null)
+					parent.addView(inflateResults(inflater, getString(R.string.runtime), runtimeString));
 				}
 			});
 		}
@@ -986,10 +1000,6 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 	
 	public void share(Bitmap bitmap, String title, String subject)
 		{
-		// the problem with this method is that it adds to your gallery each time you share and can't remove
-        //String path = Images.Media.insertImage(getContentResolver(), bitmap, title, null);
-        //Uri screenshotUri = Uri.parse(path);
-        
 		// In the future, I should switch this to getExternalFilesDir
         File file = new File(Environment.getExternalStorageDirectory(), "sms_ling.png");
         try
