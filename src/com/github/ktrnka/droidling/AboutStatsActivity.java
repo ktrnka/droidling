@@ -1,5 +1,7 @@
 package com.github.ktrnka.droidling;
 
+import com.github.ktrnka.droidling.R;
+
 import android.app.Activity;
 import android.os.Bundle;
 import android.text.method.LinkMovementMethod;

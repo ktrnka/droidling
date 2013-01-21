@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import com.github.ktrnka.droidling.R;
+
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
