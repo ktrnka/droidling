@@ -106,7 +106,7 @@ public class HomeActivity extends ListActivity
 						changeLogBuilder.append("\n");
 						}
 					in.close();
-
+					
 					runOnUiThread(new Runnable()
 						{
 						public void run()

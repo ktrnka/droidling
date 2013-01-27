@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.github.ktrnka.droidling"
-    android:versionCode="29"
+    android:versionCode="33"
     android:versionName="1.01" 
     >
 
