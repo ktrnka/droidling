@@ -143,8 +143,15 @@ public class InterpersonalActivity extends Activity
 					if (!sentStats.containsKey(recipientName))
 						sentStats.put(recipientName, new CorpusStats());
 					
-					sentStats.get(recipientName).train(body);
-					overallSentStats.train(body);
+					try
+						{
+						sentStats.get(recipientName).train(body);
+						overallSentStats.train(body);
+						}
+					catch (OutOfMemoryError e)
+						{
+						throw new Error("Overall sent messages proccessed: " + overallSentStats.getMessages() + "\nOverall percent long words: " + overallSentStats.getPercentLongWords(), e);
+						}
 					}
 				} while (messages.moveToNext());
 			}
@@ -189,8 +196,16 @@ public class InterpersonalActivity extends Activity
 						receivedStats.put(senderName, new CorpusStats());
 					
 					String message = messages.getString(bodyIndex);
-					receivedStats.get(senderName).train(message);
-					overallReceivedStats.train(message);
+					
+					try
+						{
+						receivedStats.get(senderName).train(message);
+						overallReceivedStats.train(message);
+						}
+					catch (OutOfMemoryError e)
+						{
+						throw new Error("Overall received messages proccessed: " + overallReceivedStats.getMessages() + "\nOverall percent long words: " + overallReceivedStats.getPercentLongWords(), e);
+						}
 					}
 				} while (messages.moveToNext());
 			}
