@@ -301,16 +301,8 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		Cursor messages = getContentResolver().query(Sms.SENT_URI, sentColumns, null, null, null);
 
 		final HashMap<String, int[]> personCounts = new HashMap<String, int[]>();
-
-		// unigrams, bigrams, trigrams
-		final HashMap<String, int[]> unigrams = new HashMap<String, int[]>();
-		final HashMap<String, HashMap<String, int[]>> bigrams = new HashMap<String, HashMap<String, int[]>>();
-		final HashMap<String, HashMap<String, HashMap<String, int[]>>> trigrams = new HashMap<String, HashMap<String, HashMap<String, int[]>>>();
-
-		// totals for those
-		int unigramTotal = 0;
-		int bigramTotal = 0;
-		int trigramTotal = 0;
+		
+		CorpusStats sentStats = new CorpusStats();
 
 		// full-message distribution (sort messages only)
 		final HashMap<String, int[]> shortMessages = new HashMap<String, int[]>();
@@ -323,10 +315,10 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 
 		ArrayList<String> simplePhrase = new ArrayList<String>();
 
-		int totalMessages = 0;
-		int totalWords = 0;
-		int totalChars = 0;
-		int wordLength = 0;
+//		int totalMessages = 0;
+//		int totalWords = 0;
+//		int totalChars = 0;
+//		int wordLength = 0;
 
 		dates = new DateDistribution();
 
@@ -345,9 +337,6 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 				Date date = new Date(millis);
 				dates.add(date);
 
-				totalMessages++;
-				totalChars += body.length();
-
 				// handle the simple message thing
 				if (body.length() <= maxShortMessageLength)
 					{
@@ -364,27 +353,13 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 
 				// clear out the simplePhrase sequence
 				simplePhrase.clear();
+				
+				sentStats.train(tokens, body.length());
 
 				// update the ngrams!
 				String previous = null, ppWord = null;
 				for (String token : tokens)
 					{
-					// unigrams
-					if (unigrams.containsKey(token))
-						unigrams.get(token)[0]++;
-					else
-						unigrams.put(token, new int[] { 1 });
-					unigramTotal++;
-
-					// filtered unigram stats
-					// TODO: compute this from the distribution at the end
-					// (faster)
-					if (!isNonword(token))
-						{
-						totalWords++;
-						wordLength += token.length();
-						}
-
 					// simple phrases
 					if (!isNonword(token) && !smallStopwords.contains(token))
 						{
@@ -414,40 +389,6 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 							}
 						// flush the phrase
 						simplePhrase.clear();
-						}
-
-					// bigrams
-					if (previous != null)
-						{
-						if (!bigrams.containsKey(previous))
-							bigrams.put(previous, new HashMap<String, int[]>());
-
-						if (!bigrams.get(previous).containsKey(token))
-							bigrams.get(previous).put(token, new int[] { 1 });
-						else
-							bigrams.get(previous).get(token)[0]++;
-						bigramTotal++;
-
-						// trigrams
-						if (ppWord != null)
-							{
-							if (!trigrams.containsKey(ppWord))
-								trigrams.put(ppWord, new HashMap<String, HashMap<String, int[]>>());
-
-							HashMap<String, HashMap<String, int[]>> bigramSubdist = trigrams.get(ppWord);
-
-							if (!bigramSubdist.containsKey(previous))
-								bigramSubdist.put(previous, new HashMap<String, int[]>());
-
-							HashMap<String, int[]> dist = bigramSubdist.get(previous);
-
-							if (!dist.containsKey(token))
-								dist.put(token, new int[] { 1 });
-							else
-								dist.get(token)[0]++;
-
-							trigramTotal++;
-							}
 						}
 
 					// move the history back
@@ -484,26 +425,26 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		final HashMap<String,int[]> frequencyCandidates = new HashMap<String,int[]>();
 
 		// unigram candidates
-		for (String word : unigrams.keySet())
+		for (String word : sentStats.unigrams.keySet())
 			{
 			if (!isNonword(word))
-				frequencyCandidates.put(word, new int[] { unigrams.get(word)[0] } );
+				frequencyCandidates.put(word, new int[] { sentStats.unigrams.get(word)[0] } );
 			
 			if (!isNonword(word) && !largeStopwords.contains(word))
 				candidates.put(
 						word,
 						new double[] { unigramScale
-								* (unigrams.get(word)[0] - corpusUnigrams.expectedFrequency(word, unigramTotal)) });
+								* (sentStats.unigrams.get(word)[0] - corpusUnigrams.expectedFrequency(word, sentStats.unigramTotal)) });
 			}
 
 		// analyse bigrams
 		StringBuilder ngramBuilder = new StringBuilder();
-		for (String word1 : bigrams.keySet())
+		for (String word1 : sentStats.bigrams.keySet())
 			{
 			if (isNonword(word1))
 				continue;
 			
-			for (String word2 : bigrams.get(word1).keySet())
+			for (String word2 : sentStats.bigrams.get(word1).keySet())
 				{
 				if (isNonword(word2))
 					continue;
@@ -515,31 +456,31 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 				ngramBuilder.append(word2);
 				String ngram = ngramBuilder.toString();
 				
-				frequencyCandidates.put(ngram, new int[] { bigrams.get(word1).get(word2)[0] } );
+				frequencyCandidates.put(ngram, new int[] { sentStats.bigrams.get(word1).get(word2)[0] } );
 
 				if (smallStopwords.contains(word1) || smallStopwords.contains(word2))
 					continue;
 
-				int freq = bigrams.get(word1).get(word2)[0];
+				int freq = sentStats.bigrams.get(word1).get(word2)[0];
 
-				double freqDiff = freq - corpusUnigrams.expectedFrequency(word1, word2, bigramTotal);
+				double freqDiff = freq - corpusUnigrams.expectedFrequency(word1, word2, sentStats.bigramTotal);
 
 				candidates.put(ngram, new double[] { bigramScale * freqDiff });
 				}
 			}
 
 		// analyse trigrams
-		for (String word1 : trigrams.keySet())
+		for (String word1 : sentStats.trigrams.keySet())
 			{
 			if (isNonword(word1))
 				continue;
 			
-			for (String word2 : trigrams.get(word1).keySet())
+			for (String word2 : sentStats.trigrams.get(word1).keySet())
 				{
 				if (isNonword(word2))
 					continue;
 				
-				for (String word3 : trigrams.get(word1).get(word2).keySet())
+				for (String word3 : sentStats.trigrams.get(word1).get(word2).keySet())
 					{
 					if (isNonword(word3))
 						continue;
@@ -553,13 +494,13 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 					ngramBuilder.append(word3);
 					String ngram = ngramBuilder.toString();
 					
-					frequencyCandidates.put(ngram, new int[] { trigrams.get(word1).get(word2).get(word3)[0] } );
+					frequencyCandidates.put(ngram, new int[] { sentStats.trigrams.get(word1).get(word2).get(word3)[0] } );
 					
 					if (smallStopwords.contains(word1) || smallStopwords.contains(word3))
 						continue;
 
-					int freq = trigrams.get(word1).get(word2).get(word3)[0];
-					double expected = corpusUnigrams.expectedFrequency(word1, word2, word3, trigramTotal);
+					int freq = sentStats.trigrams.get(word1).get(word2).get(word3)[0];
+					double expected = corpusUnigrams.expectedFrequency(word1, word2, word3, sentStats.trigramTotal);
 
 					candidates.put(ngram, new double[] { trigramScale * (freq - expected) });
 					}
@@ -615,7 +556,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 				// discount from the first word
 				if (candidates.containsKey(words[0]))
 					{
-					double ratio = bigrams.get(words[0]).get(words[1])[0] / (double) unigrams.get(words[0])[0];
+					double ratio = sentStats.bigrams.get(words[0]).get(words[1])[0] / (double) sentStats.unigrams.get(words[0])[0];
 					double discount = ratio * candidates.get(words[0])[0];
 
 					candidates.get(words[0])[0] -= discount;
@@ -628,7 +569,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 				// discount from the second word
 				if (candidates.containsKey(words[1]))
 					{
-					double ratio = bigrams.get(words[0]).get(words[1])[0] / (double) unigrams.get(words[1])[0];
+					double ratio = sentStats.bigrams.get(words[0]).get(words[1])[0] / (double) sentStats.unigrams.get(words[1])[0];
 					double discount = ratio * candidates.get(words[1])[0];
 
 					candidates.get(words[1])[0] -= discount;
@@ -662,8 +603,8 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 				// discount from the first pair
 				if (candidates.containsKey(first))
 					{
-					double ratio = trigrams.get(words[0]).get(words[1]).get(words[2])[0]
-							/ (double) bigrams.get(words[0]).get(words[1])[0];
+					double ratio = sentStats.trigrams.get(words[0]).get(words[1]).get(words[2])[0]
+							/ (double) sentStats.bigrams.get(words[0]).get(words[1])[0];
 					double discount = ratio * candidates.get(first)[0];
 
 					candidates.get(first)[0] -= discount;
@@ -676,8 +617,8 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 				// discount from the second word
 				if (candidates.containsKey(second))
 					{
-					double ratio = trigrams.get(words[0]).get(words[1]).get(words[2])[0]
-							/ (double) bigrams.get(words[1]).get(words[2])[0];
+					double ratio = sentStats.trigrams.get(words[0]).get(words[1]).get(words[2])[0]
+							/ (double) sentStats.bigrams.get(words[1]).get(words[2])[0];
 					double discount = ratio * candidates.get(second)[0];
 
 					candidates.get(second)[0] -= discount;
@@ -745,12 +686,12 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		// build out the general stats
 		final StringBuilder statsBuilder = new StringBuilder();
 
-		statsBuilder.append(getString(R.string.num_sent_format, totalMessages));
+		statsBuilder.append(getString(R.string.num_sent_format, sentStats.messages));
 		statsBuilder.append(getString(R.string.num_sent_per_month_format, dates.computeTextsPerMonth()));
 		
-		statsBuilder.append(getString(R.string.words_per_text_format, totalWords / totalMessages));
-		statsBuilder.append(getString(R.string.chars_per_text_format, totalChars/totalMessages));
-		statsBuilder.append(getString(R.string.chars_per_word_format, wordLength / (double) totalWords));
+		statsBuilder.append(getString(R.string.words_per_text_format, sentStats.filteredWords / sentStats.messages));
+		statsBuilder.append(getString(R.string.chars_per_text_format, sentStats.chars / sentStats.messages));
+		statsBuilder.append(getString(R.string.chars_per_word_format, sentStats.filteredWordLength / (double) sentStats.filteredWords));
 
 		// day of the week histogram
 		final int[] dayHist = dates.computeDayOfWeekHistogram();
@@ -770,7 +711,8 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		/*************** SHOW IT *******************/
 		runOnUiThread(new Runnable()
 			{
-			public void run()
+			@SuppressWarnings("unused")
+            public void run()
 				{
 				ViewGroup parent = (ViewGroup) findViewById(R.id.linear);
 

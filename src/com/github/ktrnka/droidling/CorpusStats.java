@@ -24,27 +24,22 @@ public class CorpusStats
 	{
 	public static final int longWordThreshold = 32;
 
-	private int messages;
-	private int filteredWords;
-	private int unfilteredWords;
-	private int longWords;
-	private int chars;
-	private int filteredWordLength;
+	int messages;
+	int filteredWords;
+	int unfilteredWords;
+	int longWords;
+	int chars;
+	int filteredWordLength;
 
-	private HashMap<String, int[]> unigrams;
+	HashMap<String, int[]> unigrams;
 
-	public HashMap<String, int[]> getUnigrams()
-		{
-		return unigrams;
-		}
+	int unigramTotal;
 
-	private int unigramTotal;
+	HashMap<String, HashMap<String, int[]>> bigrams;
+	int bigramTotal;
 
-	private HashMap<String, HashMap<String, int[]>> bigrams;
-	private int bigramTotal;
-
-	private HashMap<String, HashMap<String, HashMap<String, int[]>>> trigrams;
-	private int trigramTotal;
+	HashMap<String, HashMap<String, HashMap<String, int[]>>> trigrams;
+	int trigramTotal;
 
 	/**
 	 * parameter for absolute discounting
@@ -69,6 +64,10 @@ public class CorpusStats
 		trigramTotal = 0;
 		}
 
+	public void train(String message)
+		{
+		train(tokenize(message.toLowerCase()), message.length());
+		}
 	/**
 	 * Train from the specified text message.
 	 * 
@@ -77,16 +76,14 @@ public class CorpusStats
 	 * 
 	 * @param message
 	 */
-	public void train(String message)
+	public void train(ArrayList<String> tokenizedText, int textLength)
 		{
 		messages++;
-		chars += message.length();
-
-		message = message.toLowerCase();
+		chars += textLength;
 
 		ArrayList<String> tokens = new ArrayList<String>();
 		tokens.add(messageStart);
-		tokens.addAll(tokenize(message));
+		tokens.addAll(tokenizedText);
 		tokens.add(messageEnd);
 
 		// update the ngrams!
@@ -593,4 +590,10 @@ public class CorpusStats
 		assert (false);
 		return null;
 		}
+	
+	public HashMap<String, int[]> getUnigrams()
+		{
+		return unigrams;
+		}
+
 	}
