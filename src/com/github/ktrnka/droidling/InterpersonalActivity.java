@@ -106,7 +106,6 @@ public class InterpersonalActivity extends Activity
 	private void scanSMS()
 		{
 		long time = System.currentTimeMillis();
-		//final HashMap<String, String> contactMap = new HashMap<String, String>();
 
 		/*************** LOAD CONTACTS *******************/
 		buildContactMap();
