@@ -31,8 +31,6 @@ public class LanguageIdentificationActivity extends Activity
 	{
 	private boolean started = false;
 	private ProgressDialog progress;
-
-	private HashMap<String, ArrayList<String[]>> contactMap;
 	
 	private HashMap<String, Long> runtime;
 	
@@ -119,7 +117,11 @@ public class LanguageIdentificationActivity extends Activity
 	public void process()
 		{
 		long time = System.currentTimeMillis();
-		buildContactMap();
+		ExtendedApplication app = (ExtendedApplication) getApplication();
+		if (!app.blockingLoadContacts())
+			{
+			warning("No contacts found");
+			}
 		runtime.put("building contact map", System.currentTimeMillis() - time);
 		
 		time = System.currentTimeMillis();
@@ -250,6 +252,8 @@ public class LanguageIdentificationActivity extends Activity
 
 	private void buildUnigramModels()
 		{
+		ExtendedApplication app = (ExtendedApplication) getApplication();
+
 		Cursor messages = getContentResolver().query(Sms.SENT_URI, new String[] { Sms.BODY, Sms.ADDRESS }, null, null, null);
 
 		sentStats = new HashMap<String,CorpusStats>();
@@ -263,7 +267,7 @@ public class LanguageIdentificationActivity extends Activity
 				// figure out the name of the destination, store it in person
 				String recipientId = messages.getString(addressIndex);
 
-				String recipientName = lookupName(recipientId);
+				String recipientName = app.lookupContactName(recipientId);
 
 				if (recipientName != null)
 					{
@@ -284,79 +288,6 @@ public class LanguageIdentificationActivity extends Activity
 		messages.close();
 		}
 
-	private void buildContactMap()
-		{
-		//long time = System.currentTimeMillis();
-		contactMap = new HashMap<String,ArrayList<String[]>>();
-	
-		String numberName = ContactsContract.CommonDataKinds.Phone.NUMBER;
-		String labelName = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME;
-		String[] phoneLookupProjection = new String[] { numberName, labelName };
-	
-		Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-				phoneLookupProjection, null, null, null);
-	
-		if (phones.moveToFirst())
-			{
-			int phoneIndex = phones.getColumnIndex(numberName);
-			int labelIndex = phones.getColumnIndex(labelName);
-			
-			do
-				{
-				String number = phones.getString(phoneIndex);
-				String label = phones.getString(labelIndex);
-				
-				String minMatch = PhoneNumberUtils.toCallerIDMinMatch(number);
-				
-				if (contactMap.containsKey(minMatch))
-					{
-					contactMap.get(minMatch).add(new String[] { number, label });
-					}
-				else
-					{
-					ArrayList<String[]> matchList = new ArrayList<String[]>();
-					matchList.add(new String[] { number, label });
-					contactMap.put(minMatch, matchList);
-					}
-				
-				} while (phones.moveToNext());
-			}
-		else
-			{
-			warning("No contacts found.");
-			}
-		phones.close();
-		//runtime.put("scanning contacts", System.currentTimeMillis() - time);
-		}
-	
-	/**
-	 * The number may be in a very different format than the way it's stored in contacts.
-	 * @param number
-	 * @return The display name value if found, null if not.
-	 */
-	private String lookupName(String number)
-		{
-		if (contactMap == null)
-			return null;
-		
-		String minMatch = PhoneNumberUtils.toCallerIDMinMatch(number);
-		
-		if (!contactMap.containsKey(minMatch))
-			return null;
-		
-		ArrayList<String[]> matchList = contactMap.get(minMatch);
-		if (matchList.size() == 1)
-			return matchList.get(0)[1];
-		
-		for (String[] pair : matchList)
-			{
-			if (PhoneNumberUtils.compare(number, pair[0]))
-				return pair[1];
-			}
-		
-		return null;
-		}
-	
 	/**
 	 * Inflates a R.layout.result with the specified title and details, using
 	 * the specified inflater

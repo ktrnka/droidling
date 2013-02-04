@@ -38,7 +38,6 @@ public class InterpersonalActivity extends Activity
 
 	private static final int PROGRESS_DIALOG = 0;
 	private ProgressDialog progress;
-	private HashMap<String,ArrayList<String[]>> contactMap;
 	
 	private static final String CONTACT_NAME = "contact";
 	private static final String DETAILS = "details";
@@ -108,7 +107,12 @@ public class InterpersonalActivity extends Activity
 		long time = System.currentTimeMillis();
 
 		/*************** LOAD CONTACTS *******************/
-		buildContactMap();
+		ExtendedApplication app = (ExtendedApplication) getApplication();
+		if (!app.blockingLoadContacts())
+			{
+			warning("No contacts found");
+			}
+		runtime.put("scanning contacts", System.currentTimeMillis() - time);
 		
 		/*************** PROCESS SENT MESSAGES *******************/
 		time = System.currentTimeMillis();
@@ -129,7 +133,7 @@ public class InterpersonalActivity extends Activity
 				// figure out the name of the destination, store it in person
 				String recipientId = messages.getString(addressIndex);
 
-				String recipientName = lookupName(recipientId);
+				String recipientName = app.lookupContactName(recipientId);
 
 				if (recipientName != null)
 					{
@@ -182,7 +186,7 @@ public class InterpersonalActivity extends Activity
 				// figure out the name of the destination, store it in person
 				String senderId = messages.getString(addressIndex);
 
-				String senderName = lookupName(senderId);
+				String senderName = app.lookupContactName(senderId);
 
 				if (senderName != null)
 					{
@@ -239,7 +243,7 @@ public class InterpersonalActivity extends Activity
 				// get the person's display string
 				String person = messages.getString(addressIndex);
 				
-				person = lookupName(person);
+				person = app.lookupContactName(person);
 				if (person == null)
 					continue;
 
@@ -486,79 +490,6 @@ public class InterpersonalActivity extends Activity
 		return computeBuilder.toString();
 		}
 	
-	private void buildContactMap()
-		{
-		long time = System.currentTimeMillis();
-		contactMap = new HashMap<String,ArrayList<String[]>>();
-
-		String numberName = ContactsContract.CommonDataKinds.Phone.NUMBER;
-		String labelName = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME;
-		String[] phoneLookupProjection = new String[] { numberName, labelName };
-
-		Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-				phoneLookupProjection, null, null, null);
-
-		if (phones.moveToFirst())
-			{
-			int phoneIndex = phones.getColumnIndex(numberName);
-			int labelIndex = phones.getColumnIndex(labelName);
-			
-			do
-				{
-				String number = phones.getString(phoneIndex);
-				String label = phones.getString(labelIndex);
-				
-				String minMatch = PhoneNumberUtils.toCallerIDMinMatch(number);
-				
-				if (contactMap.containsKey(minMatch))
-					{
-					contactMap.get(minMatch).add(new String[] { number, label });
-					}
-				else
-					{
-					ArrayList<String[]> matchList = new ArrayList<String[]>();
-					matchList.add(new String[] { number, label });
-					contactMap.put(minMatch, matchList);
-					}
-				
-				} while (phones.moveToNext());
-			}
-		else
-			{
-			warning("No contacts found.");
-			}
-		phones.close();
-		runtime.put("scanning contacts", System.currentTimeMillis() - time);
-		}
-	
-	/**
-	 * The number may be in a very different format than the way it's stored in contacts.
-	 * @param number
-	 * @return The display name value if found, null if not.
-	 */
-	private String lookupName(String number)
-		{
-		if (contactMap == null)
-			return null;
-		
-		String minMatch = PhoneNumberUtils.toCallerIDMinMatch(number);
-		
-		if (!contactMap.containsKey(minMatch))
-			return null;
-		
-		ArrayList<String[]> matchList = contactMap.get(minMatch);
-		if (matchList.size() == 1)
-			return matchList.get(0)[1];
-		
-		for (String[] pair : matchList)
-			{
-			if (PhoneNumberUtils.compare(number, pair[0]))
-				return pair[1];
-			}
-		
-		return null;
-		}
-
 	public View inflateResults(LayoutInflater inflater, final String title, final String details)
 		{
 		// contacts
