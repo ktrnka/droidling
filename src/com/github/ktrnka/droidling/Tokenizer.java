@@ -1,7 +1,6 @@
 package com.github.ktrnka.droidling;
 
 import java.util.ArrayList;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Tokenizer
@@ -94,7 +93,13 @@ public class Tokenizer
 		// return the thing
 		return tokens;
 		}
-	
+
+	/**
+	 * Tokenize a message into words.
+	 * TODO: This function is responsible for a huge percentage of runtime.
+	 * @param in the text message (or longer)
+	 * @return list of tokens
+	 */
 	public static ArrayList<String> tokenize(String in)
 		{
 		ArrayList<String> tokens = new ArrayList<String>();
@@ -105,36 +110,41 @@ public class Tokenizer
 			if (token.length() == 0)
 				continue;
 			
-			Matcher m = frontMatter.matcher(token);
-			if (m.matches())
+			// find first word char (add all the tokens along the way)
+			int firstWordCharIndex;
+			for (firstWordCharIndex = 0; firstWordCharIndex < token.length() && !isWordChar(token.charAt(firstWordCharIndex)); firstWordCharIndex++)
 				{
-				// explode group 1
-				String front = m.group(1);
-				for (int i = 0; i < front.length(); i++)
-					tokens.add(String.valueOf(front.charAt(i)));
-				
-				// continue processing group 2
-				token = m.group(2);
+				tokens.add(String.valueOf(token.charAt(firstWordCharIndex)));
 				}
-
-			m = backMatter.matcher(token);
-			if (m.matches())
+			
+			// find last word char
+			int lastWordCharIndex;
+			for (lastWordCharIndex = token.length() - 1; lastWordCharIndex >= firstWordCharIndex && !isWordChar(token.charAt(lastWordCharIndex)); lastWordCharIndex--)
 				{
-				// save group 1
-				tokens.add(m.group(1));
-				
-				// explode group 2
-				String back = m.group(2);
-				for (int i = 0; i < back.length(); i++)
-					tokens.add(String.valueOf(back.charAt(i)));
-
 				}
-			else 
+			
+			// avoid object creation via substr if possible
+			if (firstWordCharIndex > 0 || lastWordCharIndex < token.length() - 1)
+				{
+				if (firstWordCharIndex < token.length())
+					{
+					tokens.add(token.substring(firstWordCharIndex, lastWordCharIndex + 1));
+					
+					for (int i = lastWordCharIndex + 1; i < token.length(); i++)
+						tokens.add(String.valueOf(token.charAt(i)));
+					}
+				}
+			else
 				{
 				tokens.add(token);
 				}
 			}
 		return tokens;
+		}
+	
+	public static final boolean isWordChar(char c)
+		{
+		return Character.isLetterOrDigit(c) || c == '@';
 		}
 
 	}
