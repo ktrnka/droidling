@@ -745,14 +745,6 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		return computeBuilder.toString();
 		}
 
-	public static HashMap<String, String> buildNameDesc(String name, String desc)
-		{
-		HashMap<String, String> map = new HashMap<String, String>();
-		map.put("name", name);
-		map.put("desc", desc);
-		return map;
-		}
-
 	/**
 	 * Inflates a R.layout.phrases with the specified details, using
 	 * the specified inflater, registers callbacks for the spinner, etc.
