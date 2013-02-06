@@ -46,6 +46,7 @@ import android.provider.ContactsContract;
 import android.telephony.PhoneNumberUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -962,10 +963,13 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		// colors
 	    renderer.setAxesColor(Color.DKGRAY);
 	    renderer.setLabelsColor(Color.DKGRAY);
-	    renderer.setBackgroundColor(Color.WHITE);
-	    renderer.setMarginsColor(Color.WHITE);
 	    renderer.setXLabelsColor(Color.DKGRAY);
 	    renderer.setYLabelsColor(0, Color.DKGRAY);
+	    renderer.setApplyBackgroundColor(true);
+
+	    // there's a bug in achartengine that requires you to set the color portion even with full transparency
+	    renderer.setBackgroundColor(Color.argb(0, 1, 1, 1));
+	    renderer.setMarginsColor(Color.argb(0, 1, 1, 1));
 	    
 	    // size
 	    renderer.setXAxisMin(xmin);
