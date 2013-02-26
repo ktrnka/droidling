@@ -42,11 +42,8 @@ import android.graphics.Paint.Align;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.ContactsContract;
-import android.telephony.PhoneNumberUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -82,8 +79,8 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 	private StringBuilder[] keyPhraseTexts;
 	private int previousItemSelected;
 	
-	private static int graphBarBottomColor = Color.rgb(25, 89, 115);
-	private static int graphBarTopColor = Color.rgb(17, 60, 77);
+	private static final int graphBarBottomColor = Color.rgb(25, 89, 115);
+	private static final int graphBarTopColor = Color.rgb(17, 60, 77);
 	
 	public void onCreate(Bundle savedInstanceState)
 		{
@@ -112,13 +109,13 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 			// run thread with callback to stop progress
 			new Thread()
 				{
-					public void run()
-						{
-						scanSMS();
+				public void run()
+					{
+					scanSMS();
 
-						dismissDialog(PROGRESS_DIALOG);
-						progress.dismiss();
-						}
+					dismissDialog(PROGRESS_DIALOG);
+					progress.dismiss();
+					}
 				}.start();
 			scanned = true;
 			}
@@ -152,7 +149,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 	 * Gets a file like en.unigrams.utf8.txt if it exists in the assets.  If not, returns null.
 	 * 
 	 * TODO: Basically this is mimicking Resources.  I need to double-check why I chose to
-	 * use Assets intead.
+	 * use Assets instead.
 	 * 
 	 * @param suffix The suffix to append to the language and/or country code.
 	 * @return The filename if it exists.  Null if not.
@@ -320,6 +317,9 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		ArrayList<String> simplePhrase = new ArrayList<String>();
 
 		dates = new DateDistribution();
+		
+		// reusable phrase builder
+		StringBuilder reusableBuilder = new StringBuilder();
 
 		if (messages.moveToFirst())
 			{
@@ -368,15 +368,15 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 						{
 						if (simplePhrase.size() > 0)
 							{
-							StringBuilder phraseBuilder = new StringBuilder();
-							phraseBuilder.append(simplePhrase.get(0));
+							reusableBuilder.setLength(0);
+							reusableBuilder.append(simplePhrase.get(0));
 							for (int i = 1; i < simplePhrase.size(); i++)
 								{
-								phraseBuilder.append(' ');
-								phraseBuilder.append(simplePhrase.get(i));
+								reusableBuilder.append(' ');
+								reusableBuilder.append(simplePhrase.get(i));
 								}
 
-							String phraseString = phraseBuilder.toString();
+							String phraseString = reusableBuilder.toString();
 
 							if (simplePhrases.containsKey(phraseString))
 								simplePhrases.get(phraseString)[0]++;
@@ -965,11 +965,11 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 	    renderer.setLabelsColor(Color.DKGRAY);
 	    renderer.setXLabelsColor(Color.DKGRAY);
 	    renderer.setYLabelsColor(0, Color.DKGRAY);
-	    renderer.setApplyBackgroundColor(true);
 
 	    // there's a bug in achartengine that requires you to set the color portion even with full transparency
-	    renderer.setBackgroundColor(Color.argb(0, 1, 1, 1));
 	    renderer.setMarginsColor(Color.argb(0, 1, 1, 1));
+	    renderer.setBackgroundColor(Color.WHITE);
+	    renderer.setApplyBackgroundColor(false);
 	    
 	    // size
 	    renderer.setXAxisMin(xmin);
@@ -1058,7 +1058,6 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		if (pos == previousItemSelected)
 			return;
 		
-		// TODO Auto-generated method stub
 		View phrasesView = findViewById(R.id.phrase_layout);
 		if (phrasesView != null)
 			{
@@ -1079,7 +1078,5 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 
 	public void onNothingSelected(AdapterView<?> arg0)
 		{
-		// TODO Auto-generated method stub
-		
 		}
 	}
