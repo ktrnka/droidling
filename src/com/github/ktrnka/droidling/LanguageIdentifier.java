@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 
 /**
  * Code to load a data file and identify the language of
@@ -504,7 +505,7 @@ public class LanguageIdentifier
 			
 			for (String word : unigrams.keySet())
 				{
-				String lowercaseWord = word.toLowerCase();
+				String lowercaseWord = word.toLowerCase(Locale.getDefault());
 				
 				int count = unigrams.get(word)[0];
 				if (words.contains(lowercaseWord))

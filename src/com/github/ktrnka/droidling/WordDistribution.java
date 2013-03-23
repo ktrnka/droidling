@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Locale;
 import java.io.*;
 import java.nio.charset.Charset;
 
@@ -85,7 +86,7 @@ public class WordDistribution
 			
 			for (String token : tokens)
 				{
-				token = token.toLowerCase();
+				token = token.toLowerCase(Locale.getDefault());
 				if (counts.containsKey(token))
 					counts.get(token)[0]++;
 				else

@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -76,8 +77,15 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 	private ProgressDialog progress;
 	private static final String TAG = "com.github.ktrnka.droidling.PersonalActivity";
 	
+	/** Key phrases according to multiple sort orders */
 	private StringBuilder[] keyPhraseTexts;
+	
+	private static final int PHRASE_SORTED = 0;
+	private static final int COUNT_SORTED = 1;
+
 	private int previousItemSelected;
+	
+	private PrintWriter scoresOut;
 	
 	private static final int graphBarBottomColor = Color.rgb(25, 89, 115);
 	private static final int graphBarTopColor = Color.rgb(17, 60, 77);
@@ -88,8 +96,8 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		setContentView(R.layout.simple_scroll);
 		
 		keyPhraseTexts = new StringBuilder[2];
-		keyPhraseTexts[0] = new StringBuilder();
-		keyPhraseTexts[1] = new StringBuilder();
+		keyPhraseTexts[PHRASE_SORTED] = new StringBuilder();
+		keyPhraseTexts[COUNT_SORTED] = new StringBuilder();
 		previousItemSelected = 0;
 		}
 
@@ -222,7 +230,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 					{
 					line = line.trim();
 					if (line.length() > 0)
-						smallStopwords.add(line.toLowerCase());
+						smallStopwords.add(line.toLowerCase(Locale.getDefault()));
 					}
 				in.close();				
 				}
@@ -245,7 +253,8 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 					{
 					line = line.trim();
 					if (line.length() > 0)
-						largeStopwords.add(line.toLowerCase());
+						// TODO: This should use the locale closest to the stopword language.  We only have stopwords for English right now though.
+						largeStopwords.add(line.toLowerCase(Locale.ENGLISH));
 					}
 				in.close();
 				}
@@ -330,7 +339,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 			do
 				{
 				// TODO: Replace this with truecasing
-				String body = messages.getString(bodyIndex).toLowerCase();
+				String body = messages.getString(bodyIndex).toLowerCase(Locale.getDefault());
 
 				long millis = messages.getLong(dateIndex);
 				Date date = new Date(millis);
@@ -513,8 +522,8 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		int basicCurrent = 0;
 		for (String wordPair : basicPhrases)
 			{
-			keyPhraseTexts[1].append(wordPair);
-			keyPhraseTexts[1].append('\n');
+			keyPhraseTexts[COUNT_SORTED].append(wordPair);
+			keyPhraseTexts[COUNT_SORTED].append('\n');
 
 			if (++basicCurrent >= maxPhrases)
 				break;
@@ -539,98 +548,21 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 				return Double.compare(candidates.get(b)[0], candidates.get(a)[0]);
 				}
 			});
-
-		// fold unigrams into bigrams (top K bigrams only)
-		for (int i = 0; i < pairs.size() && i <= maxPhrases * 2; i++)
+		
+		if (scoresOut != null)
 			{
-			String[] words = pairs.get(i).split(" ");
-
-			if (words.length == 2)
-				{
-				// discount from the first word
-				if (candidates.containsKey(words[0]))
-					{
-					double ratio = sentStats.bigrams.get(words[0]).get(words[1])[0] / (double) sentStats.unigrams.get(words[0])[0];
-					double discount = ratio * candidates.get(words[0])[0];
-
-					candidates.get(words[0])[0] -= discount;
-					candidates.get(pairs.get(i))[0] += discount;
-					
-					if (Double.isNaN(ratio) || Double.isNaN(candidates.get(pairs.get(i))[0]))
-						Log.e(TAG, "NaN in " + pairs.get(i) + " / " + words[0]);
-					}
-
-				// discount from the second word
-				if (candidates.containsKey(words[1]))
-					{
-					double ratio = sentStats.bigrams.get(words[0]).get(words[1])[0] / (double) sentStats.unigrams.get(words[1])[0];
-					double discount = ratio * candidates.get(words[1])[0];
-
-					candidates.get(words[1])[0] -= discount;
-					candidates.get(pairs.get(i))[0] += discount;
-					if (Double.isNaN(ratio) || Double.isNaN(candidates.get(pairs.get(i))[0]))
-						Log.e(TAG, "NaN in " + pairs.get(i) + " / " + words[1]);
-					}
-				}
+			logCandidateFeatures(sentStats, shortMessages, simplePhrases);
 			}
 
-		// fold bigrams into trigrams (top K trigrams only)
-		for (int i = 0; i < pairs.size() && i <= maxPhrases * 2; i++)
-			{
-			String[] words = pairs.get(i).split(" ");
-
-			if (words.length == 3)
-				{
-				// This doesn't look pretty, but it's much faster than normal +
-				ngramBuilder.setLength(0);
-				ngramBuilder.append(words[0]);
-				ngramBuilder.append(' ');
-				ngramBuilder.append(words[1]);
-				String first = ngramBuilder.toString();
-				
-				ngramBuilder.setLength(0);
-				ngramBuilder.append(words[1]);
-				ngramBuilder.append(' ');
-				ngramBuilder.append(words[2]);
-				String second = ngramBuilder.toString();
-
-				// discount from the first pair
-				if (candidates.containsKey(first))
-					{
-					double ratio = sentStats.trigrams.get(words[0]).get(words[1]).get(words[2])[0]
-							/ (double) sentStats.bigrams.get(words[0]).get(words[1])[0];
-					double discount = ratio * candidates.get(first)[0];
-
-					candidates.get(first)[0] -= discount;
-					candidates.get(pairs.get(i))[0] += discount;
-					if (Double.isNaN(ratio) || Double.isNaN(candidates.get(pairs.get(i))[0]))
-						Log.e(TAG, "NaN in " + pairs.get(i) + " / " + first);
-
-					}
-
-				// discount from the second word
-				if (candidates.containsKey(second))
-					{
-					double ratio = sentStats.trigrams.get(words[0]).get(words[1]).get(words[2])[0]
-							/ (double) sentStats.bigrams.get(words[1]).get(words[2])[0];
-					double discount = ratio * candidates.get(second)[0];
-
-					candidates.get(second)[0] -= discount;
-					candidates.get(pairs.get(i))[0] += discount;
-
-					if (Double.isNaN(ratio) || Double.isNaN(candidates.get(pairs.get(i))[0]))
-						Log.e(TAG, "NaN in " + pairs.get(i) + " / " + second);
-					}
-				}
-			}
+		mergeSimilarPhrases(sentStats, candidates, pairs);
 
 		// resort candidate pairs
 		Collections.sort(pairs, new Comparator<String>()
 			{
-				public int compare(String a, String b)
-					{
-					return Double.compare(candidates.get(b)[0], candidates.get(a)[0]);
-					}
+			public int compare(String a, String b)
+				{
+				return Double.compare(candidates.get(b)[0], candidates.get(a)[0]);
+				}
 			});
 
 		runtime.put("finding the best phrases", System.currentTimeMillis() - time);
@@ -640,7 +572,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		/*********************** BUILD THE STRINGS ************************/
 
 		// KEY PHRASE DISPLAY
-		final StringBuilder phraseBuilder = keyPhraseTexts[0];
+		final StringBuilder phraseBuilder = keyPhraseTexts[PHRASE_SORTED];
 		int current = 0;
 		for (String wordPair : pairs)
 			{
@@ -705,8 +637,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		/*************** SHOW IT *******************/
 		runOnUiThread(new Runnable()
 			{
-			@SuppressWarnings("unused")
-            public void run()
+			public void run()
 				{
 				ViewGroup parent = (ViewGroup) findViewById(R.id.linear);
 
@@ -727,6 +658,182 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 				}
 			});
 		}
+
+	private void logCandidateFeatures(CorpusStats sentStats, HashMap<String, int[]> shortMessages, HashMap<String, int[]> simplePhrases)
+	    {
+	    StringBuilder ngramBuilder = new StringBuilder();
+	    
+	    char sep = '\t';
+	    // header
+	    scoresOut.println("Phrase,Frequency,Expected Frequency,Has Nonwords,Stopword Start,Stopword End,Simple Phrase Count,Short Message Count");
+	    
+	    // unigrams
+	    for (String word : sentStats.unigrams.keySet())
+	    	{
+	    	scoresOut.print(word);
+	    	scoresOut.print(sep);
+	    	scoresOut.print(sentStats.unigrams.get(word)[0]);
+	    	scoresOut.print(sep);
+	    	scoresOut.print(corpusUnigrams.expectedFrequency(word, sentStats.unigramTotal));
+	    	scoresOut.print(sep);
+	    	scoresOut.print(isNonword(word) ? 1 : 0);
+	    	scoresOut.print(sep);
+	    	scoresOut.print(largeStopwords.contains(word) ? 1 : 0);
+	    	scoresOut.print(sep);
+	    	scoresOut.print(largeStopwords.contains(word) ? 1 : 0);
+	    	scoresOut.print(sep);
+	    	scoresOut.print(simplePhrases.containsKey(word) ? simplePhrases.get(word)[0] : 0);
+	    	scoresOut.print(sep);
+	    	scoresOut.print(shortMessages.containsKey(word) ? shortMessages.get(word)[0] : 0);
+	    	}
+	    
+	    for (String word1 : sentStats.bigrams.keySet())
+	    	{
+	    	for (String word2 : sentStats.bigrams.get(word1).keySet())
+	    		{
+	    		ngramBuilder.setLength(0);
+	    		ngramBuilder.append(word1);
+	    		ngramBuilder.append(' ');
+	    		ngramBuilder.append(word2);
+
+	    		scoresOut.print(ngramBuilder);
+	    		scoresOut.print(sep);
+	    		scoresOut.print(sentStats.bigrams.get(word1).get(word2)[0]);
+	    		scoresOut.print(sep);
+	    		scoresOut.print(corpusUnigrams.expectedFrequency(word1, word2, sentStats.bigramTotal));
+	    		scoresOut.print(sep);
+	    		scoresOut.print(isNonword(word1) || isNonword(word2)? 1 : 0);
+	    		scoresOut.print(sep);
+	    		scoresOut.print(smallStopwords.contains(word1) ? 1 : 0);
+	    		scoresOut.print(sep);
+	    		scoresOut.print(smallStopwords.contains(word2) ? 1 : 0);
+	    		scoresOut.print(sep);
+	    		scoresOut.print(simplePhrases.containsKey(ngramBuilder.toString()) ? simplePhrases.get(ngramBuilder.toString())[0] : 0);
+	    		scoresOut.print(sep);
+	    		scoresOut.print(shortMessages.containsKey(ngramBuilder.toString()) ? shortMessages.get(ngramBuilder.toString())[0] : 0);
+	    		}
+	    	}
+	    
+	    for (String word1 : sentStats.trigrams.keySet())
+	    	{
+	    	for (String word2 : sentStats.trigrams.get(word1).keySet())
+	    		{
+	    		for (String word3 : sentStats.trigrams.get(word1).get(word2).keySet())
+	    			{
+	    			ngramBuilder.setLength(0);
+	    			ngramBuilder.append(word1);
+	    			ngramBuilder.append(' ');
+	    			ngramBuilder.append(word2);
+	    			ngramBuilder.append(' ');
+	    			ngramBuilder.append(word3);
+	    			
+	    			scoresOut.print(ngramBuilder);
+	    			scoresOut.print(sep);
+	    			scoresOut.print(sentStats.trigrams.get(word1).get(word2).get(word3)[0]);
+	    			scoresOut.print(sep);
+	    			scoresOut.print(corpusUnigrams.expectedFrequency(word1, word2, word3, sentStats.trigramTotal));
+	    			scoresOut.print(sep);
+	    			scoresOut.print(isNonword(word1) || isNonword(word2) || isNonword(word3) ? 1 : 0);
+	    			scoresOut.print(sep);
+	    			scoresOut.print(smallStopwords.contains(word1) ? 1 : 0);
+	    			scoresOut.print(sep);
+	    			scoresOut.print(smallStopwords.contains(word3) ? 1 : 0);
+	    			scoresOut.print(sep);
+	    			scoresOut.print(simplePhrases.containsKey(ngramBuilder.toString()) ? simplePhrases.get(ngramBuilder.toString())[0] : 0);
+	    			scoresOut.print(sep);
+	    			scoresOut.print(shortMessages.containsKey(ngramBuilder.toString()) ? shortMessages.get(ngramBuilder.toString())[0] : 0);
+	    			}
+	    		}
+	    	}
+	    }
+
+	private void mergeSimilarPhrases(CorpusStats sentStats, HashMap<String, double[]> candidates, ArrayList<String> sortedCandidates)
+	    {
+	    StringBuilder ngramBuilder = new StringBuilder();
+	    // fold unigrams into bigrams (top K bigrams only)
+		for (int i = 0; i < sortedCandidates.size() && i <= maxPhrases * 2; i++)
+			{
+			String[] words = sortedCandidates.get(i).split(" ");
+
+			if (words.length == 2)
+				{
+				// discount from the first word
+				if (candidates.containsKey(words[0]))
+					{
+					double ratio = sentStats.bigrams.get(words[0]).get(words[1])[0] / (double) sentStats.unigrams.get(words[0])[0];
+					double discount = ratio * candidates.get(words[0])[0];
+
+					candidates.get(words[0])[0] -= discount;
+					candidates.get(sortedCandidates.get(i))[0] += discount;
+					
+					if (Double.isNaN(ratio) || Double.isNaN(candidates.get(sortedCandidates.get(i))[0]))
+						Log.e(TAG, "NaN in " + sortedCandidates.get(i) + " / " + words[0]);
+					}
+
+				// discount from the second word
+				if (candidates.containsKey(words[1]))
+					{
+					double ratio = sentStats.bigrams.get(words[0]).get(words[1])[0] / (double) sentStats.unigrams.get(words[1])[0];
+					double discount = ratio * candidates.get(words[1])[0];
+
+					candidates.get(words[1])[0] -= discount;
+					candidates.get(sortedCandidates.get(i))[0] += discount;
+					if (Double.isNaN(ratio) || Double.isNaN(candidates.get(sortedCandidates.get(i))[0]))
+						Log.e(TAG, "NaN in " + sortedCandidates.get(i) + " / " + words[1]);
+					}
+				}
+			}
+
+		// fold bigrams into trigrams (top K trigrams only)
+		for (int i = 0; i < sortedCandidates.size() && i <= maxPhrases * 2; i++)
+			{
+			String[] words = sortedCandidates.get(i).split(" ");
+
+			if (words.length == 3)
+				{
+				// This doesn't look pretty, but it's much faster than normal +
+				ngramBuilder.setLength(0);
+				ngramBuilder.append(words[0]);
+				ngramBuilder.append(' ');
+				ngramBuilder.append(words[1]);
+				String first = ngramBuilder.toString();
+				
+				ngramBuilder.setLength(0);
+				ngramBuilder.append(words[1]);
+				ngramBuilder.append(' ');
+				ngramBuilder.append(words[2]);
+				String second = ngramBuilder.toString();
+
+				// discount from the first pair
+				if (candidates.containsKey(first))
+					{
+					double ratio = sentStats.trigrams.get(words[0]).get(words[1]).get(words[2])[0]
+							/ (double) sentStats.bigrams.get(words[0]).get(words[1])[0];
+					double discount = ratio * candidates.get(first)[0];
+
+					candidates.get(first)[0] -= discount;
+					candidates.get(sortedCandidates.get(i))[0] += discount;
+					if (Double.isNaN(ratio) || Double.isNaN(candidates.get(sortedCandidates.get(i))[0]))
+						Log.e(TAG, "NaN in " + sortedCandidates.get(i) + " / " + first);
+
+					}
+
+				// discount from the second word
+				if (candidates.containsKey(second))
+					{
+					double ratio = sentStats.trigrams.get(words[0]).get(words[1]).get(words[2])[0]
+							/ (double) sentStats.bigrams.get(words[1]).get(words[2])[0];
+					double discount = ratio * candidates.get(second)[0];
+
+					candidates.get(second)[0] -= discount;
+					candidates.get(sortedCandidates.get(i))[0] += discount;
+
+					if (Double.isNaN(ratio) || Double.isNaN(candidates.get(sortedCandidates.get(i))[0]))
+						Log.e(TAG, "NaN in " + sortedCandidates.get(i) + " / " + second);
+					}
+				}
+			}
+	    }
 
 	public static String summarizeRuntime()
 		{
@@ -846,7 +953,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 			{
 			public void onClick(View v)
 				{
-				share(graph.toBitmap(), title, "Shared: histogram of " + title.toLowerCase());
+				share(graph.toBitmap(), title, "Shared: histogram of " + title.toLowerCase(Locale.getDefault()));
 				}
 			});
 

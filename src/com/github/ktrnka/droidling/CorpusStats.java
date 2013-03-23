@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.regex.Matcher;
 
 /**
@@ -66,8 +67,9 @@ public class CorpusStats
 
 	public void train(String message)
 		{
-		train(tokenize(message.toLowerCase()), message.length());
+		train(tokenize(message.toLowerCase(Locale.getDefault())), message.length());
 		}
+
 	/**
 	 * Train from the specified text message.
 	 * 
