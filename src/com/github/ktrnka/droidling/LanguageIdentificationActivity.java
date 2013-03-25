@@ -11,8 +11,10 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.telephony.PhoneNumberUtils;
 import android.view.LayoutInflater;
@@ -32,20 +34,24 @@ public class LanguageIdentificationActivity extends Activity
 	private boolean started = false;
 	private ProgressDialog progress;
 	
-	private HashMap<String, Long> runtime;
-	
 	private LanguageIdentifier langID;
 	private HashMap<String,CorpusStats> sentStats;
 	private HashMap<String,LanguageIdentifier.Identification> identifications;
 	
 	private static final String TAG = "com.github.ktrnka.droidling/LanguageIdentificationActivity";
 	static final int PROGRESS_DIALOG = 0;
+	
+	public static final String LOAD_CONTACTS_KEY = "LanguageIdentificationActivity: loading contacts";
+	public static final String LOAD_MESSAGES_KEY = "LanguageIdentificationActivity: loading messages";
+	public static final String IDENTIFYING_KEY = "LanguageIdentificationActivity: identifying languages";
+	public static final String GENERATE_TEXT_KEY = "LanguageIdentificationActivity: building text";
+	
+	public static final String[] PROFILING_KEY_ORDER = { LOAD_CONTACTS_KEY, LOAD_MESSAGES_KEY, IDENTIFYING_KEY, GENERATE_TEXT_KEY };
 
 	public void onCreate(Bundle savedInstanceState)
 		{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.simple_scroll);
-		runtime = new HashMap<String, Long>();
 		}
 	
 	public void onStart()
@@ -86,7 +92,16 @@ public class LanguageIdentificationActivity extends Activity
 				return null;
 			}
 		}
-	
+
+	// TODO: This code is duplicated and shouldn't be.
+	private void setPreference(String name, long longValue)
+		{
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+		SharedPreferences.Editor editor = prefs.edit();
+		editor.putLong(name, longValue);
+		editor.commit();
+		}
+
 	// TODO: This code is duplicated and shouldn't be.
 	public void warning(final String message)
 		{
@@ -122,23 +137,20 @@ public class LanguageIdentificationActivity extends Activity
 			{
 			warning("No contacts found");
 			}
-		runtime.put("building contact map", System.currentTimeMillis() - time);
+		setPreference(LOAD_CONTACTS_KEY, System.currentTimeMillis() - time);
 		
 		time = System.currentTimeMillis();
 		buildUnigramModels();
-		runtime.put("scanning texts", System.currentTimeMillis() - time);
+		setPreference(LOAD_MESSAGES_KEY, System.currentTimeMillis() - time);
 		
 		time = System.currentTimeMillis();
 		identifyLanguages();
-		runtime.put("identifying languages", System.currentTimeMillis() - time);
+		setPreference(IDENTIFYING_KEY, System.currentTimeMillis() - time);
 		
 		time = System.currentTimeMillis();
 		buildHelpDisplay();
-		runtime.put("building help display", System.currentTimeMillis() - time);
-
-		time = System.currentTimeMillis();
 		buildLIDDisplays();
-		runtime.put("building LID displays", System.currentTimeMillis() - time);
+		setPreference(GENERATE_TEXT_KEY, System.currentTimeMillis() - time);
 		
 		if (HomeActivity.DEVELOPER_MODE)
 			buildRuntimeDisplay();
@@ -146,15 +158,7 @@ public class LanguageIdentificationActivity extends Activity
 
 	private void buildRuntimeDisplay()
 		{
-		final StringBuilder runtimeBuilder = new StringBuilder();
-
-		for (String key : runtime.keySet())
-			{
-			runtimeBuilder.append(key);
-			runtimeBuilder.append(": ");
-			runtimeBuilder.append( (runtime.get(key) / 100) / 10.0);
-			runtimeBuilder.append("sec\n");
-			}
+		final String runtimeString = HomeActivity.summarizeRuntime(getApplicationContext(), PROFILING_KEY_ORDER);
 		
 		runOnUiThread(new Runnable()
 			{
@@ -164,7 +168,7 @@ public class LanguageIdentificationActivity extends Activity
 	
 				LayoutInflater inflater = getLayoutInflater();
 				
-				parent.addView(inflateResults(inflater, getString(R.string.runtime), runtimeBuilder.toString()));
+				parent.addView(inflateResults(inflater, getString(R.string.runtime), runtimeString));
 				}
 			});
 		}

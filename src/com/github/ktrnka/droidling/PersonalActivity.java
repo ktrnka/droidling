@@ -35,6 +35,7 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
@@ -43,6 +44,7 @@ import android.graphics.Paint.Align;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -65,14 +67,12 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 	private DateDistribution dates;
 
 	// constants to tweak the scoring of phrases.  This is probably language-specific and should be extracted to a config.
-	public double unigramScale = 0.25;
-	public double bigramScale = 0.9;
-	public double trigramScale = 1.2;
-	public double shortMessageFactor = 1.3;
-	public double simplePhraseFactor = 1.6;
-
-	public static HashMap<String, Long> runtime;
-
+	public static final double unigramScale = 0.25;
+	public static final double bigramScale = 0.9;
+	public static final double trigramScale = 1.2;
+	public static final double shortMessageFactor = 1.3;
+	public static final double simplePhraseFactor = 1.6;
+	
 	static final int PROGRESS_DIALOG = 0;
 	private ProgressDialog progress;
 	private static final String TAG = "com.github.ktrnka.droidling.PersonalActivity";
@@ -90,6 +90,15 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 	private static final int graphBarBottomColor = Color.rgb(25, 89, 115);
 	private static final int graphBarTopColor = Color.rgb(17, 60, 77);
 	
+	public static final String MESSAGE_LOOP_KEY = "PersonalActivity: scanning messages";
+	public static final String LOAD_UNIGRAMS_KEY = "PersonalActivity: loading unigrams";
+	public static final String LOAD_STOPWORDS_KEY = "PersonalActivity: loading stopwords";
+	public static final String LOAD_CONTACTS_KEY = "PersonalActivity: loading contacts";
+	public static final String SELECT_CANDIDATES_KEY = "PersonalActivity: finding the best candidates";
+	public static final String GENERATE_DESCRIPTIONS_KEY = "PersonalActivity: generating descriptions";
+	
+	public static final String[] PROFILING_KEY_ORDER = { LOAD_UNIGRAMS_KEY, LOAD_STOPWORDS_KEY, LOAD_CONTACTS_KEY, MESSAGE_LOOP_KEY, SELECT_CANDIDATES_KEY, GENERATE_DESCRIPTIONS_KEY };
+	
 	public void onCreate(Bundle savedInstanceState)
 		{
 		super.onCreate(savedInstanceState);
@@ -104,9 +113,6 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 	public void onStart()
 		{
 		super.onStart();
-
-		if (runtime == null)
-			runtime = new HashMap<String, Long>();
 
 		if (!scanned)
 			{
@@ -210,7 +216,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 			corpusUnigrams = null;
 			Log.e(TAG, "loadUnigrams failed");
 			}
-		runtime.put("load unigrams", System.currentTimeMillis() - time);
+		setPreference(LOAD_UNIGRAMS_KEY, System.currentTimeMillis() - time);
 		}
 
 	private void loadStopwords()
@@ -264,7 +270,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 			Log.e(TAG, "loadStopwords failed for large file");
 			}
 
-		runtime.put("load stopwords", System.currentTimeMillis() - time);
+		setPreference(LOAD_STOPWORDS_KEY, System.currentTimeMillis() - time);
 		}
 
 	// TODO: This code is duplicated in Interpersonal and shouldn't be.
@@ -303,7 +309,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 			{
 			warning("No contacts found");
 			}
-		runtime.put("scanning contacts", System.currentTimeMillis() - time);
+		setPreference(LOAD_CONTACTS_KEY, System.currentTimeMillis() - time);
 
 		// step 2: scan sent messages
 		time = System.currentTimeMillis();
@@ -419,7 +425,8 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 			return;
 			}
 		messages.close();
-		runtime.put("scanning sent messages", System.currentTimeMillis() - time);
+		
+		setPreference(MESSAGE_LOOP_KEY, System.currentTimeMillis() - time);
 
 		time = System.currentTimeMillis();
 		// generate candidates
@@ -565,7 +572,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 				}
 			});
 
-		runtime.put("finding the best phrases", System.currentTimeMillis() - time);
+		setPreference(SELECT_CANDIDATES_KEY, System.currentTimeMillis() - time);
 
 		time = System.currentTimeMillis();
 
@@ -625,12 +632,12 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 		// time of day histogram
 		final int[] hourHist = dates.computeHourHistogram();
 
-		runtime.put("generating descriptions", System.currentTimeMillis() - time);
+		setPreference(GENERATE_DESCRIPTIONS_KEY, System.currentTimeMillis() - time);
 
 		// RUNTIME DISPLAY
 		final String runtimeString;
 		if (HomeActivity.DEVELOPER_MODE)
-			runtimeString = summarizeRuntime();
+			runtimeString = HomeActivity.summarizeRuntime(getApplicationContext(), PROFILING_KEY_ORDER);
 		else
 			runtimeString = null;
 
@@ -835,24 +842,6 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 			}
 	    }
 
-	public static String summarizeRuntime()
-		{
-		if (runtime == null)
-			return null;
-		
-		StringBuilder computeBuilder = new StringBuilder();
-		Formatter f = new Formatter(computeBuilder);
-		double totalSeconds = 0;
-		for (String unit : runtime.keySet())
-			{
-			// doesn't really need a localization; it's only for me
-			f.format("%s: %.1fs\n", unit, runtime.get(unit) / 1000.0);
-			totalSeconds += runtime.get(unit) / 1000.0;
-			}
-		f.format("Total: %.1fs", totalSeconds);
-		return computeBuilder.toString();
-		}
-
 	/**
 	 * Inflates a R.layout.phrases with the specified details, using
 	 * the specified inflater, registers callbacks for the spinner, etc.
@@ -959,7 +948,15 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 
 		return view;
 		}
-	
+
+	private void setPreference(String name, long longValue)
+		{
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+		SharedPreferences.Editor editor = prefs.edit();
+		editor.putLong(name, longValue);
+		editor.commit();
+		}
+
 	public void share(Bitmap bitmap, String title, String subject)
 		{
 		// In the future, I should switch this to getExternalFilesDir

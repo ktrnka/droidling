@@ -3,11 +3,13 @@ package com.github.ktrnka.droidling;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Formatter;
 
 import com.github.ktrnka.droidling.R;
 
 import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -55,7 +57,6 @@ public class HomeActivity extends ListActivity
 		catch (PackageManager.NameNotFoundException exc)
 			{
 			// This error shouldn't be possible; I don't know an accurate way to test it.
-			// If the PackageManager is broken somehow, we probably shouldn't show What's New every time.
 			// Should we show a warning?  I don't know.
 			Log.e(TAG, "PackageManager lookup failed");
 			Log.e(TAG, Log.getStackTraceString(exc));
@@ -63,7 +64,7 @@ public class HomeActivity extends ListActivity
 		
 		setListAdapter(new DescriptionMenuAdapter(this, getStrings(nameIDs), getStrings(descriptionIDs)));
 		}
-	
+
 	/**
 	 * Utility function to get strings for an array of IDs.
 	 * @param stringIDs
@@ -198,13 +199,38 @@ public class HomeActivity extends ListActivity
 		configBuilder.append("Model: " + android.os.Build.MODEL + "\n");
 		
 		configBuilder.append("Android version " + android.os.Build.VERSION.RELEASE + "\n");
-		configBuilder.append("SDK version " + android.os.Build.VERSION.SDK_INT + "\n");
+		configBuilder.append("SDK version " + android.os.Build.VERSION.SDK_INT + "\n\n");
 		
-		String personalStatsProfiling = PersonalActivity.summarizeRuntime();
-		if (personalStatsProfiling != null)
+		// application information
+		try
 			{
-			configBuilder.append("\nPersonal Stats Runtime Profiling:\n");
-			configBuilder.append(personalStatsProfiling);
+			PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_META_DATA);
+			configBuilder.append(getString(packageInfo.applicationInfo.labelRes) + " Version " + packageInfo.versionName + " (" + packageInfo.versionCode + ")\n");
+			}
+		catch (PackageManager.NameNotFoundException exc)
+			{
+			configBuilder.append("Version unknown\n");
+			}
+		
+		String profiling = summarizeRuntime(getApplicationContext(), PersonalActivity.PROFILING_KEY_ORDER);
+		if (profiling != null)
+			{
+			configBuilder.append("\nPersonal Stats Runtime Profiling (Last Run):\n");
+			configBuilder.append(profiling);
+			}
+
+		profiling = summarizeRuntime(getApplicationContext(), InterpersonalActivity.PROFILING_KEY_ORDER);
+		if (profiling != null)
+			{
+			configBuilder.append("\n\nInterpersonal Stats Runtime Profiling (Last Run):\n");
+			configBuilder.append(profiling);
+			}
+
+		profiling = summarizeRuntime(getApplicationContext(), LanguageIdentificationActivity.PROFILING_KEY_ORDER);
+		if (profiling != null)
+			{
+			configBuilder.append("\n\nLanguage Identification Runtime Profiling (Last Run):\n");
+			configBuilder.append(profiling);
 			}
 
 		sendIntent.putExtra(Intent.EXTRA_TEXT, configBuilder.toString());
@@ -212,5 +238,25 @@ public class HomeActivity extends ListActivity
 		startActivity(Intent.createChooser(sendIntent, getString(R.string.send_email_with)));
 		}
 
+	public static String summarizeRuntime(Context context, String[] PROFILING_KEYS)
+		{
+		StringBuilder computeBuilder = new StringBuilder();
+		Formatter f = new Formatter(computeBuilder);
+		double totalSeconds = 0;
+		
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
+		for (String key : PROFILING_KEYS)
+			{
+			long value = prefs.getLong(key, -1);
+			
+			key = key.replaceAll(".*:\\s*", "");
+			
+			// doesn't really need a localization; it's only for me
+			f.format("%s: %.1fs\n", key, value / 1000.0);
+			totalSeconds += value / 1000.0;
+			}
+		f.format("Total: %.1fs", totalSeconds);
+		return computeBuilder.toString();
+		}
 	}

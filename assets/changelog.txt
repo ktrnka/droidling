@@ -1,6 +1,7 @@
-Version 1.1 (2013-03-??)
+Version 1.1 (2013-04-??)
 -Runtime speedups when processing text messages
 -Load contacts only once, share to other activities
+-The "Send Feedback" now shares more stats about speed to help me find slow parts
 
 Version 1.01 (2013-01-21)
 -Added What's New popup on first install and app updates.

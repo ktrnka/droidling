@@ -13,8 +13,10 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.telephony.PhoneNumberUtils;
 import android.view.LayoutInflater;
@@ -32,7 +34,6 @@ import android.widget.Toast;
  */
 public class InterpersonalActivity extends Activity
 	{
-	private HashMap<String, Long> runtime;
 	private boolean scanned;
 	private ArrayList<HashMap<String,String>> listData;
 
@@ -41,7 +42,15 @@ public class InterpersonalActivity extends Activity
 	
 	private static final String CONTACT_NAME = "contact";
 	private static final String DETAILS = "details";
+
+	public static final String SENT_MESSAGE_LOOP_KEY = "InterpersonalActivity: scanning sent messages";
+	public static final String RECEIVED_MESSAGE_LOOP_KEY = "InterpersonalActivity: scanning received messages";
+	public static final String THREADED_MESSAGE_LOOP_KEY = "InterpersonalActivity: scanning threaded messages";
+	public static final String LOAD_CONTACTS_KEY = "InterpersonalActivity: loading contacts";
+	public static final String SELECT_CANDIDATES_KEY = "InterpersonalActivity: finding the best candidates";
 	
+	public static final String[] PROFILING_KEY_ORDER = { LOAD_CONTACTS_KEY, SENT_MESSAGE_LOOP_KEY, RECEIVED_MESSAGE_LOOP_KEY, THREADED_MESSAGE_LOOP_KEY, SELECT_CANDIDATES_KEY };
+
 	public void onCreate(Bundle savedInstanceState)
 		{
 		super.onCreate(savedInstanceState);
@@ -51,9 +60,7 @@ public class InterpersonalActivity extends Activity
 	public void onStart()
 		{
 		super.onStart();
-		
-		runtime = new HashMap<String,Long>();
-		
+				
 		if (!scanned)
 			{
 			// start progress
@@ -112,7 +119,7 @@ public class InterpersonalActivity extends Activity
 			{
 			warning("No contacts found");
 			}
-		runtime.put("scanning contacts", System.currentTimeMillis() - time);
+		setPreference(LOAD_CONTACTS_KEY, System.currentTimeMillis() - time);
 		
 		/*************** PROCESS SENT MESSAGES *******************/
 		time = System.currentTimeMillis();
@@ -165,7 +172,7 @@ public class InterpersonalActivity extends Activity
 			return;
 			}
 		messages.close();
-		runtime.put("processSentTexts", System.currentTimeMillis() - time);
+		setPreference(SENT_MESSAGE_LOOP_KEY, System.currentTimeMillis() - time);
 		
 		/*************** PROCESS RECEIVED MESSAGES *******************/
 		time = System.currentTimeMillis();
@@ -219,7 +226,7 @@ public class InterpersonalActivity extends Activity
 			return;
 			}
 		messages.close();
-		runtime.put("processReceivedTexts", System.currentTimeMillis() - time);
+		setPreference(RECEIVED_MESSAGE_LOOP_KEY, System.currentTimeMillis() - time);
 		
 		/*************** PROCESS IN THREADED VIEW ************************/
 		// TODO:  switch all processing to use the FULL set of messages with this
@@ -298,7 +305,7 @@ public class InterpersonalActivity extends Activity
 			warning("Unable to scan all messages for response time.");
 			}
 		messages.close();
-		runtime.put("processThreadedTexts", System.currentTimeMillis() - time);
+		setPreference(THREADED_MESSAGE_LOOP_KEY, System.currentTimeMillis() - time);
 
 		
 		
@@ -448,7 +455,7 @@ public class InterpersonalActivity extends Activity
 			item.put(DETAILS, details.toString());
 			listData.add(item);
 			}
-		runtime.put("analyzing", System.currentTimeMillis() - time);
+		setPreference(SELECT_CANDIDATES_KEY, System.currentTimeMillis() - time);
 
 		
 		/*************** SHOW IT *******************/
@@ -467,27 +474,17 @@ public class InterpersonalActivity extends Activity
 					}
 				
 				if (HomeActivity.DEVELOPER_MODE)
-					parent.addView(inflateResults(inflater, getString(R.string.runtime), summarizeRuntime()));
+					parent.addView(inflateResults(inflater, getString(R.string.runtime), HomeActivity.summarizeRuntime(getApplicationContext(), PROFILING_KEY_ORDER)));
 				}
 			});
 		}
-	
-	public String summarizeRuntime()
+
+	private void setPreference(String name, long longValue)
 		{
-		if (runtime == null)
-			return null;
-		
-		StringBuilder computeBuilder = new StringBuilder();
-		Formatter f = new Formatter(computeBuilder);
-		double totalSeconds = 0;
-		for (String unit : runtime.keySet())
-			{
-			// doesn't really need a localization; it's only for me
-			f.format("%s: %.1fs\n", unit, runtime.get(unit) / 1000.0);
-			totalSeconds += runtime.get(unit) / 1000.0;
-			}
-		f.format("Total: %.1fs", totalSeconds);
-		return computeBuilder.toString();
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+		SharedPreferences.Editor editor = prefs.edit();
+		editor.putLong(name, longValue);
+		editor.commit();
 		}
 	
 	public View inflateResults(LayoutInflater inflater, final String title, final String details)
