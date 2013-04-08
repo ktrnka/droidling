@@ -93,6 +93,31 @@ public class Tokenizer
 		// return the thing
 		return tokens;
 		}
+	
+	private static ArrayList<String> basicTokenize(String in)
+		{
+		ArrayList<String> tokens = new ArrayList<String>();
+
+		int start = 0, end;
+		
+		while (true)
+			{
+			while (start < in.length() && Character.isWhitespace(in.charAt(start)))
+				start++;
+			
+			if (start >= in.length())
+				break;
+			
+			end = start + 1;
+			while (end < in.length() && !Character.isWhitespace(in.charAt(end)))
+				end++;
+			
+			tokens.add(in.substring(start, end));
+			start = end + 1;
+			}
+
+		return tokens;
+		}
 
 	/**
 	 * Tokenize a message into words.
@@ -104,7 +129,9 @@ public class Tokenizer
 		{
 		ArrayList<String> tokens = new ArrayList<String>();
 		
-		String[] split = wordPattern.split(in);
+		// TODO: This can be optimized further by using an indexOf+substr loop to search for space then substr the token
+		//String[] split = wordPattern.split(in);
+		ArrayList<String> split = basicTokenize(in);
 		for (String token : split)
 			{
 			if (token.length() == 0)

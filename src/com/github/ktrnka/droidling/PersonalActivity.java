@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -48,6 +47,9 @@ import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -118,22 +120,27 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 			{
 			// start progress
 			// TODO: This is deprecated; I should use DialogFragment with FragmentManager via Android compatibility package
-			showDialog(PROGRESS_DIALOG);
-
-			// run thread with callback to stop progress
-			new Thread()
-				{
-				public void run()
-					{
-					scanSMS();
-
-					dismissDialog(PROGRESS_DIALOG);
-					progress.dismiss();
-					}
-				}.start();
-			scanned = true;
+			startProcessingThread();
 			}
 		}
+
+	private void startProcessingThread()
+	    {
+	    showDialog(PROGRESS_DIALOG);
+
+	    // run thread with callback to stop progress
+	    new Thread()
+	    	{
+	    	public void run()
+	    		{
+	    		scanSMS();
+
+	    		dismissDialog(PROGRESS_DIALOG);
+	    		progress.dismiss();
+	    		}
+	    	}.start();
+	    scanned = true;
+	    }
 
 	protected Dialog onCreateDialog(int id)
 		{
@@ -147,6 +154,32 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 			default:
 				return null;
 			}
+		}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu)
+		{
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.refreshable, menu);
+		return true;
+		}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item)
+		{
+		switch (item.getItemId())
+			{
+			case R.id.refreshMenu:
+				startProcessingThread();
+				break;
+			case R.id.helpMenu:
+				Intent intent = new Intent(this, AboutStatsActivity.class);
+				startActivity(intent);
+				break;
+			default:
+				Log.e(TAG, "Undefined menu item selected");
+			}
+		return false;
 		}
 
 	/**

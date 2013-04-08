@@ -66,4 +66,6 @@
 	<string name="shared_with_all">with ALL your texts: %.1f%%</string>
 	<string name="credits_other">Language resources provided by Hans Christensen (<a href="http://corpora.heliohost.org">web</a>, <a href="mailto:hc.corpus@gmail.com">email</a>), Hermit Dave (<a href="http://invokeit.wordpress.com/frequency-word-lists/">web</a>), and Keith Vertanen (<a href="http://www.keithv.com/software/">web</a>)</string>
 	<string name="credits_author">Keith Trnka (<a href="mailto:trnka.dev@gmail.com">email</a>)</string>
+	<string name="menu_refresh">Refresh</string>
+	<string name="menu_help">Help</string>
 </resources>
