@@ -318,7 +318,7 @@ public class LanguageIdentificationActivity extends SherlockActivity
 	 */
 	public View inflateResults(LayoutInflater inflater, final String title, final String details)
 		{
-		View view = inflater.inflate(R.layout.result, null);
+		View view = inflater.inflate(R.layout.results_generic, null);
 		TextView  textView = (TextView) view.findViewById(android.R.id.text1);
 		textView.setText(title);
 

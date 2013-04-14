@@ -27,12 +27,6 @@ import org.achartengine.renderer.SimpleSeriesRenderer;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYMultipleSeriesRenderer.Orientation;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
-import com.actionbarsherlock.view.MenuInflater;
-import com.github.ktrnka.droidling.R;
-
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -58,6 +52,11 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
 
 public class PersonalActivity extends SherlockActivity implements OnItemSelectedListener
 	{
@@ -885,7 +884,7 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 	 */
 	public View inflatePhraseResults(LayoutInflater inflater, final String details)
 		{
-		View view = inflater.inflate(R.layout.phrases, null);
+		View view = inflater.inflate(R.layout.results_phrases, null);
 
 		TextView textView = (TextView) view.findViewById(android.R.id.text2);
 		textView.setText(details);
@@ -924,7 +923,7 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 	 */
 	public View inflateResults(LayoutInflater inflater, final String title, final String details)
 		{
-		View view = inflater.inflate(R.layout.result, null);
+		View view = inflater.inflate(R.layout.results_generic, null);
 		TextView  textView = (TextView) view.findViewById(android.R.id.text1);
 		textView.setText(title);
 
@@ -954,7 +953,7 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 	
 	public View inflateChart(LayoutInflater inflater, final String title, final GraphicalView graph)
 		{
-		View view = inflater.inflate(R.layout.graphed_results, null);
+		View view = inflater.inflate(R.layout.results_graphed, null);
 
 		// setup the title
 		TextView textView = (TextView) view.findViewById(android.R.id.text1);
