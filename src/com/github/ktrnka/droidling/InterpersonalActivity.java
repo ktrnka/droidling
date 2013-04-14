@@ -7,9 +7,9 @@ import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import com.actionbarsherlock.app.SherlockActivity;
 import com.github.ktrnka.droidling.R;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -17,7 +17,11 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.LayoutInflater;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -30,12 +34,13 @@ import android.widget.Toast;
  * @author keith.trnka
  *
  */
-public class InterpersonalActivity extends Activity
+public class InterpersonalActivity extends SherlockActivity
 	{
 	private boolean scanned;
 	private ArrayList<HashMap<String,String>> listData;
 
 	private static final int PROGRESS_DIALOG = 0;
+	public static final String TAG = "com.github.ktrnka.droidling.InterpersonalActivity";
 	private ProgressDialog progress;
 	
 	private static final String CONTACT_NAME = "contact";
@@ -105,6 +110,29 @@ public class InterpersonalActivity extends Activity
 		sendIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
 		
 		startActivity(Intent.createChooser(sendIntent, getString(R.string.share_intent)));
+		}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu)
+		{
+		MenuInflater inflater = getSupportMenuInflater();
+		inflater.inflate(R.menu.help, menu);
+		return true;
+		}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item)
+		{
+		switch (item.getItemId())
+			{
+			case R.id.helpMenu:
+				Intent intent = new Intent(this, AboutInterpersonalActivity.class);
+				startActivity(intent);
+				break;
+			default:
+				Log.e(TAG, "Undefined menu item selected");
+			}
+		return false;
 		}
 
 	private void scanSMS()

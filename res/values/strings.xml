@@ -8,7 +8,7 @@
     <string name="personal_description">Analyze sent messages.</string>
     <string name="interpersonal_name">Interpersonal Statistics</string>
     <string name="interpersonal_description">Compare SMS text analytics with contacts.</string>
-    <string name="email_description">Email feedback and runtime info to trnka.dev@gmail.com</string>
+    <string name="email_description">Email feedback to trnka.dev@gmail.com</string>
     <string name="lid_name">Language Identification Demo</string>
     <string name="email_name">Send Feedback</string>
     <string name="rate_name">Rate the App</string>
@@ -64,8 +64,10 @@
 	<string name="shared_vocabulary_header">Shared vocabulary (Jaccard)</string>
 	<string name="shared_with_them">with texts to them: %.1f%%</string>
 	<string name="shared_with_all">with ALL your texts: %.1f%%</string>
-	<string name="credits_other">Language resources provided by Hans Christensen (<a href="http://corpora.heliohost.org">web</a>, <a href="mailto:hc.corpus@gmail.com">email</a>), Hermit Dave (<a href="http://invokeit.wordpress.com/frequency-word-lists/">web</a>), and Keith Vertanen (<a href="http://www.keithv.com/software/">web</a>)</string>
+	<string name="credits_other">Language resources provided by\n   Hans Christensen (<a href="http://corpora.heliohost.org">web</a>, <a href="mailto:hc.corpus@gmail.com">email</a>)\n   Hermit Dave (<a href="http://invokeit.wordpress.com/frequency-word-lists/">web</a>)\n   Keith Vertanen (<a href="http://www.keithv.com/software/">web</a>)</string>
+	<string name="credits_libraries">Third-party libraries\n   <a href="http://www.achartengine.org/">AChartEngine</a> for the graphs\n   <a href="http://actionbarsherlock.com/">ActionBarSherlock</a> for action bars on older Android versions</string>
 	<string name="credits_author">Keith Trnka (<a href="mailto:trnka.dev@gmail.com">email</a>)</string>
 	<string name="menu_refresh">Refresh</string>
 	<string name="menu_help">Help</string>
+	<string name="lid_languages_title">Identifiable Languages</string>
 </resources>

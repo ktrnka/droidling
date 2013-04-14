@@ -5,10 +5,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Formatter;
 
+import com.actionbarsherlock.app.SherlockListActivity;
 import com.github.ktrnka.droidling.R;
 
 import android.app.AlertDialog;
-import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -19,20 +19,23 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class HomeActivity extends ListActivity
+public class HomeActivity extends SherlockListActivity
 	{
 	public static final String PACKAGE_NAME = "com.github.ktrnka.droidling";
-	private static final int[] nameIDs = { R.string.personal_name, R.string.interpersonal_name, R.string.lid_name, R.string.email_name, R.string.rate_name, R.string.about_stats_name, R.string.about_app_name };
-	private static final int[] descriptionIDs = { R.string.personal_description, R.string.interpersonal_description, 0, R.string.email_description, R.string.rate_description, 0, 0 };
+	private static final int[] nameIDs = { R.string.personal_name, R.string.interpersonal_name, R.string.lid_name, R.string.email_name, R.string.rate_name };
+	private static final int[] descriptionIDs = { R.string.personal_description, R.string.interpersonal_description, 0, R.string.email_description, R.string.rate_description };
 	
 	// TODO:  I don't like how this uses parallel arrays.  I'd much rather do something like make an instance that has all this
-	private static final Class<?>[] activities = { PersonalActivity.class, InterpersonalActivity.class, LanguageIdentificationActivity.class, null, null, AboutStatsActivity.class, AboutActivity.class };
+	private static final Class<?>[] activities = { PersonalActivity.class, InterpersonalActivity.class, LanguageIdentificationActivity.class, null, null };
 	
-	public static final boolean DEVELOPER_MODE = false;
+	public static final boolean DEVELOPER_MODE = true;
 	
 	public static final String TAG = "com.github.ktrnka.droidling.HomeActivity";
 	
@@ -65,6 +68,29 @@ public class HomeActivity extends ListActivity
 		setListAdapter(new DescriptionMenuAdapter(this, getStrings(nameIDs), getStrings(descriptionIDs)));
 		}
 
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu)
+		{
+		MenuInflater inflater = getSupportMenuInflater();
+		inflater.inflate(R.menu.help, menu);
+		return true;
+		}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item)
+		{
+		switch (item.getItemId())
+			{
+			case R.id.helpMenu:
+				Intent intent = new Intent(this, AboutActivity.class);
+				startActivity(intent);
+				break;
+			default:
+				Log.e(TAG, "Undefined menu item selected");
+			}
+		return false;
+		}
+
 	/**
 	 * Utility function to get strings for an array of IDs.
 	 * @param stringIDs
@@ -92,45 +118,44 @@ public class HomeActivity extends ListActivity
 	private void showWelcome()
 		{
 		new Thread()
-		{
-			public void run()
-				{
-				try 
+			{
+				public void run()
 					{
-					// try loading the changelog file
-					final StringBuilder changeLogBuilder = new StringBuilder();
-					BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open("changelog.txt")));
-					String line;
-					while ( (line = in.readLine()) != null)
+					try
 						{
-						changeLogBuilder.append(line);
-						changeLogBuilder.append("\n");
-						}
-					in.close();
-					
-					runOnUiThread(new Runnable()
-						{
-						public void run()
+						// try loading the changelog file
+						final StringBuilder changeLogBuilder = new StringBuilder();
+						BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open("changelog.txt")));
+						String line;
+						while ((line = in.readLine()) != null)
 							{
-							AlertDialog.Builder alertBuilder = new AlertDialog.Builder(HomeActivity.this);
-							alertBuilder.setTitle("What's New");
-							alertBuilder.setMessage(changeLogBuilder);
-							alertBuilder.setIcon(android.R.drawable.ic_menu_help);
-							
-							alertBuilder.setPositiveButton("Close", null);
-							alertBuilder.show();
+							changeLogBuilder.append(line);
+							changeLogBuilder.append("\n");
 							}
-						});
-		
-					} 
-				catch (IOException e)
-					{
-					Log.e(TAG, "Failure to load changelog");
-					Log.e(TAG, Log.getStackTraceString(e));
-					}
-				}
-		}.start();
+						in.close();
 
+						runOnUiThread(new Runnable()
+							{
+								public void run()
+									{
+									AlertDialog.Builder alertBuilder = new AlertDialog.Builder(HomeActivity.this);
+									alertBuilder.setTitle("What's New");
+									alertBuilder.setMessage(changeLogBuilder);
+									alertBuilder.setIcon(android.R.drawable.ic_menu_help);
+
+									alertBuilder.setPositiveButton("Close", null);
+									alertBuilder.show();
+									}
+							});
+
+						}
+					catch (IOException e)
+						{
+						Log.e(TAG, "Failure to load changelog");
+						Log.e(TAG, Log.getStackTraceString(e));
+						}
+					}
+			}.start();
 
 		}
 

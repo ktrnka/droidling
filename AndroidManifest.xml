@@ -17,7 +17,7 @@
         android:allowBackup="false"
         android:icon="@drawable/icon"
         android:label="@string/app_name"
-        android:theme="@style/MyTheme" >
+        android:theme="@style/Theme.Sherlock.Light" >
         <activity
             android:name="com.github.ktrnka.droidling.HomeActivity"
             android:label="@string/app_name" >
@@ -37,7 +37,10 @@
             android:name="com.github.ktrnka.droidling.LanguageIdentificationActivity"
             android:configChanges="orientation|keyboardHidden" />
         <activity android:name="com.github.ktrnka.droidling.AboutActivity" />
-        <activity android:name="com.github.ktrnka.droidling.AboutStatsActivity" />
+        <activity android:name="com.github.ktrnka.droidling.AboutPersonalActivity" />
+        <activity android:name="com.github.ktrnka.droidling.AboutInterpersonalActivity" />
+        <activity android:name="com.github.ktrnka.droidling.AboutLangIDActivity" />
+        
     </application>
 
 </manifest>

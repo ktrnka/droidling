@@ -14,22 +14,8 @@
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/key_phrases"
-        android:textSize="28sp"/>
-
-    <TextView
-        android:id="@+id/about_key_phrases"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="@string/key_phrase_description"/>
-
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
         android:text="@string/shared_vocab_title"
-        android:textSize="28sp"
-        android:layout_marginTop="15sp"/>
+        android:textSize="28sp"/>
 
     <TextView
         android:id="@+id/about_shared_vocab"

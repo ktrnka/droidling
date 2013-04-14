@@ -77,7 +77,16 @@
         android:text="@string/credits_other"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textSize="22sp"/>
-    
+
+	<TextView
+        android:id="@+id/about_library_credits"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="6dip"
+        android:text="@string/credits_libraries"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textSize="22sp"/>
+
 </LinearLayout>
 
 </ScrollView>

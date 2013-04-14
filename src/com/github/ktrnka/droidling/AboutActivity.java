@@ -4,9 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import com.actionbarsherlock.app.SherlockActivity;
 import com.github.ktrnka.droidling.R;
 
-import android.app.Activity;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -19,7 +19,7 @@ import android.widget.TextView;
  * @author keith.trnka
  *
  */
-public class AboutActivity extends Activity
+public class AboutActivity extends SherlockActivity
 	{
     public void onCreate(Bundle savedInstanceState)
 		{
@@ -43,7 +43,11 @@ public class AboutActivity extends Activity
 		// these lines are necessary for clickable TextViews with <a href> in the strings
 		TextView textView = (TextView) findViewById(R.id.about_author);
 		textView.setMovementMethod(LinkMovementMethod.getInstance());
+		
 		textView = (TextView) findViewById(R.id.about_other_credits);
+		textView.setMovementMethod(LinkMovementMethod.getInstance());
+		
+		textView = (TextView) findViewById(R.id.about_library_credits);
 		textView.setMovementMethod(LinkMovementMethod.getInstance());
 		
 		// load the changelog

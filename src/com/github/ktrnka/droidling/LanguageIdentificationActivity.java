@@ -5,9 +5,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
 import com.github.ktrnka.droidling.R;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -15,8 +18,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.provider.ContactsContract;
-import android.telephony.PhoneNumberUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,8 +31,9 @@ import android.widget.Toast;
  * @author Keith
  *
  */
-public class LanguageIdentificationActivity extends Activity
+public class LanguageIdentificationActivity extends SherlockActivity
 	{
+	public static final String EXTRA_LANGUAGES = "languages";
 	private boolean started = false;
 	private ProgressDialog progress;
 	
@@ -47,6 +50,7 @@ public class LanguageIdentificationActivity extends Activity
 	public static final String GENERATE_TEXT_KEY = "LanguageIdentificationActivity: building text";
 	
 	public static final String[] PROFILING_KEY_ORDER = { LOAD_CONTACTS_KEY, LOAD_MESSAGES_KEY, IDENTIFYING_KEY, GENERATE_TEXT_KEY };
+	private final StringBuffer languageBuilder = new StringBuffer();
 
 	public void onCreate(Bundle savedInstanceState)
 		{
@@ -125,7 +129,31 @@ public class LanguageIdentificationActivity extends Activity
 					}
 			});
 		}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu)
+		{
+		MenuInflater inflater = getSupportMenuInflater();
+		inflater.inflate(R.menu.help, menu);
+		return true;
+		}
 	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item)
+		{
+		switch (item.getItemId())
+			{
+			case R.id.helpMenu:
+				Intent intent = new Intent(this, AboutLangIDActivity.class);
+				intent.putExtra(EXTRA_LANGUAGES, languageBuilder.toString());
+				startActivity(intent);
+				break;
+			default:
+				Log.e(TAG, "Undefined menu item selected");
+			}
+		return false;
+		}
+
 	/**
 	 * The main processing of the language identification task.
 	 */
@@ -210,26 +238,13 @@ public class LanguageIdentificationActivity extends Activity
 	 */
 	private void buildHelpDisplay()
 		{
-		final StringBuilder languageBuilder = new StringBuilder();
-
+		languageBuilder.setLength(0);
 		ArrayList<String> languageList = langID.getSupportedLanguages();
 		for (String language : languageList)
 			{
 			languageBuilder.append(language);
 			languageBuilder.append("\n");
 			}
-		
-		runOnUiThread(new Runnable()
-			{
-			public void run()
-				{
-				ViewGroup parent = (ViewGroup) findViewById(R.id.linear);
-	
-				LayoutInflater inflater = getLayoutInflater();
-				
-				parent.addView(inflateResults(inflater, "Languages", languageBuilder.toString()));
-				}
-			});
 		}
 
 	private void identifyLanguages()

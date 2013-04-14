@@ -27,9 +27,12 @@ import org.achartengine.renderer.SimpleSeriesRenderer;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYMultipleSeriesRenderer.Orientation;
 
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.MenuInflater;
 import com.github.ktrnka.droidling.R;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -47,9 +50,6 @@ import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -59,7 +59,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class PersonalActivity extends Activity implements OnItemSelectedListener
+public class PersonalActivity extends SherlockActivity implements OnItemSelectedListener
 	{
 	public static final int maxPhrases = 50;
 	private boolean scanned = false;
@@ -159,7 +159,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 		{
-		MenuInflater inflater = getMenuInflater();
+		MenuInflater inflater = getSupportMenuInflater();
 		inflater.inflate(R.menu.refreshable, menu);
 		return true;
 		}
@@ -173,7 +173,7 @@ public class PersonalActivity extends Activity implements OnItemSelectedListener
 				startProcessingThread();
 				break;
 			case R.id.helpMenu:
-				Intent intent = new Intent(this, AboutStatsActivity.class);
+				Intent intent = new Intent(this, AboutPersonalActivity.class);
 				startActivity(intent);
 				break;
 			default:

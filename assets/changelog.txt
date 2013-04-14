@@ -1,4 +1,5 @@
 Version 1.1 (2013-04-??)
+-Use action bars with activity-specific help
 -Runtime speedups when processing text messages
 -Load contacts only once, share to other activities
 -The "Send Feedback" now shares more stats about speed to help me find slow parts
