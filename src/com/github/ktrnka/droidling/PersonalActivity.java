@@ -7,6 +7,7 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -85,9 +86,7 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 	private static final int COUNT_SORTED = 1;
 
 	private int previousItemSelected;
-	
-	private PrintWriter scoresOut;
-	
+		
 	private static final int graphBarBottomColor = Color.rgb(25, 89, 115);
 	private static final int graphBarTopColor = Color.rgb(17, 60, 77);
 	
@@ -99,6 +98,10 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 	public static final String GENERATE_DESCRIPTIONS_KEY = "PersonalActivity: generating descriptions";
 	
 	public static final String[] PROFILING_KEY_ORDER = { LOAD_UNIGRAMS_KEY, LOAD_STOPWORDS_KEY, LOAD_CONTACTS_KEY, MESSAGE_LOOP_KEY, SELECT_CANDIDATES_KEY, GENERATE_DESCRIPTIONS_KEY };
+	
+	public static final boolean LOG_PHRASES = false;
+	
+	private File logFile;
 	
 	public void onCreate(Bundle savedInstanceState)
 		{
@@ -588,9 +591,20 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 				}
 			});
 		
-		if (scoresOut != null)
+		if (LOG_PHRASES)
 			{
-			logCandidateFeatures(sentStats, shortMessages, simplePhrases);
+			logFile = new File(Environment.getExternalStorageDirectory(), "sms_phrase_log.txt");
+			PrintWriter scoresOut;
+            try
+	            {
+	            scoresOut = new PrintWriter(new FileWriter(logFile));
+				logCandidateFeatures(sentStats, shortMessages, simplePhrases, candidates, scoresOut);
+				scoresOut.close();
+	            }
+            catch (IOException e)
+	            {
+	            Log.e(TAG, "Failed to write to log: " + e);
+	            }
 			}
 
 		mergeSimilarPhrases(sentStats, candidates, pairs);
@@ -694,17 +708,29 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 
 				if (runtimeString != null)
 					parent.addView(inflateResults(inflater, getString(R.string.runtime), runtimeString));
+				
+				if (LOG_PHRASES)
+					{
+		            Intent intent = new Intent( android.content.Intent.ACTION_SEND);
+		            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		            intent.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + logFile.getAbsolutePath()));
+		            intent.setType("text/plain");
+
+		            intent.putExtra(Intent.EXTRA_SUBJECT, "Logged phrases");
+
+		            startActivity(Intent.createChooser(intent, "Send email..."));
+					}
 				}
 			});
 		}
 
-	private void logCandidateFeatures(CorpusStats sentStats, HashMap<String, int[]> shortMessages, HashMap<String, int[]> simplePhrases)
+	private void logCandidateFeatures(CorpusStats sentStats, HashMap<String, int[]> shortMessages, HashMap<String, int[]> simplePhrases, HashMap<String, double[]> combinedScores, PrintWriter scoresOut)
 	    {
 	    StringBuilder ngramBuilder = new StringBuilder();
 	    
 	    char sep = '\t';
 	    // header
-	    scoresOut.println("Phrase,Frequency,Expected Frequency,Has Nonwords,Stopword Start,Stopword End,Simple Phrase Count,Short Message Count");
+	    scoresOut.println("Phrase\tFrequency\tExpected Frequency\tHas Nonwords\tStopword Start\tStopword End\tSimple Phrase Count\tShort Message Count\tCombined Score");
 	    
 	    // unigrams
 	    for (String word : sentStats.unigrams.keySet())
@@ -724,6 +750,9 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 	    	scoresOut.print(simplePhrases.containsKey(word) ? simplePhrases.get(word)[0] : 0);
 	    	scoresOut.print(sep);
 	    	scoresOut.print(shortMessages.containsKey(word) ? shortMessages.get(word)[0] : 0);
+	    	scoresOut.print(sep);
+	    	scoresOut.print(combinedScores.containsKey(word) ? combinedScores.get(word)[0] : 0);
+	    	scoresOut.println();
 	    	}
 	    
 	    for (String word1 : sentStats.bigrams.keySet())
@@ -750,6 +779,9 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 	    		scoresOut.print(simplePhrases.containsKey(ngramBuilder.toString()) ? simplePhrases.get(ngramBuilder.toString())[0] : 0);
 	    		scoresOut.print(sep);
 	    		scoresOut.print(shortMessages.containsKey(ngramBuilder.toString()) ? shortMessages.get(ngramBuilder.toString())[0] : 0);
+		    	scoresOut.print(sep);
+		    	scoresOut.print(combinedScores.containsKey(ngramBuilder.toString()) ? combinedScores.get(ngramBuilder.toString())[0] : 0);
+		    	scoresOut.println();
 	    		}
 	    	}
 	    
@@ -781,6 +813,9 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 	    			scoresOut.print(simplePhrases.containsKey(ngramBuilder.toString()) ? simplePhrases.get(ngramBuilder.toString())[0] : 0);
 	    			scoresOut.print(sep);
 	    			scoresOut.print(shortMessages.containsKey(ngramBuilder.toString()) ? shortMessages.get(ngramBuilder.toString())[0] : 0);
+			    	scoresOut.print(sep);
+			    	scoresOut.print(combinedScores.containsKey(ngramBuilder.toString()) ? combinedScores.get(ngramBuilder.toString())[0] : 0);
+	    	    	scoresOut.println();
 	    			}
 	    		}
 	    	}
