@@ -29,13 +29,13 @@
         </activity>
         <activity
             android:name="com.github.ktrnka.droidling.PersonalActivity"
-            android:configChanges="orientation|keyboardHidden" />
+            android:configChanges="orientation|screenSize" />
         <activity
             android:name="com.github.ktrnka.droidling.InterpersonalActivity"
-            android:configChanges="orientation|keyboardHidden" />
+            android:configChanges="orientation|screenSize" />
         <activity
             android:name="com.github.ktrnka.droidling.LanguageIdentificationActivity"
-            android:configChanges="orientation|keyboardHidden" />
+            android:configChanges="orientation|screenSize" />
         <activity android:name="com.github.ktrnka.droidling.AboutActivity" />
         <activity android:name="com.github.ktrnka.droidling.AboutPersonalActivity" />
         <activity android:name="com.github.ktrnka.droidling.AboutInterpersonalActivity" />
