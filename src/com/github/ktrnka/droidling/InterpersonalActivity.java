@@ -1,5 +1,7 @@
 package com.github.ktrnka.droidling;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -8,10 +10,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import com.actionbarsherlock.app.SherlockActivity;
+import com.github.ktrnka.droidling.InterpersonalStats.Item;
 import com.github.ktrnka.droidling.R;
 
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -37,7 +41,6 @@ import android.widget.Toast;
 public class InterpersonalActivity extends SherlockActivity
 	{
 	private boolean scanned;
-	private ArrayList<HashMap<String,String>> listData;
 
 	private static final int PROGRESS_DIALOG = 0;
 	public static final String TAG = "com.github.ktrnka.droidling.InterpersonalActivity";
@@ -46,13 +49,18 @@ public class InterpersonalActivity extends SherlockActivity
 	private static final String CONTACT_NAME = "contact";
 	private static final String DETAILS = "details";
 
+	private static final String DISPLAY_FILENAME = "InterpersonalActivity.cache";
+
 	public static final String SENT_MESSAGE_LOOP_KEY = "InterpersonalActivity: scanning sent messages";
 	public static final String RECEIVED_MESSAGE_LOOP_KEY = "InterpersonalActivity: scanning received messages";
 	public static final String THREADED_MESSAGE_LOOP_KEY = "InterpersonalActivity: scanning threaded messages";
 	public static final String LOAD_CONTACTS_KEY = "InterpersonalActivity: loading contacts";
 	public static final String SELECT_CANDIDATES_KEY = "InterpersonalActivity: finding the best candidates";
+	public static final String SAVE_DISPLAY_KEY = "InterpersonalActivity: caching results";
 	
-	public static final String[] PROFILING_KEY_ORDER = { LOAD_CONTACTS_KEY, SENT_MESSAGE_LOOP_KEY, RECEIVED_MESSAGE_LOOP_KEY, THREADED_MESSAGE_LOOP_KEY, SELECT_CANDIDATES_KEY };
+	public static final String[] PROFILING_KEY_ORDER = { LOAD_CONTACTS_KEY, SENT_MESSAGE_LOOP_KEY, RECEIVED_MESSAGE_LOOP_KEY, THREADED_MESSAGE_LOOP_KEY, SELECT_CANDIDATES_KEY, SAVE_DISPLAY_KEY };
+	
+	private InterpersonalStats displayStats;
 
 	public void onCreate(Bundle savedInstanceState)
 		{
@@ -66,23 +74,47 @@ public class InterpersonalActivity extends SherlockActivity
 				
 		if (!scanned)
 			{
-			// start progress
-			// TODO: This is deprecated; I should use DialogFragment with FragmentManager via Android compatibility package
-			showDialog(PROGRESS_DIALOG);
-			
 			// run thread with callback to stop progress
-			new Thread()
-				{
-				public void run()
-					{
-					scanSMS();
-					
-					progress.dismiss();
-					}
-				}.start();
-			scanned = true;
+			startProcessingThread(false);
 			}
 		}
+
+	private void startProcessingThread(final boolean forceRebuild)
+	    {
+		showDialog(PROGRESS_DIALOG);
+
+		new Thread()
+	    	{
+	    	public void run()
+	    		{
+	    		buildInterpersonalDisplay(forceRebuild);
+	    		
+	    		progress.dismiss();
+	    		}
+	    	}.start();
+	    scanned = true;
+	    }
+
+	protected void buildInterpersonalDisplay(boolean forceRebuild)
+	    {
+	    if (forceRebuild)
+	    	{
+	    	scanSMS();
+	    	}
+	    else
+	    	{
+	    	try
+	            {
+	            displayStats = new InterpersonalStats(openFileInput(DISPLAY_FILENAME));
+	            }
+            catch (IOException e)
+	            {
+	            scanSMS();
+	            }
+	    	}
+
+	    showDisplay();
+	    }
 
 	protected Dialog onCreateDialog(int id)
 		{
@@ -102,7 +134,7 @@ public class InterpersonalActivity extends SherlockActivity
 		{
 		// figure out the text
 		String subject = getString(R.string.shared_stats_subject_format, getString(R.string.app_name));
-		String body = getString(R.string.interpersonal_share_body_format, listData.get(position).get(CONTACT_NAME)) + "\n" + listData.get(position).get(DETAILS);
+		String body = getString(R.string.interpersonal_share_body_format, displayStats.list.get(position).name) + "\n" + displayStats.list.get(position).details;
 
 		Intent sendIntent = new Intent(Intent.ACTION_SEND);
 		sendIntent.setType("message/rfc822");
@@ -116,7 +148,7 @@ public class InterpersonalActivity extends SherlockActivity
 	public boolean onCreateOptionsMenu(Menu menu)
 		{
 		MenuInflater inflater = getSupportMenuInflater();
-		inflater.inflate(R.menu.help, menu);
+		inflater.inflate(R.menu.refreshable, menu);
 		return true;
 		}
 	
@@ -125,6 +157,9 @@ public class InterpersonalActivity extends SherlockActivity
 		{
 		switch (item.getItemId())
 			{
+			case R.id.refreshMenu:
+				startProcessingThread(true);
+				break;
 			case R.id.helpMenu:
 				Intent intent = new Intent(this, AboutInterpersonalActivity.class);
 				startActivity(intent);
@@ -137,6 +172,8 @@ public class InterpersonalActivity extends SherlockActivity
 
 	private void scanSMS()
 		{
+		displayStats = new InterpersonalStats();
+		
 		long time = System.currentTimeMillis();
 
 		/*************** LOAD CONTACTS *******************/
@@ -364,8 +401,6 @@ public class InterpersonalActivity extends SherlockActivity
 				}
 			});
 		
-		// build the results into a list for SimpleAdapter
-		listData = new ArrayList<HashMap<String,String>>();
 		for (String contactName : contactList)
 			{
 			String firstName = extractPersonalName(contactName);
@@ -478,32 +513,50 @@ public class InterpersonalActivity extends SherlockActivity
 			f.format(" %s: %s\n", firstName, receivedStats.get(contactName).generateRandomMessage(false));
 			f.format(" You: %s\n", sentStats.get(contactName).generateRandomMessage(false));
 
-			item.put(DETAILS, details.toString());
-			listData.add(item);
+			displayStats.add(contactName, details);
 			}
 		setPreference(SELECT_CANDIDATES_KEY, System.currentTimeMillis() - time);
 
+		time = System.currentTimeMillis();
+		try
+	        {
+	        displayStats.writeTo(openFileOutput(DISPLAY_FILENAME, Context.MODE_PRIVATE));
+	        }
+        catch (IOException e)
+	        {
+	        Log.e(TAG, "Failed to save displayStats");
+	        Log.e(TAG, Log.getStackTraceString(e));
+	        }
+		setPreference(SAVE_DISPLAY_KEY, System.currentTimeMillis() - time);
 		
-		/*************** SHOW IT *******************/
+		showDisplay();
+		}
+
+	/**
+	 * Inflate a bunch of views to fill out the list
+	 */
+	private void showDisplay()
+	    {
 		runOnUiThread(new Runnable()
 			{
 			public void run()
 				{
 				ViewGroup parent = (ViewGroup) findViewById(R.id.linear);
+				parent.removeAllViews();
 				
 				LayoutInflater inflater = getLayoutInflater();
 
-				for (HashMap<String,String> item : listData)
+				for (Item item : displayStats.list)
 					{
 					// key phrases
-					parent.addView(inflateResults(inflater, item.get(CONTACT_NAME), item.get(DETAILS)));
+					parent.addView(inflateResults(inflater, item.name, item.details));
 					}
 				
 				if (HomeActivity.DEVELOPER_MODE)
 					parent.addView(inflateResults(inflater, getString(R.string.runtime), HomeActivity.summarizeRuntime(getApplicationContext(), PROFILING_KEY_ORDER)));
 				}
 			});
-		}
+	    }
 
 	private void setPreference(String name, long longValue)
 		{
@@ -513,7 +566,7 @@ public class InterpersonalActivity extends SherlockActivity
 		editor.commit();
 		}
 	
-	public View inflateResults(LayoutInflater inflater, final String title, final String details)
+	public View inflateResults(LayoutInflater inflater, final CharSequence title, final CharSequence details)
 		{
 		// contacts
 		View view = inflater.inflate(R.layout.results_generic, null);

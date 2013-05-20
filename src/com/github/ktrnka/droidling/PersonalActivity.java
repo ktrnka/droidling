@@ -6,6 +6,7 @@ import static com.github.ktrnka.droidling.Tokenizer.tokenize;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -79,13 +80,16 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 	private ProgressDialog progress;
 	private static final String TAG = "com.github.ktrnka.droidling.PersonalActivity";
 	
-	/** Key phrases according to multiple sort orders */
-	private StringBuilder[] keyPhraseTexts;
 	
-	private static final int PHRASE_SORTED = 0;
-	private static final int COUNT_SORTED = 1;
+	/**
+	 * the string or near-string stats to display
+	 */
+	private PersonalStats displayStats;
 
-	private int previousItemSelected;
+	/**
+	 * which of the key phrase sortings in displayStats to display
+	 */
+	private int displayPhraseIndex;
 		
 	private static final int graphBarBottomColor = Color.rgb(25, 89, 115);
 	private static final int graphBarTopColor = Color.rgb(17, 60, 77);
@@ -96,10 +100,12 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 	public static final String LOAD_CONTACTS_KEY = "PersonalActivity: loading contacts";
 	public static final String SELECT_CANDIDATES_KEY = "PersonalActivity: finding the best candidates";
 	public static final String GENERATE_DESCRIPTIONS_KEY = "PersonalActivity: generating descriptions";
+	public static final String SAVE_DISPLAY_KEY = "PersonalActivity: caching results";
 	
-	public static final String[] PROFILING_KEY_ORDER = { LOAD_UNIGRAMS_KEY, LOAD_STOPWORDS_KEY, LOAD_CONTACTS_KEY, MESSAGE_LOOP_KEY, SELECT_CANDIDATES_KEY, GENERATE_DESCRIPTIONS_KEY };
+	public static final String[] PROFILING_KEY_ORDER = { LOAD_UNIGRAMS_KEY, LOAD_STOPWORDS_KEY, LOAD_CONTACTS_KEY, MESSAGE_LOOP_KEY, SELECT_CANDIDATES_KEY, GENERATE_DESCRIPTIONS_KEY, SAVE_DISPLAY_KEY };
 	
 	public static final boolean LOG_PHRASES = false;
+	private static final String DISPLAY_FILENAME = "PersonalActivity.cache";
 	
 	private File logFile;
 	
@@ -108,10 +114,7 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.simple_scroll);
 		
-		keyPhraseTexts = new StringBuilder[2];
-		keyPhraseTexts[PHRASE_SORTED] = new StringBuilder();
-		keyPhraseTexts[COUNT_SORTED] = new StringBuilder();
-		previousItemSelected = 0;
+		displayPhraseIndex = 0;
 		}
 
 	public void onStart()
@@ -122,11 +125,11 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 			{
 			// start progress
 			// TODO: This is deprecated; I should use DialogFragment with FragmentManager via Android compatibility package
-			startProcessingThread();
+			startProcessingThread(false);
 			}
 		}
 
-	private void startProcessingThread()
+	private void startProcessingThread(final boolean computeFresh)
 	    {
 	    showDialog(PROGRESS_DIALOG);
 
@@ -135,13 +138,34 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 	    	{
 	    	public void run()
 	    		{
-	    		scanSMS();
+	    		buildPersonalStats(computeFresh);
 
 	    		dismissDialog(PROGRESS_DIALOG);
 	    		progress.dismiss();
 	    		}
 	    	}.start();
 	    scanned = true;
+	    }
+
+	protected void buildPersonalStats(boolean computeFresh)
+	    {
+	    if (computeFresh)
+	    	{
+	    	scanSMS();
+	    	}
+	    else
+	    	{
+		    try
+		    	{
+		    	displayStats = new PersonalStats(openFileInput(DISPLAY_FILENAME));
+		    	}
+	        catch (IOException e)
+		        {
+			    scanSMS();
+		        }
+	    	}
+	    
+	    showStats();
 	    }
 
 	protected Dialog onCreateDialog(int id)
@@ -172,7 +196,7 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 		switch (item.getItemId())
 			{
 			case R.id.refreshMenu:
-				startProcessingThread();
+				startProcessingThread(true);
 				break;
 			case R.id.helpMenu:
 				Intent intent = new Intent(this, AboutPersonalActivity.class);
@@ -336,6 +360,8 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 		{
 		loadUnigrams();
 		loadStopwords();
+		
+		displayStats = new PersonalStats();
 
 		// step 1: scan contacts, build a mapping of contact number to name
 		long time = System.currentTimeMillis();
@@ -564,8 +590,8 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 		int basicCurrent = 0;
 		for (String wordPair : basicPhrases)
 			{
-			keyPhraseTexts[COUNT_SORTED].append(wordPair);
-			keyPhraseTexts[COUNT_SORTED].append('\n');
+			displayStats.keyPhraseTexts[PersonalStats.COUNT_SORTED].append(wordPair);
+			displayStats.keyPhraseTexts[PersonalStats.COUNT_SORTED].append('\n');
 
 			if (++basicCurrent >= maxPhrases)
 				break;
@@ -625,7 +651,7 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 		/*********************** BUILD THE STRINGS ************************/
 
 		// KEY PHRASE DISPLAY
-		final StringBuilder phraseBuilder = keyPhraseTexts[PHRASE_SORTED];
+		final StringBuilder phraseBuilder = displayStats.keyPhraseTexts[PersonalStats.PHRASE_SORTED];
 		int current = 0;
 		for (String wordPair : pairs)
 			{
@@ -640,8 +666,6 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 			phraseBuilder.append(getString(R.string.no_phrases));
 
 		// CONTACT DISPLAY
-		final StringBuilder contactBuilder = new StringBuilder();
-
 		ArrayList<String> people = new ArrayList<String>(personCounts.keySet());
 		Collections.sort(people, new Comparator<String>()
 			{
@@ -656,54 +680,72 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 			if (personCounts.get(person)[0] <= 1)
 				break;
 
-			contactBuilder.append(getString(R.string.num_messages_format, person, personCounts.get(person)[0]));
+			displayStats.contactsDisplay.append(getString(R.string.num_messages_format, person, personCounts.get(person)[0]));
 			}
 
-		if (contactBuilder.length() == 0)
-			contactBuilder.append(getString(R.string.no_frequent_contacts));
+		if (displayStats.contactsDisplay.length() == 0)
+			displayStats.contactsDisplay.append(getString(R.string.no_frequent_contacts));
 
 		// build out the general stats
-		final StringBuilder statsBuilder = new StringBuilder();
-
-		statsBuilder.append(getString(R.string.num_sent_format, sentStats.messages));
-		statsBuilder.append(getString(R.string.num_sent_per_month_format, dates.computeTextsPerMonth()));
+		displayStats.generalDisplay.append(getString(R.string.num_sent_format, sentStats.messages));
+		displayStats.generalDisplay.append(getString(R.string.num_sent_per_month_format, dates.computeTextsPerMonth()));
 		
-		statsBuilder.append(getString(R.string.words_per_text_format, sentStats.filteredWords / sentStats.messages));
-		statsBuilder.append(getString(R.string.chars_per_text_format, sentStats.chars / sentStats.messages));
-		statsBuilder.append(getString(R.string.chars_per_word_format, sentStats.filteredWordLength / (double) sentStats.filteredWords));
+		displayStats.generalDisplay.append(getString(R.string.words_per_text_format, sentStats.filteredWords / sentStats.messages));
+		displayStats.generalDisplay.append(getString(R.string.chars_per_text_format, sentStats.chars / sentStats.messages));
+		displayStats.generalDisplay.append(getString(R.string.chars_per_word_format, sentStats.filteredWordLength / (double) sentStats.filteredWords));
 
 		// day of the week histogram
-		final int[] dayHist = dates.computeDayOfWeekHistogram();
+		displayStats.dayHistogram = dates.computeDayOfWeekHistogram();
 
 		// time of day histogram
-		final int[] hourHist = dates.computeHourHistogram();
+		displayStats.hourHistogram = dates.computeHourHistogram();
 
 		setPreference(GENERATE_DESCRIPTIONS_KEY, System.currentTimeMillis() - time);
+		
+		time = System.currentTimeMillis();
+		try
+	        {
+	        displayStats.writeTo(openFileOutput(DISPLAY_FILENAME, Context.MODE_PRIVATE));
+	        }
+        catch (IOException e)
+	        {
+	        Log.e(TAG, "Failed to save displayStats");
+	        Log.e(TAG, Log.getStackTraceString(e));
+	        }
+		setPreference(SAVE_DISPLAY_KEY, System.currentTimeMillis() - time);
 
+		showStats();
+		}
+
+	/**
+	 * show the stats in the UI
+	 */
+	private void showStats()
+	    {
 		// RUNTIME DISPLAY
 		final String runtimeString;
 		if (HomeActivity.DEVELOPER_MODE)
 			runtimeString = HomeActivity.summarizeRuntime(getApplicationContext(), PROFILING_KEY_ORDER);
 		else
 			runtimeString = null;
-
-		/*************** SHOW IT *******************/
+		
 		runOnUiThread(new Runnable()
 			{
 			public void run()
 				{
 				ViewGroup parent = (ViewGroup) findViewById(R.id.linear);
+				parent.removeAllViews();
 
 				LayoutInflater inflater = getLayoutInflater();
 
-				parent.addView(inflatePhraseResults(inflater, phraseBuilder.toString()));
-				parent.addView(inflateResults(inflater, getString(R.string.contacts), contactBuilder.toString()));
-				parent.addView(inflateResults(inflater, getString(R.string.stats), statsBuilder.toString()));
+				parent.addView(inflatePhraseResults(inflater, displayStats.keyPhraseTexts[displayPhraseIndex]));
+				parent.addView(inflateResults(inflater, getString(R.string.contacts), displayStats.contactsDisplay));
+				parent.addView(inflateResults(inflater, getString(R.string.stats), displayStats.generalDisplay));
 				
-				GraphicalView dayChart = buildDayChart(PersonalActivity.this, dayHist);
+				GraphicalView dayChart = buildDayChart(PersonalActivity.this, displayStats.dayHistogram);
 				parent.addView(inflateChart(inflater, getString(R.string.day_of_week), dayChart));
 				
-				GraphicalView hourChart = buildHourChart(PersonalActivity.this, hourHist);
+				GraphicalView hourChart = buildHourChart(PersonalActivity.this, displayStats.hourHistogram);
 				parent.addView(inflateChart(inflater, getString(R.string.time_of_day), hourChart));
 
 				if (runtimeString != null)
@@ -722,7 +764,7 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 					}
 				}
 			});
-		}
+	    }
 
 	private void logCandidateFeatures(CorpusStats sentStats, HashMap<String, int[]> shortMessages, HashMap<String, int[]> simplePhrases, HashMap<String, double[]> combinedScores, PrintWriter scoresOut)
 	    {
@@ -917,7 +959,7 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 	 * @param details
 	 * @return the inflated view
 	 */
-	public View inflatePhraseResults(LayoutInflater inflater, final String details)
+	public View inflatePhraseResults(LayoutInflater inflater, final CharSequence details)
 		{
 		View view = inflater.inflate(R.layout.results_phrases, null);
 
@@ -956,7 +998,7 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 	 * @param details
 	 * @return the inflated view
 	 */
-	public View inflateResults(LayoutInflater inflater, final String title, final String details)
+	public View inflateResults(LayoutInflater inflater, final CharSequence title, final CharSequence details)
 		{
 		View view = inflater.inflate(R.layout.results_generic, null);
 		TextView  textView = (TextView) view.findViewById(android.R.id.text1);
@@ -986,7 +1028,7 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 		return view;
 		}
 	
-	public View inflateChart(LayoutInflater inflater, final String title, final GraphicalView graph)
+	public View inflateChart(LayoutInflater inflater, final CharSequence title, final GraphicalView graph)
 		{
 		View view = inflater.inflate(R.layout.results_graphed, null);
 
@@ -1009,7 +1051,7 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 			{
 			public void onClick(View v)
 				{
-				share(graph.toBitmap(), title, "Shared: histogram of " + title.toLowerCase(Locale.getDefault()));
+				share(graph.toBitmap(), title, "Shared: histogram of " + title.toString().toLowerCase(Locale.getDefault()));
 				}
 			});
 
@@ -1024,7 +1066,7 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 		editor.commit();
 		}
 
-	public void share(Bitmap bitmap, String title, String subject)
+	public void share(Bitmap bitmap, CharSequence title, CharSequence subject)
 		{
 		// In the future, I should switch this to getExternalFilesDir
         File file = new File(Environment.getExternalStorageDirectory(), "sms_ling.png");
@@ -1226,25 +1268,25 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 
 	public void onItemSelected(AdapterView<?> parent, View view, int pos, long id)
 		{
-		if (pos == previousItemSelected)
+		if (pos == displayPhraseIndex)
 			return;
 		
 		View phrasesView = findViewById(R.id.phrase_layout);
 		if (phrasesView != null)
 			{
-			if (pos < keyPhraseTexts.length)
+			if (pos < displayStats.keyPhraseTexts.length)
 				{
 				TextView textView = (TextView) phrasesView.findViewById(android.R.id.text2);
 				if (textView != null)
 					{
-					textView.setText(keyPhraseTexts[pos]);
+					textView.setText(displayStats.keyPhraseTexts[pos]);
 					}
 				}
 			}
 		else
 			Log.d(TAG, "Can't find phrase_layout");
 		
-		previousItemSelected = pos;
+		displayPhraseIndex = pos;
 		}
 
 	public void onNothingSelected(AdapterView<?> arg0)
