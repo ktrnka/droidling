@@ -2,6 +2,7 @@ package com.github.ktrnka.droidling;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -208,7 +209,10 @@ public class LanguageIdentificationActivity extends SherlockActivity
 		
 		final ArrayList<String> titles = new ArrayList<String>();
 		final ArrayList<String> descriptions = new ArrayList<String>();
-		for (String contactName : identifications.keySet())
+		
+		ArrayList<String> contactList = new ArrayList<String>(identifications.keySet());
+		Collections.sort(contactList);
+		for (String contactName : contactList)
 			{
 			LanguageIdentifier.Identification identification = identifications.get(contactName);
 			
