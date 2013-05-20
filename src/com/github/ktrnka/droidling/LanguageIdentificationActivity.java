@@ -14,6 +14,7 @@ import com.github.ktrnka.droidling.R;
 
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -49,9 +50,13 @@ public class LanguageIdentificationActivity extends SherlockActivity
 	public static final String LOAD_MESSAGES_KEY = "LanguageIdentificationActivity: loading messages";
 	public static final String IDENTIFYING_KEY = "LanguageIdentificationActivity: identifying languages";
 	public static final String GENERATE_TEXT_KEY = "LanguageIdentificationActivity: building text";
+	private static final String SAVE_DISPLAY_KEY = "LanguageIdentificationActivity: caching results";
 	
-	public static final String[] PROFILING_KEY_ORDER = { LOAD_CONTACTS_KEY, LOAD_MESSAGES_KEY, IDENTIFYING_KEY, GENERATE_TEXT_KEY };
+	public static final String[] PROFILING_KEY_ORDER = { LOAD_CONTACTS_KEY, LOAD_MESSAGES_KEY, IDENTIFYING_KEY, GENERATE_TEXT_KEY, SAVE_DISPLAY_KEY };
+	private static final String DISPLAY_FILENAME = "LanguageIdentificationActivity.cache";
 	private final StringBuffer languageBuilder = new StringBuffer();
+	
+	private InterpersonalStats stats;
 
 	public void onCreate(Bundle savedInstanceState)
 		{
@@ -63,7 +68,12 @@ public class LanguageIdentificationActivity extends SherlockActivity
 		{
 		super.onStart();
 	
-		if (!started)
+		startProcessingThread(false);
+		}
+
+	private void startProcessingThread(final boolean forceRefresh)
+	    {
+	    if (!started)
 			{
 			// start progress
 			// TODO: This is deprecated; I should use DialogFragment with FragmentManager via Android compatibility package
@@ -74,15 +84,15 @@ public class LanguageIdentificationActivity extends SherlockActivity
 				{
 				public void run()
 					{
-					process();
+					cachedBuildAll(forceRefresh);
 
 					dismissDialog(PROGRESS_DIALOG);
 					progress.dismiss();
 					}
 				}.start();
-				started = true;
+			started = true;
 			}
-		}
+	    }
 	
 	protected Dialog onCreateDialog(int id)
 		{
@@ -135,7 +145,7 @@ public class LanguageIdentificationActivity extends SherlockActivity
 	public boolean onCreateOptionsMenu(Menu menu)
 		{
 		MenuInflater inflater = getSupportMenuInflater();
-		inflater.inflate(R.menu.help, menu);
+		inflater.inflate(R.menu.refreshable, menu);
 		return true;
 		}
 	
@@ -144,6 +154,9 @@ public class LanguageIdentificationActivity extends SherlockActivity
 		{
 		switch (item.getItemId())
 			{
+			case R.id.refreshMenu:
+				startProcessingThread(true);
+				break;
 			case R.id.helpMenu:
 				Intent intent = new Intent(this, AboutLangIDActivity.class);
 				intent.putExtra(EXTRA_LANGUAGES, languageBuilder.toString());
@@ -158,7 +171,7 @@ public class LanguageIdentificationActivity extends SherlockActivity
 	/**
 	 * The main processing of the language identification task.
 	 */
-	public void process()
+	public void buildAll()
 		{
 		long time = System.currentTimeMillis();
 		ExtendedApplication app = (ExtendedApplication) getApplication();
@@ -175,14 +188,6 @@ public class LanguageIdentificationActivity extends SherlockActivity
 		time = System.currentTimeMillis();
 		identifyLanguages();
 		setPreference(IDENTIFYING_KEY, System.currentTimeMillis() - time);
-		
-		time = System.currentTimeMillis();
-		buildHelpDisplay();
-		buildLIDDisplays();
-		setPreference(GENERATE_TEXT_KEY, System.currentTimeMillis() - time);
-		
-		if (HomeActivity.DEVELOPER_MODE)
-			buildRuntimeDisplay();
 		}
 
 	private void buildRuntimeDisplay()
@@ -204,34 +209,18 @@ public class LanguageIdentificationActivity extends SherlockActivity
 
 	private void buildLIDDisplays()
 		{
-		if (langID == null || identifications == null)
-			return;
-		
-		final ArrayList<String> titles = new ArrayList<String>();
-		final ArrayList<String> descriptions = new ArrayList<String>();
-		
-		ArrayList<String> contactList = new ArrayList<String>(identifications.keySet());
-		Collections.sort(contactList);
-		for (String contactName : contactList)
-			{
-			LanguageIdentifier.Identification identification = identifications.get(contactName);
-			
-			titles.add(contactName);
-			String[] topLanguages = identification.getTopN();
-			descriptions.add(identification.describeTopN() + "\nWhy " + topLanguages[0] + " and not " + topLanguages[1] + "?\n" + identification.explain());
-			}
-		
 		runOnUiThread(new Runnable()
 			{
 			public void run()
 				{
 				ViewGroup parent = (ViewGroup) findViewById(R.id.linear);
+				parent.removeAllViews();
 	
 				LayoutInflater inflater = getLayoutInflater();
 				
-				for (int i = 0; i < titles.size() && i < descriptions.size(); i++)
+				for (InterpersonalStats.Item item : stats.list)
 					{
-					parent.addView(inflateResults(inflater, titles.get(i), descriptions.get(i)));
+					parent.addView(inflateResults(inflater, item.name, item.details));
 					}
 				}
 			});
@@ -271,6 +260,34 @@ public class LanguageIdentificationActivity extends SherlockActivity
 			LanguageIdentifier.Identification identification = langID.identify(stats.getUnigrams(), localeLanguageCode2, 1.1);
 			identifications.put(contactName, identification);
 			}
+		
+		stats = new InterpersonalStats();
+		
+		ArrayList<String> contactList = new ArrayList<String>(identifications.keySet());
+		Collections.sort(contactList);
+		for (String contactName : contactList)
+			{
+			LanguageIdentifier.Identification identification = identifications.get(contactName);
+
+			String[] topLanguages = identification.getTopN();
+			
+			// TODO: replace with a nicer StringBuilder version
+			String details = identification.describeTopN() + "\nWhy " + topLanguages[0] + " and not " + topLanguages[1] + "?\n" + identification.explain();
+			
+			stats.add(contactName, details);
+			}
+		
+		long time = System.currentTimeMillis();
+		try
+	        {
+	        stats.writeTo(openFileOutput(DISPLAY_FILENAME, Context.MODE_PRIVATE));
+	        }
+        catch (IOException e)
+	        {
+	        Log.e(TAG, "Failed to save displayStats");
+	        Log.e(TAG, Log.getStackTraceString(e));
+	        }
+		setPreference(SAVE_DISPLAY_KEY, System.currentTimeMillis() - time);
 		}
 
 	private void buildUnigramModels()
@@ -316,15 +333,15 @@ public class LanguageIdentificationActivity extends SherlockActivity
 	 * the specified inflater
 	 * 
 	 * @param inflater
-	 * @param title
+	 * @param name
 	 * @param details
 	 * @return the inflated view
 	 */
-	public View inflateResults(LayoutInflater inflater, final String title, final String details)
+	public View inflateResults(LayoutInflater inflater, final CharSequence name, final CharSequence details)
 		{
 		View view = inflater.inflate(R.layout.results_generic, null);
 		TextView  textView = (TextView) view.findViewById(android.R.id.text1);
-		textView.setText(title);
+		textView.setText(name);
 
 
 		textView = (TextView) view.findViewById(android.R.id.text2);
@@ -336,7 +353,7 @@ public class LanguageIdentificationActivity extends SherlockActivity
 			public void onClick(View v)
 				{
 				String subject = "Shared stats from " + getString(R.string.app_name);
-				String text = "Stats: " + title + ":\n" + details;
+				String text = "Stats: " + name + ":\n" + details;
 
 				Intent sendIntent = new Intent(Intent.ACTION_SEND);
 				sendIntent.setType("text/plain");
@@ -349,4 +366,31 @@ public class LanguageIdentificationActivity extends SherlockActivity
 
 		return view;
 		}
+
+	private void cachedBuildAll(boolean forceRefresh)
+	    {
+	    if (forceRefresh)
+	    	{
+	    	buildAll();
+	    	}
+	    else
+	    	{
+	    	try
+	            {
+	            stats = new InterpersonalStats(openFileInput(DISPLAY_FILENAME));
+	            }
+            catch (IOException e)
+	            {
+	            buildAll();
+	            }
+	    	}
+
+		long time = System.currentTimeMillis();
+		buildHelpDisplay();	// FIXME: This crashes on a cached load
+		buildLIDDisplays();
+		setPreference(GENERATE_TEXT_KEY, System.currentTimeMillis() - time);
+		
+		if (HomeActivity.DEVELOPER_MODE)
+			buildRuntimeDisplay();
+	    }
 	}
