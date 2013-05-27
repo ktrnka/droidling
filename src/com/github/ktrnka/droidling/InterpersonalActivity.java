@@ -1,6 +1,5 @@
 package com.github.ktrnka.droidling;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,12 +8,9 @@ import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import com.actionbarsherlock.app.SherlockActivity;
 import com.github.ktrnka.droidling.InterpersonalStats.Item;
 import com.github.ktrnka.droidling.R;
 
-import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -23,32 +19,22 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 /**
  * An Activity for analysing relationships to your contacts.
  * @author keith.trnka
  *
  */
-public class InterpersonalActivity extends SherlockActivity
+public class InterpersonalActivity extends RefreshableActivity
 	{
 	private boolean scanned;
 
-	private static final int PROGRESS_DIALOG = 0;
 	public static final String TAG = "com.github.ktrnka.droidling.InterpersonalActivity";
-	private ProgressDialog progress;
-	
 	private static final String CONTACT_NAME = "contact";
-	private static final String DETAILS = "details";
-
 	private static final String DISPLAY_FILENAME = "InterpersonalActivity.cache";
 
 	public static final String SENT_MESSAGE_LOOP_KEY = "InterpersonalActivity: scanning sent messages";
@@ -59,12 +45,15 @@ public class InterpersonalActivity extends SherlockActivity
 	public static final String SAVE_DISPLAY_KEY = "InterpersonalActivity: caching results";
 	
 	public static final String[] PROFILING_KEY_ORDER = { LOAD_CONTACTS_KEY, SENT_MESSAGE_LOOP_KEY, RECEIVED_MESSAGE_LOOP_KEY, THREADED_MESSAGE_LOOP_KEY, SELECT_CANDIDATES_KEY, SAVE_DISPLAY_KEY };
+
+	private static final String PROCESSED_MESSAGES = "InterpersonalActivity.processedMessages";
 	
 	private InterpersonalStats displayStats;
 
 	public void onCreate(Bundle savedInstanceState)
 		{
 		super.onCreate(savedInstanceState);
+		setHelpActivity(AboutInterpersonalActivity.class);
 		setContentView(R.layout.simple_scroll);
 		}
 	
@@ -73,23 +62,18 @@ public class InterpersonalActivity extends SherlockActivity
 		super.onStart();
 				
 		if (!scanned)
-			{
-			// run thread with callback to stop progress
-			startProcessingThread(false);
-			}
+			refresh(false);
 		}
 
-	private void startProcessingThread(final boolean forceRebuild)
+	protected void refresh(final boolean forceRefresh)
 	    {
-		showDialog(PROGRESS_DIALOG);
-
+	    setRefreshActionButtonState(true);
 		new Thread()
 	    	{
 	    	public void run()
 	    		{
-	    		buildInterpersonalDisplay(forceRebuild);
-	    		
-	    		progress.dismiss();
+	    		buildInterpersonalDisplay(forceRefresh);
+	    	    setRefreshActionButtonState(false);
 	    		}
 	    	}.start();
 	    scanned = true;
@@ -115,60 +99,6 @@ public class InterpersonalActivity extends SherlockActivity
 
 	    showDisplay();
 	    }
-
-	protected Dialog onCreateDialog(int id)
-		{
-		switch (id)
-			{
-			case PROGRESS_DIALOG:
-				progress = new ProgressDialog(InterpersonalActivity.this);
-				progress.setIndeterminate(true);
-				progress.setMessage(getString(R.string.loading));
-				return progress;
-			default:
-				return null;
-			}
-		}
-	
-	public void onListItemClick(ListView list, View view, int position, long id)
-		{
-		// figure out the text
-		String subject = getString(R.string.shared_stats_subject_format, getString(R.string.app_name));
-		String body = getString(R.string.interpersonal_share_body_format, displayStats.list.get(position).name) + "\n" + displayStats.list.get(position).details;
-
-		Intent sendIntent = new Intent(Intent.ACTION_SEND);
-		sendIntent.setType("message/rfc822");
-		sendIntent.putExtra(Intent.EXTRA_TEXT, body);
-		sendIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
-		
-		startActivity(Intent.createChooser(sendIntent, getString(R.string.share_intent)));
-		}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu)
-		{
-		MenuInflater inflater = getSupportMenuInflater();
-		inflater.inflate(R.menu.refreshable, menu);
-		return true;
-		}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item)
-		{
-		switch (item.getItemId())
-			{
-			case R.id.refreshMenu:
-				startProcessingThread(true);
-				break;
-			case R.id.helpMenu:
-				Intent intent = new Intent(this, AboutInterpersonalActivity.class);
-				startActivity(intent);
-				break;
-			default:
-				Log.e(TAG, "Undefined menu item selected");
-			}
-		return false;
-		}
 
 	private void scanSMS()
 		{
@@ -295,6 +225,7 @@ public class InterpersonalActivity extends SherlockActivity
 		// TODO:  switch all processing to use the FULL set of messages with this
 		time = System.currentTimeMillis();
 		messages = getContentResolver().query(Sms.CONTENT_URI, new String[] { Sms.ADDRESS, Sms.DATE, Sms.TYPE }, null, null, "date asc");
+		int numMessages = messages.getCount();
 		
 		// mapping of (other person's parsed address) => [ type, date millis ]
 		HashMap<String,long[]> previousMessage = new HashMap<String,long[]>();
@@ -529,6 +460,8 @@ public class InterpersonalActivity extends SherlockActivity
 	        }
 		setPreference(SAVE_DISPLAY_KEY, System.currentTimeMillis() - time);
 		
+		setPreference(PROCESSED_MESSAGES, numMessages);
+		
 		showDisplay();
 		}
 
@@ -557,14 +490,6 @@ public class InterpersonalActivity extends SherlockActivity
 				}
 			});
 	    }
-
-	private void setPreference(String name, long longValue)
-		{
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-		SharedPreferences.Editor editor = prefs.edit();
-		editor.putLong(name, longValue);
-		editor.commit();
-		}
 	
 	public View inflateResults(LayoutInflater inflater, final CharSequence title, final CharSequence details)
 		{
@@ -632,28 +557,6 @@ public class InterpersonalActivity extends SherlockActivity
 		return tokens[0];
 		}
 	
-	public void warning(final String message)
-		{
-		runOnUiThread(new Runnable()
-			{
-				public void run()
-					{
-					Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-					}
-			});
-		}
-
-	public void error(final String message)
-		{
-		runOnUiThread(new Runnable()
-			{
-				public void run()
-					{
-					Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-					}
-			});
-		}
-	
 	public static String generateCountText(int number, String singular, String plural)
 		{
 		if (number == 1)
@@ -661,4 +564,18 @@ public class InterpersonalActivity extends SherlockActivity
 		else
 			return number + " " + plural;
 		}
+
+	@Override
+    protected boolean hasNewData()
+	    {
+	    Cursor messages = getContentResolver().query(Sms.CONTENT_URI, new String[] { Sms.ADDRESS }, null, null, null);
+	    int numMessages = messages.getCount();
+	    messages.close();
+	    
+	    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+		if (prefs.getInt(PROCESSED_MESSAGES, 0) != numMessages)
+			return true;
+	    
+	    return false;
+	    }
 	}

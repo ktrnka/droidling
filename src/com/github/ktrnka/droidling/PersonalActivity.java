@@ -6,7 +6,6 @@ import static com.github.ktrnka.droidling.Tokenizer.tokenize;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -29,8 +28,6 @@ import org.achartengine.renderer.SimpleSeriesRenderer;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYMultipleSeriesRenderer.Orientation;
 
-import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -53,14 +50,8 @@ import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
-
-public class PersonalActivity extends SherlockActivity implements OnItemSelectedListener
+public class PersonalActivity extends RefreshableActivity implements OnItemSelectedListener
 	{
 	public static final int maxPhrases = 50;
 	private boolean scanned = false;
@@ -76,10 +67,7 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 	public static final double shortMessageFactor = 1.3;
 	public static final double simplePhraseFactor = 1.6;
 	
-	static final int PROGRESS_DIALOG = 0;
-	private ProgressDialog progress;
 	private static final String TAG = "com.github.ktrnka.droidling.PersonalActivity";
-	
 	
 	/**
 	 * the string or near-string stats to display
@@ -106,12 +94,15 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 	
 	public static final boolean LOG_PHRASES = false;
 	private static final String DISPLAY_FILENAME = "PersonalActivity.cache";
+	private static final String PROCESSED_SENT_MESSAGES = "PersonalActivity.processedMessages";
 	
 	private File logFile;
 	
 	public void onCreate(Bundle savedInstanceState)
 		{
 		super.onCreate(savedInstanceState);
+		setHelpActivity(AboutPersonalActivity.class);
+		
 		setContentView(R.layout.simple_scroll);
 		
 		displayPhraseIndex = 0;
@@ -121,27 +112,22 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 		{
 		super.onStart();
 
+		// prevent rescanning on tabbing back to the app or something
 		if (!scanned)
-			{
-			// start progress
-			// TODO: This is deprecated; I should use DialogFragment with FragmentManager via Android compatibility package
-			startProcessingThread(false);
-			}
+			refresh(false);
 		}
 
-	private void startProcessingThread(final boolean computeFresh)
+	protected void refresh(final boolean forceRefresh)
 	    {
-	    showDialog(PROGRESS_DIALOG);
+	    setRefreshActionButtonState(true);
 
 	    // run thread with callback to stop progress
 	    new Thread()
 	    	{
 	    	public void run()
 	    		{
-	    		buildPersonalStats(computeFresh);
-
-	    		dismissDialog(PROGRESS_DIALOG);
-	    		progress.dismiss();
+	    		buildPersonalStats(forceRefresh);
+	    		setRefreshActionButtonState(false);
 	    		}
 	    	}.start();
 	    scanned = true;
@@ -167,47 +153,21 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 	    
 	    showStats();
 	    }
-
-	protected Dialog onCreateDialog(int id)
-		{
-		switch (id)
-			{
-			case PROGRESS_DIALOG:
-				progress = new ProgressDialog(PersonalActivity.this);
-				progress.setIndeterminate(true);
-				progress.setMessage(getString(R.string.loading));
-				return progress;
-			default:
-				return null;
-			}
-		}
 	
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu)
+	public boolean hasNewData()
 		{
-		MenuInflater inflater = getSupportMenuInflater();
-		inflater.inflate(R.menu.refreshable, menu);
-		return true;
-		}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item)
-		{
-		switch (item.getItemId())
-			{
-			case R.id.refreshMenu:
-				startProcessingThread(true);
-				break;
-			case R.id.helpMenu:
-				Intent intent = new Intent(this, AboutPersonalActivity.class);
-				startActivity(intent);
-				break;
-			default:
-				Log.e(TAG, "Undefined menu item selected");
-			}
+		String[] sentColumns = new String[] { Sms.BODY, Sms.DATE, Sms.ADDRESS };
+		Cursor messages = getContentResolver().query(Sms.SENT_URI, sentColumns, null, null, null);
+		int numMessages = messages.getCount();
+		messages.close();
+		
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+		if (prefs.getInt(PROCESSED_SENT_MESSAGES, 0) != numMessages)
+			return true;
+		
 		return false;
 		}
-
+	
 	/**
 	 * Get the scaling factor to apply to fonts.
 	 */
@@ -332,30 +292,6 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 		setPreference(LOAD_STOPWORDS_KEY, System.currentTimeMillis() - time);
 		}
 
-	// TODO: This code is duplicated in Interpersonal and shouldn't be.
-	public void warning(final String message)
-		{
-		runOnUiThread(new Runnable()
-			{
-				public void run()
-					{
-					Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-					}
-			});
-		}
-
-	// TODO: This code is duplicated in Interpersonal and shouldn't be.
-	public void error(final String message)
-		{
-		runOnUiThread(new Runnable()
-			{
-				public void run()
-					{
-					Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-					}
-			});
-		}
-
 	public void scanSMS()
 		{
 		loadUnigrams();
@@ -396,6 +332,7 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 		
 		// reusable phrase builder
 		StringBuilder reusableBuilder = new StringBuilder();
+		int numMessages = messages.getCount();
 
 		if (messages.moveToFirst())
 			{
@@ -713,6 +650,7 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 	        Log.e(TAG, Log.getStackTraceString(e));
 	        }
 		setPreference(SAVE_DISPLAY_KEY, System.currentTimeMillis() - time);
+		setPreference(PROCESSED_SENT_MESSAGES, numMessages);
 
 		showStats();
 		}
@@ -1058,14 +996,6 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 		return view;
 		}
 
-	private void setPreference(String name, long longValue)
-		{
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-		SharedPreferences.Editor editor = prefs.edit();
-		editor.putLong(name, longValue);
-		editor.commit();
-		}
-
 	public void share(Bitmap bitmap, CharSequence title, CharSequence subject)
 		{
 		// In the future, I should switch this to getExternalFilesDir
@@ -1266,6 +1196,9 @@ public class PersonalActivity extends SherlockActivity implements OnItemSelected
 		return view;
 		}
 
+	/**
+	 * Handle the spinner for selecting phrases by phraseness or count
+	 */
 	public void onItemSelected(AdapterView<?> parent, View view, int pos, long id)
 		{
 		if (pos == displayPhraseIndex)

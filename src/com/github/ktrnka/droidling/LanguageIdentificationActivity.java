@@ -6,14 +6,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
 import com.github.ktrnka.droidling.R;
 
-import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -26,18 +20,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 
 /**
  * @author Keith
  *
  */
-public class LanguageIdentificationActivity extends SherlockActivity
+public class LanguageIdentificationActivity extends RefreshableActivity
 	{
 	public static final String EXTRA_LANGUAGES = "languages";
 	private boolean started = false;
-	private ProgressDialog progress;
 	
 	private LanguageIdentifier langID;
 	private HashMap<String,CorpusStats> sentStats;
@@ -54,13 +46,14 @@ public class LanguageIdentificationActivity extends SherlockActivity
 	
 	public static final String[] PROFILING_KEY_ORDER = { LOAD_CONTACTS_KEY, LOAD_MESSAGES_KEY, IDENTIFYING_KEY, GENERATE_TEXT_KEY, SAVE_DISPLAY_KEY };
 	private static final String DISPLAY_FILENAME = "LanguageIdentificationActivity.cache";
-	private final StringBuffer languageBuilder = new StringBuffer();
+	private static final String PROCESSED_MESSAGES = "LanguageIdentificationActivity.processedMessages";
 	
 	private InterpersonalStats stats;
 
 	public void onCreate(Bundle savedInstanceState)
 		{
 		super.onCreate(savedInstanceState);
+		setHelpActivity(AboutLangIDActivity.class);
 		setContentView(R.layout.simple_scroll);
 		}
 	
@@ -68,104 +61,24 @@ public class LanguageIdentificationActivity extends SherlockActivity
 		{
 		super.onStart();
 	
-		startProcessingThread(false);
+		if (!started)
+			refresh(false);
 		}
 
-	private void startProcessingThread(final boolean forceRefresh)
+	protected void refresh(final boolean forceRefresh)
 	    {
-	    if (!started)
+		setRefreshActionButtonState(true);
+
+		// run thread with callback to stop progress
+		new Thread()
 			{
-			// start progress
-			// TODO: This is deprecated; I should use DialogFragment with FragmentManager via Android compatibility package
-			showDialog(PROGRESS_DIALOG);
-	
-			// run thread with callback to stop progress
-			new Thread()
+			public void run()
 				{
-				public void run()
-					{
-					cachedBuildAll(forceRefresh);
-
-					dismissDialog(PROGRESS_DIALOG);
-					progress.dismiss();
-					}
-				}.start();
-			started = true;
-			}
-	    }
-	
-	protected Dialog onCreateDialog(int id)
-		{
-		switch (id)
-			{
-			case PROGRESS_DIALOG:
-				progress = new ProgressDialog(LanguageIdentificationActivity.this);
-				progress.setIndeterminate(true);
-				progress.setMessage(getString(R.string.loading));
-				return progress;
-			default:
-				return null;
-			}
-		}
-
-	// TODO: This code is duplicated and shouldn't be.
-	private void setPreference(String name, long longValue)
-		{
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-		SharedPreferences.Editor editor = prefs.edit();
-		editor.putLong(name, longValue);
-		editor.commit();
-		}
-
-	// TODO: This code is duplicated and shouldn't be.
-	public void warning(final String message)
-		{
-		runOnUiThread(new Runnable()
-			{
-				public void run()
-					{
-					Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-					}
-			});
-		}
-
-	// TODO: This code is duplicated and shouldn't be.
-	public void error(final String message)
-		{
-		runOnUiThread(new Runnable()
-			{
-				public void run()
-					{
-					Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-					}
-			});
-		}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu)
-		{
-		MenuInflater inflater = getSupportMenuInflater();
-		inflater.inflate(R.menu.refreshable, menu);
-		return true;
-		}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item)
-		{
-		switch (item.getItemId())
-			{
-			case R.id.refreshMenu:
-				startProcessingThread(true);
-				break;
-			case R.id.helpMenu:
-				Intent intent = new Intent(this, AboutLangIDActivity.class);
-				intent.putExtra(EXTRA_LANGUAGES, languageBuilder.toString());
-				startActivity(intent);
-				break;
-			default:
-				Log.e(TAG, "Undefined menu item selected");
-			}
-		return false;
+				cachedBuildAll(forceRefresh);
+				setRefreshActionButtonState(false);
+				}
+			}.start();
+		started = true;
 		}
 
 	/**
@@ -226,20 +139,6 @@ public class LanguageIdentificationActivity extends SherlockActivity
 			});
 		}
 
-	/**
-	 * Create a display that explains the languages that can be identified.
-	 */
-	private void buildHelpDisplay()
-		{
-		languageBuilder.setLength(0);
-		ArrayList<String> languageList = langID.getSupportedLanguages();
-		for (String language : languageList)
-			{
-			languageBuilder.append(language);
-			languageBuilder.append("\n");
-			}
-		}
-
 	private void identifyLanguages()
 		{
 		// load the language identification file
@@ -290,11 +189,15 @@ public class LanguageIdentificationActivity extends SherlockActivity
 		setPreference(SAVE_DISPLAY_KEY, System.currentTimeMillis() - time);
 		}
 
+	/**
+	 * Build unigram models of messages sent to each contact.
+	 */
 	private void buildUnigramModels()
 		{
 		ExtendedApplication app = (ExtendedApplication) getApplication();
 
 		Cursor messages = getContentResolver().query(Sms.SENT_URI, new String[] { Sms.BODY, Sms.ADDRESS }, null, null, null);
+		int numMessages = messages.getCount();
 
 		sentStats = new HashMap<String,CorpusStats>();
 		
@@ -326,6 +229,8 @@ public class LanguageIdentificationActivity extends SherlockActivity
 			return;
 			}
 		messages.close();
+		
+		setPreference(PROCESSED_MESSAGES, numMessages);
 		}
 
 	/**
@@ -386,11 +291,24 @@ public class LanguageIdentificationActivity extends SherlockActivity
 	    	}
 
 		long time = System.currentTimeMillis();
-		buildHelpDisplay();	// FIXME: This crashes on a cached load
 		buildLIDDisplays();
 		setPreference(GENERATE_TEXT_KEY, System.currentTimeMillis() - time);
 		
 		if (HomeActivity.DEVELOPER_MODE)
 			buildRuntimeDisplay();
+	    }
+
+	@Override
+    protected boolean hasNewData()
+	    {
+	    Cursor messages = getContentResolver().query(Sms.SENT_URI, new String[] { Sms.ADDRESS }, null, null, null);
+	    int numMessages = messages.getCount();
+	    messages.close();
+	    
+	    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+		if (prefs.getInt(PROCESSED_MESSAGES, 0) != numMessages)
+			return true;
+	    
+	    return false;
 	    }
 	}
