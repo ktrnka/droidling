@@ -9,3 +9,5 @@ Setup
 -you might need to select to run as Android application on first run
 
 The only dependency is AChartEngine, which is included.
+
+Note: setup for development might be a little outdated; I recently added ActionBarSherlock in and upped the target API level.  When I setup a new computer next I'll update this.
