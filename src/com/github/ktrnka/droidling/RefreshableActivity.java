@@ -20,6 +20,7 @@ public abstract class RefreshableActivity extends SherlockActivity
 	{
 	private Menu optionsMenu;
 	private Class<? extends Activity> helpActivityClass;
+	private boolean initializeAsLoading = false;
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
@@ -29,13 +30,22 @@ public abstract class RefreshableActivity extends SherlockActivity
 		MenuInflater inflater = getSupportMenuInflater();
 		inflater.inflate(R.menu.refreshable, menu);
 		
-		if (hasNewData())
+		if (initializeAsLoading)
+			{
+			setRefreshActionButtonState(true);
+			}
+		else if (hasNewData())
 			{
 			final MenuItem refreshItem = optionsMenu.findItem(R.id.refreshMenu);
-			refreshItem.setIcon(R.drawable.ic_menu_refresh_blue);
+			refreshItem.setIcon(R.drawable.ic_action_refresh_blue);
 			}
 
 		return true;
+		}
+	
+	protected void setInitiallyRefreshing(boolean initiallyRefreshing)
+		{
+		initializeAsLoading = initiallyRefreshing;
 		}
 	
 	@Override
@@ -81,12 +91,17 @@ public abstract class RefreshableActivity extends SherlockActivity
 						{
 						public void run()
 							{
-							refreshItem.setIcon(R.drawable.ic_menu_refresh);
+							refreshItem.setIcon(R.drawable.ic_action_refresh);
 							refreshItem.setActionView(null);
 							}
 						});
 					}
 				}
+			}
+		else
+			{
+			// If the optionsMenu is null, need to set the state for when it starts up.
+			setInitiallyRefreshing(refreshing);
 			}
 		}
 	

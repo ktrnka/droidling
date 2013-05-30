@@ -1,9 +1,10 @@
-Version 1.1 (2013-04-??)
--The app saves your stats so it can show them more quickly.
--Use action bars with activity-specific help
--Runtime speedups when processing text messages
--Load contacts only once, share to other activities
--"Send Feedback" now shares more stats about speed to help me find slow parts
+Version 1.1 (2013-05-??)
+-Saves your stats for fast load next time
+-Refresh indicator if the stats are outdated
+-Speedups in all analysis
+-Action bars with activity-specific help
+-"Send Feedback" now shares more stats about speed
+-Many UI fixes
 
 Version 1.01 (2013-01-21)
 -Added What's New popup on first install and app updates.

@@ -119,13 +119,11 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
 
 	protected void refresh(final boolean forceRefresh)
 	    {
-	    setRefreshActionButtonState(true);
-
-	    // run thread with callback to stop progress
 	    new Thread()
 	    	{
 	    	public void run()
 	    		{
+	    	    setRefreshActionButtonState(true);
 	    		buildPersonalStats(forceRefresh);
 	    		setRefreshActionButtonState(false);
 	    		}

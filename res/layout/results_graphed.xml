@@ -4,6 +4,7 @@
     android:layout_height="wrap_content"
     android:paddingTop="2dip"
 	android:paddingBottom="2dip"
+	android:paddingRight="4dip"
 	>
 
 	<TextView

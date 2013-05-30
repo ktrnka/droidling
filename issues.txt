@@ -1,6 +1,4 @@
 Known issues
--When I upped to the higher API level, screen rotation recreates the activity
--Action bar is 3.0+ only, need to include a support library for lower APIs
 
 In Personal Stats:
 -Too many overlapping stats
@@ -12,3 +10,7 @@ Interpersonal Stats:
 
 GENUINE BUGS
 -When someone has multiple cell numbers, only one of them is actually used... or is it?
+
+
+ON FIRST LOAD
+05-29 20:19:41.897: I/Choreographer(6261): Skipped 57 frames!  The application may be doing too much work on its main thread.
