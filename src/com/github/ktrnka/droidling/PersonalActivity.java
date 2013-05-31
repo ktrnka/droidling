@@ -55,6 +55,10 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
 	{
 	public static final int maxPhrases = 50;
 	private boolean scanned = false;
+	
+	/**
+	 * Unigrams from a background corpus for the locale language.  May be null if none available.
+	 */
 	private WordDistribution corpusUnigrams;
 	private HashSet<String> smallStopwords;
 	private HashSet<String> largeStopwords;
@@ -437,10 +441,15 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
 				frequencyCandidates.put(word, new int[] { sentStats.unigrams.get(word)[0] } );
 			
 			if (!isNonword(word) && !largeStopwords.contains(word))
+				{
+				double expected = 0;
+				if (corpusUnigrams != null)
+					expected = corpusUnigrams.expectedFrequency(word, sentStats.unigramTotal);
+				
 				candidates.put(
 						word,
-						new double[] { unigramScale
-								* (sentStats.unigrams.get(word)[0] - corpusUnigrams.expectedFrequency(word, sentStats.unigramTotal)) });
+						new double[] { unigramScale * (sentStats.unigrams.get(word)[0] - expected) });
+				}
 			}
 
 		// analyse bigrams
@@ -469,9 +478,11 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
 
 				int freq = sentStats.bigrams.get(word1).get(word2)[0];
 
-				double freqDiff = freq - corpusUnigrams.expectedFrequency(word1, word2, sentStats.bigramTotal);
-
-				candidates.put(ngram, new double[] { bigramScale * freqDiff });
+				double expected = 0;
+				if (corpusUnigrams != null)
+					expected = corpusUnigrams.expectedFrequency(word1, word2, sentStats.bigramTotal);
+				
+				candidates.put(ngram, new double[] { bigramScale * (freq - expected) });
 				}
 			}
 
@@ -506,7 +517,10 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
 						continue;
 
 					int freq = sentStats.trigrams.get(word1).get(word2).get(word3)[0];
-					double expected = corpusUnigrams.expectedFrequency(word1, word2, word3, sentStats.trigramTotal);
+					
+					double expected = 0;
+					if (corpusUnigrams != null)
+						corpusUnigrams.expectedFrequency(word1, word2, word3, sentStats.trigramTotal);
 
 					candidates.put(ngram, new double[] { trigramScale * (freq - expected) });
 					}
@@ -717,7 +731,7 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
 	    	scoresOut.print(sep);
 	    	scoresOut.print(sentStats.unigrams.get(word)[0]);
 	    	scoresOut.print(sep);
-	    	scoresOut.print(corpusUnigrams.expectedFrequency(word, sentStats.unigramTotal));
+	    	scoresOut.print(corpusUnigrams == null ? 0 : corpusUnigrams.expectedFrequency(word, sentStats.unigramTotal));
 	    	scoresOut.print(sep);
 	    	scoresOut.print(isNonword(word) ? 1 : 0);
 	    	scoresOut.print(sep);
@@ -746,7 +760,7 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
 	    		scoresOut.print(sep);
 	    		scoresOut.print(sentStats.bigrams.get(word1).get(word2)[0]);
 	    		scoresOut.print(sep);
-	    		scoresOut.print(corpusUnigrams.expectedFrequency(word1, word2, sentStats.bigramTotal));
+	    		scoresOut.print(corpusUnigrams == null ? 0 : corpusUnigrams.expectedFrequency(word1, word2, sentStats.bigramTotal));
 	    		scoresOut.print(sep);
 	    		scoresOut.print(isNonword(word1) || isNonword(word2)? 1 : 0);
 	    		scoresOut.print(sep);
@@ -780,7 +794,7 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
 	    			scoresOut.print(sep);
 	    			scoresOut.print(sentStats.trigrams.get(word1).get(word2).get(word3)[0]);
 	    			scoresOut.print(sep);
-	    			scoresOut.print(corpusUnigrams.expectedFrequency(word1, word2, word3, sentStats.trigramTotal));
+	    			scoresOut.print(corpusUnigrams == null ? 0 : corpusUnigrams.expectedFrequency(word1, word2, word3, sentStats.trigramTotal));
 	    			scoresOut.print(sep);
 	    			scoresOut.print(isNonword(word1) || isNonword(word2) || isNonword(word3) ? 1 : 0);
 	    			scoresOut.print(sep);
