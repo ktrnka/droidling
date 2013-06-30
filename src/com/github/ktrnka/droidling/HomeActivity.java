@@ -39,18 +39,37 @@ public class HomeActivity extends SherlockListActivity
 	
 	public static final String TAG = "com.github.ktrnka.droidling.HomeActivity";
 	
+	private static final long VERSION_NOT_FOUND = -1;
+	
 	public void onCreate(Bundle savedInstanceState)
 		{
 		super.onCreate(savedInstanceState);
 		
-		try
+		checkShowWhatsNew();
+		
+		setListAdapter(new DescriptionMenuAdapter(this, getStrings(nameIDs), getStrings(descriptionIDs)));
+		}
+
+	/**
+	 * Check if this is first install, app update, normal load and show
+	 * What's New dialog if appropriate.
+	 */
+	private void checkShowWhatsNew()
+	    {
+	    try
 			{
 			PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_META_DATA);
 			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-			if (prefs.getLong("lastRunVersionCode", 0) < packageInfo.versionCode)
+			
+			long lastRunVersion = prefs.getLong("lastRunVersionCode", VERSION_NOT_FOUND);
+			
+			// show the what's new dialog - updates only, not first install
+			if (lastRunVersion != VERSION_NOT_FOUND && lastRunVersion < packageInfo.versionCode)
+				showWhatsNew();
+
+			// update the stored version - new install and updates
+			if (lastRunVersion != packageInfo.versionCode)
 				{
-				showWelcome();
-				
 				// update the preference
 				SharedPreferences.Editor editor = prefs.edit();
 				editor.putLong("lastRunVersionCode", packageInfo.versionCode);
@@ -60,13 +79,10 @@ public class HomeActivity extends SherlockListActivity
 		catch (PackageManager.NameNotFoundException exc)
 			{
 			// This error shouldn't be possible; I don't know an accurate way to test it.
-			// Should we show a warning?  I don't know.
 			Log.e(TAG, "PackageManager lookup failed");
 			Log.e(TAG, Log.getStackTraceString(exc));
 			}
-		
-		setListAdapter(new DescriptionMenuAdapter(this, getStrings(nameIDs), getStrings(descriptionIDs)));
-		}
+	    }
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
@@ -112,49 +128,48 @@ public class HomeActivity extends SherlockListActivity
 		}
 
 	/**
-	 * Show the welcome message.  Intended for first load
-	 * and app updates.
+	 * Show the What's New dialog.
 	 */
-	private void showWelcome()
+	private void showWhatsNew()
 		{
 		new Thread()
 			{
-				public void run()
+			public void run()
+				{
+				try
 					{
-					try
+					// try loading the changelog file
+					final StringBuilder changeLogBuilder = new StringBuilder();
+					BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open("changelog.txt")));
+					String line;
+					while ((line = in.readLine()) != null)
 						{
-						// try loading the changelog file
-						final StringBuilder changeLogBuilder = new StringBuilder();
-						BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open("changelog.txt")));
-						String line;
-						while ((line = in.readLine()) != null)
+						changeLogBuilder.append(line);
+						changeLogBuilder.append("\n");
+						}
+					in.close();
+
+					runOnUiThread(new Runnable()
+						{
+						public void run()
 							{
-							changeLogBuilder.append(line);
-							changeLogBuilder.append("\n");
+							AlertDialog.Builder alertBuilder = new AlertDialog.Builder(HomeActivity.this);
+							alertBuilder.setTitle("What's New");
+							alertBuilder.setMessage(changeLogBuilder);
+							alertBuilder.setIcon(android.R.drawable.ic_menu_help);
+
+							alertBuilder.setPositiveButton("Close", null);
+							alertBuilder.show();
 							}
-						in.close();
+						});
 
-						runOnUiThread(new Runnable()
-							{
-								public void run()
-									{
-									AlertDialog.Builder alertBuilder = new AlertDialog.Builder(HomeActivity.this);
-									alertBuilder.setTitle("What's New");
-									alertBuilder.setMessage(changeLogBuilder);
-									alertBuilder.setIcon(android.R.drawable.ic_menu_help);
-
-									alertBuilder.setPositiveButton("Close", null);
-									alertBuilder.show();
-									}
-							});
-
-						}
-					catch (IOException e)
-						{
-						Log.e(TAG, "Failure to load changelog");
-						Log.e(TAG, Log.getStackTraceString(e));
-						}
 					}
+				catch (IOException e)
+					{
+					Log.e(TAG, "Failure to load changelog");
+					Log.e(TAG, Log.getStackTraceString(e));
+					}
+				}
 			}.start();
 
 		}
