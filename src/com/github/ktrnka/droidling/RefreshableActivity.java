@@ -77,7 +77,7 @@ public abstract class RefreshableActivity extends SherlockActivity
 				{
 				if (refreshing)
 					{
-					runOnUiThread(new Thread()
+					runOnUiThread(new Runnable()
 						{
 						public void run()
 							{
@@ -87,7 +87,7 @@ public abstract class RefreshableActivity extends SherlockActivity
 					}
 				else
 					{
-					runOnUiThread(new Thread()
+					runOnUiThread(new Runnable()
 						{
 						public void run()
 							{

@@ -16,6 +16,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -132,46 +133,48 @@ public class HomeActivity extends SherlockListActivity
 	 */
 	private void showWhatsNew()
 		{
-		new Thread()
+		new AsyncTask<Void,Void,CharSequence>()
 			{
-			public void run()
-				{
+			@Override
+            protected CharSequence doInBackground(Void... params)
+                {
+                StringBuilder builder = new StringBuilder();
 				try
 					{
-					// try loading the changelog file
-					final StringBuilder changeLogBuilder = new StringBuilder();
-					BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open("changelog.txt")));
+	                BufferedReader in = new BufferedReader(new InputStreamReader(getAssets().open("changelog.txt")));
 					String line;
-					while ((line = in.readLine()) != null)
+					
+					while ((line = in.readLine()) != null && !isCancelled())
 						{
-						changeLogBuilder.append(line);
-						changeLogBuilder.append("\n");
+						builder.append(line);
+						builder.append('\n');
 						}
 					in.close();
-
-					runOnUiThread(new Runnable()
-						{
-						public void run()
-							{
-							AlertDialog.Builder alertBuilder = new AlertDialog.Builder(HomeActivity.this);
-							alertBuilder.setTitle("What's New");
-							alertBuilder.setMessage(changeLogBuilder);
-							alertBuilder.setIcon(android.R.drawable.ic_menu_help);
-
-							alertBuilder.setPositiveButton("Close", null);
-							alertBuilder.show();
-							}
-						});
-
 					}
 				catch (IOException e)
 					{
-					Log.e(TAG, "Failure to load changelog");
-					Log.e(TAG, Log.getStackTraceString(e));
+					return null;
 					}
-				}
-			}.start();
+				
+				return builder;
+                }
+			
+			@Override
+			protected void onPostExecute(CharSequence result)
+				{
+				if (isCancelled() || result == null)
+					return;
+				
+				AlertDialog.Builder alertBuilder = new AlertDialog.Builder(HomeActivity.this);
+				alertBuilder.setTitle("What's New");
+				alertBuilder.setMessage(result);
+				alertBuilder.setIcon(android.R.drawable.ic_menu_help);
 
+				alertBuilder.setPositiveButton("Close", null);
+				alertBuilder.show();
+				}
+			
+			}.execute();
 		}
 
 	public void onListItemClick(ListView list, View view, int position, long id)
