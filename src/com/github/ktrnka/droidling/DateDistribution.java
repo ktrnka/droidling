@@ -93,7 +93,7 @@ public class DateDistribution
 	 * that hour.  Uses 24-hour format, starting from 1 (return array
 	 * is size 25).
 	 * 
-	 * TODO: There's a bug in this function cause Java actually returns
+	 * TODO: There's a bug in this function cause Java returns
 	 * a 0-23 value and I didn't realize it.
 	 */
 	public int[] computeHourHistogram()

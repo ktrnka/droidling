@@ -36,7 +36,7 @@ public class HomeActivity extends SherlockListActivity
 	// TODO:  I don't like how this uses parallel arrays.  I'd much rather do something like make an instance that has all this
 	private static final Class<?>[] activities = { PersonalActivity.class, InterpersonalActivity.class, LanguageIdentificationActivity.class, null, null };
 	
-	public static final boolean DEVELOPER_MODE = true;
+	public static final boolean DEVELOPER_MODE = false;
 	
 	public static final String TAG = "com.github.ktrnka.droidling.HomeActivity";
 	

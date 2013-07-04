@@ -1,10 +1,11 @@
-Version 1.1 (2013-05-??)
+Version 1.1 (2013-07-03)
 -Saves your stats for faster load next time
 -Refresh indicator if the stats are outdated
 -Speedups in all analyses
 -Action bars with activity-specific help
 -"Send Feedback" now shares more stats about speed
 -Many UI fixes
+-Fixed a few crash bugs
 
 Version 1.01 (2013-01-21)
 -Added What's New popup on first install and app updates.
