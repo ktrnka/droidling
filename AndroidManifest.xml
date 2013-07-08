@@ -15,9 +15,10 @@
     <application
         android:name="com.github.ktrnka.droidling.ExtendedApplication"
         android:allowBackup="false"
-        android:icon="@drawable/icon"
+        android:icon="@drawable/ic_launcher"
+        android:logo="@drawable/ic_action_logo"
         android:label="@string/app_name"
-        android:theme="@style/Theme.Sherlock.Light" >
+        android:theme="@style/Theme.Droidling" >
         <activity
             android:name="com.github.ktrnka.droidling.HomeActivity"
             android:label="@string/app_name" >
