@@ -2,19 +2,20 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:paddingBottom="2dip"
-    android:paddingTop="2dip"
-    android:paddingRight="4dip" >
+    android:paddingBottom="@dimen/margin_vert"
+    android:paddingTop="@dimen/margin_vert"
+    android:paddingLeft="@dimen/margin_horiz"
+    android:paddingRight="@dimen/margin_horiz" >
 
     <TextView
         android:id="@android:id/text1"
+        android:text="@string/key_phrases"
         android:layout_width="fill_parent"
-        android:layout_height="40dp"
+        android:layout_height="@dimen/title_height"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:layout_marginBottom="5dip"
-        android:layout_marginLeft="6dip"
-        android:layout_marginTop="5dip"
+        android:layout_marginBottom="@dimen/title_margin_vert"
+        android:layout_marginTop="@dimen/title_margin_vert"
         android:layout_toLeftOf="@+id/share"
         android:gravity="center_vertical"
         android:textSize="26sp"
@@ -22,8 +23,10 @@
 
     <ImageView
         android:id="@+id/share"
-        android:layout_width="wrap_content"
-        android:layout_height="50dp"
+        android:layout_marginTop="@dimen/imagebutton_margin"
+        android:layout_marginBottom="@dimen/imagebutton_margin"
+        android:layout_width="@dimen/imagebutton_width"
+        android:layout_height="@dimen/imagebutton_height"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:contentDescription="@string/share"
@@ -31,10 +34,13 @@
 
     <TextView
         android:id="@android:id/text2"
+        android:text="@string/key_phrase_description"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_below="@android:id/text1"
-        android:layout_marginLeft="10dip"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="@dimen/title_margin_vert"
+        android:layout_marginTop="@dimen/title_margin_vert"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
 </RelativeLayout>

@@ -2,46 +2,44 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="2dip"
-	android:paddingBottom="2dip"
-	android:paddingRight="4dip"
-	>
+    android:paddingBottom="@dimen/margin_vert"
+    android:paddingTop="@dimen/margin_vert"
+    android:paddingLeft="@dimen/margin_horiz"
+    android:paddingRight="@dimen/margin_horiz" >
 
 	<TextView
 	    android:id="@android:id/text1"
+        android:text="@string/key_phrases"
 	    android:layout_width="fill_parent"
-	    android:layout_height="40dp"
+        android:layout_height="@dimen/title_height"
 	    android:layout_alignParentLeft="true"
 	    android:layout_alignParentTop="true"
-	    android:layout_marginBottom="5dip"
-	    android:layout_marginLeft="6dip"
-	    android:layout_marginTop="5dip"
+        android:layout_marginBottom="@dimen/title_margin_vert"
+        android:layout_marginTop="@dimen/title_margin_vert"
 	    android:layout_toLeftOf="@+id/share"
 	    android:textSize="26sp"
 	    android:textStyle="bold"
 	    android:gravity="center_vertical" />
 		
-	<ImageView
-	    android:id="@+id/share"
-	    android:layout_width="wrap_content"
-	    android:layout_height="50dp"
-	    android:layout_alignParentTop="true"
-	    android:layout_alignParentRight="true"
-	    android:src="@drawable/ic_menu_share"
-	    android:contentDescription="@string/share" />
+    <ImageView
+        android:id="@+id/share"
+        android:layout_marginTop="@dimen/imagebutton_margin"
+        android:layout_marginBottom="@dimen/imagebutton_margin"
+        android:layout_width="@dimen/imagebutton_width"
+        android:layout_height="@dimen/imagebutton_height"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:contentDescription="@string/share"
+        android:src="@drawable/ic_menu_share" />
 	 
-	<!-- 
-	This is the layout used by AChartEngine demo
-	<LinearLayout android:id="@+id/chart" android:orientation="horizontal"
-		android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_weight="1" />
-		 -->
+	<!-- The layout used by AChartEngine -->
    	<LinearLayout
 	    android:id="@+id/graphGroup"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_below="@android:id/text1"
-        >
+        android:layout_alignParentLeft="true" >
     </LinearLayout>
 
 
