@@ -9,7 +9,7 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="20dip">
+    android:padding="16dp">
     
     <TextView
         android:id="@+id/about_version"
@@ -23,7 +23,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/changelog"
-        android:paddingTop="20dip"
+        android:layout_marginTop="16dp"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textSize="28sp"/>
 
@@ -38,7 +38,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/about"
-        android:paddingTop="20dip"
+        android:layout_marginTop="16dp"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textSize="28sp"/>
     
@@ -49,13 +49,11 @@
         android:text="@string/app_descrip"
         android:textAppearance="?android:attr/textAppearanceMedium"/>
 
-
-    
     <TextView
         android:id="@+id/about_credits"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="20dip"
+        android:layout_marginTop="16dp"
         android:text="@string/app_credits"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textSize="28sp"/>
@@ -64,28 +62,25 @@
         android:id="@+id/about_author"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="4dip"
+        android:layout_marginTop="8dp"
         android:text="@string/credits_author"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textSize="22sp"/>
+        android:textAppearance="?android:attr/textAppearanceMedium"/>
 
 	<TextView
         android:id="@+id/about_other_credits"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="6dip"
+        android:layout_marginTop="8dp"
         android:text="@string/credits_other"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textSize="22sp"/>
+        android:textAppearance="?android:attr/textAppearanceMedium"/>
 
 	<TextView
         android:id="@+id/about_library_credits"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="6dip"
+        android:layout_marginTop="8dp"
         android:text="@string/credits_libraries"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textSize="22sp"/>
+        android:textAppearance="?android:attr/textAppearanceMedium"/>
 
 </LinearLayout>
 

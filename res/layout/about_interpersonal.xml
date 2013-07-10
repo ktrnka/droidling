@@ -9,7 +9,7 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="20dip">
+    android:padding="16dp">
     
     <TextView
         android:layout_width="fill_parent"
@@ -29,7 +29,7 @@
         android:layout_height="wrap_content"
         android:text="@string/shared_phrases_title"
         android:textSize="28sp"
-        android:layout_marginTop="15sp"/>
+        android:layout_marginTop="16dp"/>
 
     <TextView
         android:layout_width="fill_parent"
@@ -42,7 +42,7 @@
         android:layout_height="wrap_content"
         android:text="@string/response_time_title"
         android:textSize="28sp"
-        android:layout_marginTop="15sp"/>
+        android:layout_marginTop="16dp"/>
 
     <TextView
         android:layout_width="fill_parent"
@@ -55,7 +55,7 @@
         android:layout_height="wrap_content"
         android:text="@string/random_generation_title"
         android:textSize="28sp"
-        android:layout_marginTop="15sp"/>
+        android:layout_marginTop="16dp"/>
 
     <TextView
         android:layout_width="fill_parent"

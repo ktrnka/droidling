@@ -17,8 +17,8 @@
 <!-- This is included because HTC overrode the default Android simple_list_item_1 so I'm scared that someone else might override the 2 version -->
 
 <TwoLineListItem xmlns:android="http://schemas.android.com/apk/res/android" 
-	android:paddingTop="2dip"
-	android:paddingBottom="2dip"
+	android:paddingTop="8dp"
+	android:paddingBottom="8dp"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:minHeight="?android:attr/listPreferredItemHeight"
@@ -28,8 +28,7 @@
 	<TextView android:id="@android:id/text1"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
-        android:layout_marginLeft="6dip"
-        android:layout_marginTop="6dip"
+        android:layout_marginLeft="@dimen/margin_horiz"
 		android:textAppearance="?android:attr/textAppearanceLarge"
 	/>
 		

@@ -15,13 +15,13 @@
 -->
 
 <!-- This is included because HTC overrode the default Android one so I couldn't use that -->
-
+<!-- I used padding because margins wouldn't work (perhaps the parent overrides them) -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@android:id/text1"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:textAppearance="?android:attr/textAppearanceLarge"
     android:gravity="center_vertical"
-    android:paddingLeft="6dip"
+    android:paddingLeft="@dimen/margin_horiz"
     android:minHeight="?android:attr/listPreferredItemHeight"
 />
