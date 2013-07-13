@@ -2,10 +2,10 @@
 <resources>
     <dimen name="margin_horiz">16dp</dimen>
     <dimen name="margin_vert">8dp</dimen>
-    <dimen name="imagebutton_width">32dp</dimen>
-    <dimen name="imagebutton_height">32dp</dimen>
     <dimen name="title_height">40dp</dimen>
     <dimen name="title_margin_vert">4dp</dimen>
+
+    <dimen name="imagebutton_size">48dp</dimen>
     <dimen name="imagebutton_margin">8dp</dimen>
     
 </resources>

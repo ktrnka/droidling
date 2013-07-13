@@ -37,13 +37,12 @@
     <!-- 8dp left margin is to help prevent accidental touches on the spinner instead of share or vice versa.  8dp was the max I could do without word-wrapping the title -->
     <ImageView
         android:id="@+id/share"
-        android:layout_marginTop="@dimen/imagebutton_margin"
-        android:layout_marginBottom="@dimen/imagebutton_margin"
-        android:layout_marginLeft="8dp"
-        android:layout_width="@dimen/imagebutton_width"
-        android:layout_height="@dimen/imagebutton_height"
+        android:padding="@dimen/imagebutton_margin"
+        android:layout_width="@dimen/imagebutton_size"
+        android:layout_height="@dimen/imagebutton_size"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
+        android:background="@drawable/selectable_background_droidling"
         android:contentDescription="@string/share"
         android:src="@drawable/ic_menu_share" />
 
