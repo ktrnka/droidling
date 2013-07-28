@@ -30,13 +30,13 @@ import android.widget.Toast;
 public class HomeActivity extends SherlockListActivity
 	{
 	public static final String PACKAGE_NAME = "com.github.ktrnka.droidling";
-	private static final int[] nameIDs = { R.string.personal_name, R.string.interpersonal_name, R.string.lid_name, R.string.email_name, R.string.rate_name };
-	private static final int[] descriptionIDs = { R.string.personal_description, R.string.interpersonal_description, 0, R.string.email_description, R.string.rate_description };
+	private static final int[] nameIDs = { R.string.personal_name, R.string.interpersonal_name, R.string.lid_name, R.string.email_name, R.string.rate_name, R.string.diagnostics };
+	private static final int[] descriptionIDs = { R.string.personal_description, R.string.interpersonal_description, 0, R.string.email_description, R.string.rate_description, 0 };
 	
 	// TODO:  I don't like how this uses parallel arrays.  I'd much rather do something like make an instance that has all this
-	private static final Class<?>[] activities = { PersonalActivity.class, InterpersonalActivity.class, LanguageIdentificationActivity.class, null, null };
+	private static final Class<?>[] activities = { PersonalActivity.class, InterpersonalActivity.class, LanguageIdentificationActivity.class, null, null, DiagnosticActivity.class };
 	
-	public static final boolean DEVELOPER_MODE = false;
+	public static final boolean DEVELOPER_MODE = true;
 	
 	public static final String TAG = "com.github.ktrnka.droidling.HomeActivity";
 	

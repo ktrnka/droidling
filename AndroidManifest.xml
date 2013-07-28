@@ -41,6 +41,7 @@
         <activity android:name="com.github.ktrnka.droidling.AboutPersonalActivity" />
         <activity android:name="com.github.ktrnka.droidling.AboutInterpersonalActivity" />
         <activity android:name="com.github.ktrnka.droidling.AboutLangIDActivity" />
+        <activity android:name="com.github.ktrnka.droidling.DiagnosticActivity" />
         
     </application>
 

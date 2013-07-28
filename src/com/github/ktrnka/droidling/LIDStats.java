@@ -12,16 +12,16 @@ import java.util.ArrayList;
 /**
  * Wrapper around the stats from InterpersonalActivity to load/save.
  */
-public class InterpersonalStats
+public class LIDStats
 	{
 	ArrayList<Item> list;
 	
-	public InterpersonalStats()
+	public LIDStats()
 		{
 		list = new ArrayList<Item>();
 		}
 	
-	public InterpersonalStats(FileInputStream in) throws IOException
+	public LIDStats(FileInputStream in) throws IOException
 		{
 		readFrom(in);
 		}
@@ -35,7 +35,7 @@ public class InterpersonalStats
 	    
 	    for (int i = 0; i < numItems; i++)
 	    	{
-	    	add(dataIn.readUTF(), InterpersonalSingleStats.deserialize(dataIn));
+	    	add(dataIn.readUTF(), dataIn.readUTF());
 	    	}
 	    
 	    dataIn.close();
@@ -50,13 +50,13 @@ public class InterpersonalStats
 		for (Item item : list)
 			{
 			dataOut.writeUTF(item.name.toString());
-			item.details.serialize(dataOut);
+			dataOut.writeUTF(item.details.toString());
 			}
 		
 		dataOut.close();
 		}
 	
-	public void add(CharSequence name, InterpersonalSingleStats details)
+	public void add(CharSequence name, CharSequence details)
 		{
 		list.add(new Item(name, details));
 		}
@@ -64,9 +64,9 @@ public class InterpersonalStats
 	public static class Item
 		{
 		CharSequence name;
-		InterpersonalSingleStats details;
+		CharSequence details;
 		
-		public Item(CharSequence name, InterpersonalSingleStats details)
+		public Item(CharSequence name, CharSequence details)
 			{
 			this.name = name;
 			this.details = details;

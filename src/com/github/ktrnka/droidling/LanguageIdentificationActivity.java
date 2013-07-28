@@ -48,7 +48,7 @@ public class LanguageIdentificationActivity extends RefreshableActivity
 	private static final String DISPLAY_FILENAME = "LanguageIdentificationActivity.cache";
 	private static final String PROCESSED_MESSAGES = "LanguageIdentificationActivity.processedMessages";
 	
-	private InterpersonalStats stats;
+	private LIDStats stats;
 
 	public void onCreate(Bundle savedInstanceState)
 		{
@@ -131,7 +131,7 @@ public class LanguageIdentificationActivity extends RefreshableActivity
 	
 				LayoutInflater inflater = getLayoutInflater();
 				
-				for (InterpersonalStats.Item item : stats.list)
+				for (LIDStats.Item item : stats.list)
 					{
 					parent.addView(inflateResults(inflater, item.name, item.details));
 					}
@@ -160,7 +160,7 @@ public class LanguageIdentificationActivity extends RefreshableActivity
 			identifications.put(contactName, identification);
 			}
 		
-		stats = new InterpersonalStats();
+		stats = new LIDStats();
 		
 		ArrayList<String> contactList = new ArrayList<String>(identifications.keySet());
 		Collections.sort(contactList);
@@ -282,7 +282,7 @@ public class LanguageIdentificationActivity extends RefreshableActivity
 	    	{
 	    	try
 	            {
-	            stats = new InterpersonalStats(openFileInput(DISPLAY_FILENAME));
+	            stats = new LIDStats(openFileInput(DISPLAY_FILENAME));
 	            }
             catch (IOException e)
 	            {

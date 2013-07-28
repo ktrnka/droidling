@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="16dp" >
+
+    <TextView
+        android:id="@+id/title"
+        android:text="Title"
+        style="@style/CardTitle"
+        android:layout_width="fill_parent"
+        android:layout_height="@dimen/title_height"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        
+        android:layout_marginBottom="@dimen/title_margin_vert"
+        android:layout_marginTop="@dimen/title_margin_vert"
+        
+		android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        
+        android:layout_toLeftOf="@+id/share"
+        android:gravity="center_vertical"
+        />
+
+    <ImageView
+        android:id="@+id/share"
+        android:padding="@dimen/imagebutton_margin"
+        android:layout_width="@dimen/imagebutton_size"
+        android:layout_height="@dimen/imagebutton_size"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/selectable_background_droidling"
+        android:contentDescription="@string/share"
+        android:src="@drawable/ic_menu_share" />
+    
+    <View
+        android:id="@+id/sep"
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="4dp"
+        android:background="@color/stroke"
+        android:layout_below="@id/title" />
+
+    <TextView
+        android:id="@+id/body"
+        android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec viverra metus et ligula accumsan auctor. Nullam luctus neque quis nibh porttitor sagittis. Nunc dignissim quam nec quam scelerisque faucibus. Maecenas elementum ante eget felis vestibulum quis pharetra dui condimentum. In a ligula lectus, aliquet interdum diam. Fusce luctus bibendum tellus, sed iaculis mi vehicula vitae. Fusce quis ipsum in est ultricies egestas a vel orci."
+        style="@style/CardText"
+        android:maxLines="100"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_below="@id/sep"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="@dimen/title_margin_vert"
+        android:layout_marginTop="@dimen/title_margin_vert"
+        android:padding="4dp"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+</RelativeLayout>

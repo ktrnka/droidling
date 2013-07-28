@@ -8,6 +8,7 @@ import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import com.fima.cardsui.views.CardUI;
 import com.github.ktrnka.droidling.InterpersonalStats.Item;
 import com.github.ktrnka.droidling.R;
 
@@ -32,6 +33,7 @@ import android.widget.TextView;
 public class InterpersonalActivity extends RefreshableActivity
 	{
 	private boolean scanned;
+	private CardUI mCardView;
 
 	public static final String TAG = "com.github.ktrnka.droidling.InterpersonalActivity";
 	private static final String CONTACT_NAME = "contact";
@@ -54,7 +56,17 @@ public class InterpersonalActivity extends RefreshableActivity
 		{
 		super.onCreate(savedInstanceState);
 		setHelpActivity(AboutInterpersonalActivity.class);
-		setContentView(R.layout.simple_scroll);
+		
+		// old layout code
+		// setContentView(R.layout.simple_scroll);
+		
+		// cards UI test
+		setContentView(R.layout.cardsui_main);
+		mCardView = (CardUI) findViewById(R.id.cardsview);
+		mCardView.setSwipeable(false);
+		
+		// draw empty list to start?
+		mCardView.refresh();
 		}
 	
 	public void onStart()
@@ -334,7 +346,10 @@ public class InterpersonalActivity extends RefreshableActivity
 		
 		for (String contactName : contactList)
 			{
+			InterpersonalSingleStats stats = new InterpersonalSingleStats();
 			String firstName = extractPersonalName(contactName);
+			
+			stats.nameText = firstName;
 			
 			int received = 0;
 			if (receivedCounts.containsKey(contactName))
@@ -354,97 +369,73 @@ public class InterpersonalActivity extends RefreshableActivity
 			StringBuilder details = new StringBuilder();
 			Formatter f = new Formatter(details);
 			details.append(firstName + " sent " + generateCountText(received, "text", "texts") + "\n");
-			f.format("You sent %s (%.1f%% of all sent)\n\n", generateCountText(sent, "text", "texts"), 100 * sent / (double)overallSentStats.getMessages());
+			f.format("You sent %s (%.1f%% of all sent)", generateCountText(sent, "text", "texts"), 100 * sent / (double)overallSentStats.getMessages());
 			
-			//f.format("Received %d words\n", receivedStats.get(contactName).getFilteredWords());
-			//f.format("Sent %d words\n\n", sentStats.get(contactName).getFilteredWords());
-
-			// these stats are eerie and boring
-			//f.format("Their avg word length: %.1f\n", receivedStats.get(contactName).getWordLength());
-			//f.format("Your avg word length: %.1f\n", overallSentStats.getWordLength());
-			//f.format("Your avg word length when texting THEM: %.1f\n", sentStats.get(contactName).getWordLength());
+			stats.numSentText = details.toString();
 			
 			// message length
-			details.append(getString(R.string.average_message_length_header) + "\n");
-			details.append(' ');
+			details.setLength(0);
 			details.append(getString(R.string.their_message_length, firstName, receivedStats.get(contactName).getWordsPerMessage()));
 			details.append('\n');
-//			f.format(" %s: %.1f words\n", firstName, receivedStats.get(contactName).getWordsPerMessage());
-//			f.format("Your avg message length: %.1f\n", overallSentStats.getWordsPerMessage());
-			details.append(' ');
 			details.append(getString(R.string.your_message_length, sentStats.get(contactName).getWordsPerMessage()));
-			details.append("\n\n");
-//			f.format(" You: %.1f words\n\n", sentStats.get(contactName).getWordsPerMessage());
+			stats.messageLengthText = details.toString();
 			
 			// Jaccard coeffients
-			details.append(getString(R.string.shared_vocabulary_header));
-			details.append('\n');
-//			details.append("Shared vocabulary (Jaccard)\n");
-			details.append(' ');
+			details.setLength(0);
 			details.append(getString(R.string.shared_with_them, 100 * sentStats.get(contactName).computeUnigramJaccard(receivedStats.get(contactName))));
 			details.append('\n');
-//			f.format(" with texts to them: %.1f%%\n", 100 * sentStats.get(contactName).computeUnigramJaccard(receivedStats.get(contactName)));
-			details.append(' ');
 			details.append(getString(R.string.shared_with_all, 100 * overallSentStats.computeUnigramJaccard(receivedStats.get(contactName))));
-			details.append('\n');
-//			f.format(" with ALL your texts: %.1f%%\n", 100 * overallSentStats.computeUnigramJaccard(receivedStats.get(contactName)));
+			stats.sharedVocabPercentText = details.toString();
 			
 			// figure out the vocabulary overlap
+			details.setLength(0);
 			ArrayList<String> sortedOverlap = CorpusStats.computeRelationshipTerms(receivedStats.get(contactName), overallReceivedStats, sentStats.get(contactName), overallSentStats);
-			details.append("\n" + getString(R.string.shared_phrases_title) + ":\n");
 			if (sortedOverlap.size() == 0)
 				{
-				details.append(" " + getString(R.string.none));
-				details.append("\n");
+				details.append(getString(R.string.none));
 				}
 			else
 				{
 				for (int i = 0; i < 10 && i < sortedOverlap.size(); i++)
-					details.append(" " + sortedOverlap.get(i) + "\n");
+					details.append(sortedOverlap.get(i) + "\n");
+				details.replace(details.length() - 1, details.length(), "");
 				}
+			stats.sharedPhrasesText = details.toString();
 			
-			details.append("\n" + getString(R.string.response_time_title) + ":\n");
 			// compute stats about the average response time
+			details.setLength(0);
 			if (theirReplyTimes.containsKey(contactName))
 				{
 				ArrayList<long[]> replies = theirReplyTimes.get(contactName);
-				f.format(" %s: %s in %s\n", firstName, formatTime(averageSeconds(replies)), generateCountText(replies.size(), "text", "texts"));
+				f.format("%s: %s in %s\n", firstName, formatTime(averageSeconds(replies)), generateCountText(replies.size(), "text", "texts"));
 				}
 			else
 				{
-				f.format(" " + getString(R.string.not_enough_replies) + "\n", firstName);
+				f.format(getString(R.string.not_enough_replies) + "\n", firstName);
 				}
 
 			if (yourReplyTimes.containsKey(contactName))
 				{
 				ArrayList<long[]> replies = yourReplyTimes.get(contactName);
-				f.format(" %s: %s in %s\n", "You", formatTime(averageSeconds(replies)), generateCountText(replies.size(), "text", "texts"));
+				f.format("%s: %s in %s", "You", formatTime(averageSeconds(replies)), generateCountText(replies.size(), "text", "texts"));
 				}
 			else
 				{
-				f.format(" " + getString(R.string.not_enough_replies) + "\n", "you");
+				f.format(getString(R.string.not_enough_replies), "you");
 				}
-			
-			// generate the single most likely full messages
-			/*
-			details.append("\nBest trigram generation\n");
-			f.format(" %s: %s\n", firstName, receivedStats.get(contactName).generateBestMessage(true));
-			f.format(" You: %s\n", sentStats.get(contactName).generateBestMessage(true));
+			stats.responseTimeText = details.toString();
 
-			details.append("\nBest bigram generation\n");
-			f.format(" %s: %s\n", firstName, receivedStats.get(contactName).generateBestMessage(false));
-			f.format(" You: %s\n", sentStats.get(contactName).generateBestMessage(false));
-			*/
+			details.setLength(0);
+			f.format("%s: %s\n", firstName, receivedStats.get(contactName).generateRandomMessage(true));
+			f.format("You: %s", sentStats.get(contactName).generateRandomMessage(true));
+			stats.bigramGenerationText = details.toString();
 
-			details.append("\nRandom trigram generation\n");
-			f.format(" %s: %s\n", firstName, receivedStats.get(contactName).generateRandomMessage(true));
-			f.format(" You: %s\n", sentStats.get(contactName).generateRandomMessage(true));
+			details.setLength(0);
+			f.format("%s: %s\n", firstName, receivedStats.get(contactName).generateRandomMessage(false));
+			f.format("You: %s", sentStats.get(contactName).generateRandomMessage(false));
+			stats.trigramGenerationText = details.toString();
 
-			details.append("\nRandom bigram generation\n");
-			f.format(" %s: %s\n", firstName, receivedStats.get(contactName).generateRandomMessage(false));
-			f.format(" You: %s\n", sentStats.get(contactName).generateRandomMessage(false));
-
-			displayStats.add(contactName, details);
+			displayStats.add(contactName, stats);
 			}
 		setPreference(SELECT_CANDIDATES_KEY, System.currentTimeMillis() - time);
 
@@ -474,19 +465,22 @@ public class InterpersonalActivity extends RefreshableActivity
 			{
 			public void run()
 				{
-				ViewGroup parent = (ViewGroup) findViewById(R.id.linear);
-				parent.removeAllViews();
-				
-				LayoutInflater inflater = getLayoutInflater();
+				mCardView.clearCards();
 
 				for (Item item : displayStats.list)
 					{
 					// key phrases
-					parent.addView(inflateResults(inflater, item.name, item.details));
+					//parent.addView(inflateResults(inflater, item.name, item.details));
+					mCardView.addCard(new InterpersonalCard(item.name.toString(), item.details, InterpersonalActivity.this));
+					Log.d("com.github.droidling.InterpersonalActivity", "Adding item for " + item.name);
 					}
 				
+
 				if (HomeActivity.DEVELOPER_MODE)
-					parent.addView(inflateResults(inflater, getString(R.string.runtime), HomeActivity.summarizeRuntime(getApplicationContext(), PROFILING_KEY_ORDER)));
+					//parent.addView(inflateResults(inflater, getString(R.string.runtime), HomeActivity.summarizeRuntime(getApplicationContext(), PROFILING_KEY_ORDER)));
+					mCardView.addCard(new TitledCard(getString(R.string.runtime), HomeActivity.summarizeRuntime(getApplicationContext(), PROFILING_KEY_ORDER)));
+
+				mCardView.refresh();
 				}
 			});
 	    }
