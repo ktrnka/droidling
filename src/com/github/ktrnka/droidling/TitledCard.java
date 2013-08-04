@@ -7,6 +7,9 @@ import android.widget.TextView;
 
 import com.fima.cardsui.objects.Card;
 
+/**
+ * Plain card that has a title and description.
+ */
 public class TitledCard extends Card
 	{
 	public TitledCard(String title)
@@ -30,7 +33,6 @@ public class TitledCard extends Card
 		return view;
 		}
 
-	@Override
 	public int getCardContentId()
 		{
 		return R.layout.card_ex;

@@ -136,6 +136,8 @@ public class InterpersonalActivity extends RefreshableActivity
 		final HashMap<String,CorpusStats> sentStats = new HashMap<String,CorpusStats>();
 		final CorpusStats overallSentStats = new CorpusStats();
 		
+		final HashMap<String,String> contactPhotoUris = new HashMap<String,String>();
+		
 		if (messages.moveToFirst())
 			{
 			final int addressIndex = messages.getColumnIndexOrThrow(Sms.ADDRESS);
@@ -149,6 +151,9 @@ public class InterpersonalActivity extends RefreshableActivity
 
 				if (recipientName != null)
 					{
+					if (!contactPhotoUris.containsKey(recipientName))
+						contactPhotoUris.put(recipientName, app.lookupContactInfo(recipientId, ExtendedApplication.ContactInfo.PHOTO_URI));
+
 					if (sentCounts.containsKey(recipientName))
 						sentCounts.get(recipientName)[0]++;
 					else
@@ -202,6 +207,9 @@ public class InterpersonalActivity extends RefreshableActivity
 
 				if (senderName != null)
 					{
+					if (!contactPhotoUris.containsKey(senderName))
+						contactPhotoUris.put(senderName, app.lookupContactInfo(senderName, ExtendedApplication.ContactInfo.PHOTO_URI));
+
 					if (receivedCounts.containsKey(senderName))
 						receivedCounts.get(senderName)[0]++;
 					else
@@ -351,6 +359,8 @@ public class InterpersonalActivity extends RefreshableActivity
 			
 			stats.nameText = firstName;
 			
+			stats.photoUri = contactPhotoUris.get(contactName);
+			
 			int received = 0;
 			if (receivedCounts.containsKey(contactName))
 				received = receivedCounts.get(contactName)[0];
@@ -466,55 +476,22 @@ public class InterpersonalActivity extends RefreshableActivity
 			public void run()
 				{
 				mCardView.clearCards();
+				ExtendedApplication application = (ExtendedApplication) getApplication();
 
 				for (Item item : displayStats.list)
 					{
-					// key phrases
-					//parent.addView(inflateResults(inflater, item.name, item.details));
-					mCardView.addCard(new InterpersonalCard(item.name.toString(), item.details, InterpersonalActivity.this));
+					mCardView.addCard(new InterpersonalCard(item.name.toString(), item.details, InterpersonalActivity.this, application));
 					Log.d("com.github.droidling.InterpersonalActivity", "Adding item for " + item.name);
 					}
 				
 
 				if (HomeActivity.DEVELOPER_MODE)
-					//parent.addView(inflateResults(inflater, getString(R.string.runtime), HomeActivity.summarizeRuntime(getApplicationContext(), PROFILING_KEY_ORDER)));
 					mCardView.addCard(new TitledCard(getString(R.string.runtime), HomeActivity.summarizeRuntime(getApplicationContext(), PROFILING_KEY_ORDER)));
 
 				mCardView.refresh();
 				}
 			});
 	    }
-	
-	public View inflateResults(LayoutInflater inflater, final CharSequence title, final CharSequence details)
-		{
-		// contacts
-		View view = inflater.inflate(R.layout.results_generic, null);
-	
-		TextView textView = (TextView) view.findViewById(android.R.id.text1);
-		textView.setText(title);
-		
-		textView = (TextView) view.findViewById(android.R.id.text2);
-		textView.setText(details);
-		
-		ImageView shareView = (ImageView) view.findViewById(R.id.share);
-		shareView.setOnClickListener(new View.OnClickListener()
-			{
-			public void onClick(View v)
-				{
-				String subject = "Shared stats from " + getString(R.string.app_name);
-				String text = "Stats: " + title + ":\n" + details;
-				
-				Intent sendIntent = new Intent(Intent.ACTION_SEND);
-				sendIntent.setType("text/plain");
-				sendIntent.putExtra(Intent.EXTRA_TEXT, text);
-				sendIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
-				
-				startActivity(Intent.createChooser(sendIntent, getString(R.string.share_intent)));
-				}
-			});
-		
-		return view;
-		}
 	
 	public static double averageSeconds(ArrayList<long[]> list)
 		{

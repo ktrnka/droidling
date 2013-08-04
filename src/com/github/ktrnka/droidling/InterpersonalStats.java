@@ -31,6 +31,10 @@ public class InterpersonalStats
 	    DataInputStream dataIn = new DataInputStream(new BufferedInputStream(in));
 	    
 	    int numItems = dataIn.readInt();
+	    int version = dataIn.readInt();
+	    if (version != InterpersonalSingleStats.seralizationVersion)
+	    	throw new IOException("Stored file doesn't match serialization version.");
+	    
 	    list = new ArrayList<Item>(numItems);
 	    
 	    for (int i = 0; i < numItems; i++)
@@ -46,6 +50,7 @@ public class InterpersonalStats
 		DataOutputStream dataOut = new DataOutputStream(new BufferedOutputStream(out));
 		
 		dataOut.writeInt(list.size());
+		dataOut.writeInt(InterpersonalSingleStats.seralizationVersion);
 		
 		for (Item item : list)
 			{
