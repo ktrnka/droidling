@@ -52,12 +52,12 @@ public class InterpersonalSingleStats
 		builder.append(responseTimeText);
 		builder.append("\n\n");
 		
-		builder.append("Random trigram generation");
+		builder.append(context.getString(R.string.randomTrigramTitle));
 		builder.append("\n");
 		builder.append(trigramGenerationText);
 		builder.append("\n\n");
 		
-		builder.append("Random bigram generation");
+		builder.append(context.getString(R.string.randomBigramTitle));
 		builder.append("\n");
 		builder.append(bigramGenerationText);
 		

@@ -5,7 +5,6 @@ import java.io.IOException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.util.Log;
 import android.util.TypedValue;
@@ -32,7 +31,6 @@ public class InterpersonalCard extends Card
 		super(title, null, 0);
 
 		this.activityContext = activityContext;
-
 		this.stats = stats;
 		this.application = application;
 		}

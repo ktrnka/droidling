@@ -275,7 +275,7 @@ public class ExtendedApplication extends Application
 				}
 			}
 		
-		InputStream in = context.getContentResolver().openInputStream(imageUri); 
+		InputStream in = context.getContentResolver().openInputStream(imageUri);
 	
 		// check dimensions
 		final BitmapFactory.Options options = new BitmapFactory.Options();

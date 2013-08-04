@@ -5,15 +5,15 @@
     android:layout_height="wrap_content"
     android:paddingBottom="16dp" >
 
-    <ImageView 
+    <ImageView
         android:id="@+id/contactImage"
         android:layout_width="@dimen/imagebutton_size"
         android:layout_height="@dimen/imagebutton_size"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:src="@drawable/ic_contact_picture"
-        />"
-    
+        android:contentDescription="@string/contactPhotoDescription"
+        android:src="@drawable/ic_contact_picture" />
+
     <TextView
         android:id="@+id/title"
         android:text="Title"
@@ -48,7 +48,6 @@
         android:id="@+id/sep"
         android:layout_width="fill_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="4dp"
         android:background="@color/stroke"
         android:layout_below="@id/title" />
 
@@ -119,10 +118,9 @@
     
     <TextView
         android:id="@+id/bigramGenerationTitle"
-        android:text="Random bigram generation"
         style="@style/Card.RelativelayoutText.Subtitle"
         android:layout_below="@id/responseTime"
-        />
+        android:text="@string/randomBigramTitle" />
     
     <TextView
         android:id="@+id/bigramGeneration"
@@ -133,10 +131,9 @@
     
     <TextView
         android:id="@+id/trigramGenerationTitle"
-        android:text="Random trigram generation"
         style="@style/Card.RelativelayoutText.Subtitle"
         android:layout_below="@id/bigramGeneration"
-        />
+        android:text="@string/randomTrigramTitle" />
     
     <TextView
         android:id="@+id/trigramGeneration"

@@ -21,6 +21,8 @@ public class BitmapLoaderTask extends AsyncTask<Uri, Void, Bitmap>
 	private Uri imageUri;
 	private int widthPixels;
 	private int heightPixels;
+	
+	// TODO: Try to remove this circular dep between packages
 	private ExtendedApplication application;
 	
 	public BitmapLoaderTask(ImageView imageView, int widthPixels, int heightPixels, ExtendedApplication application)
