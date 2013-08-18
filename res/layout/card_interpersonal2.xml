@@ -16,21 +16,13 @@
 
     <TextView
         android:id="@+id/title"
-        android:text="Title"
-        style="@style/CardTitle"
+        android:text="@string/testTitle"
+        style="@style/CardTitle.Droidling"
         android:layout_width="fill_parent"
-        android:layout_height="@dimen/title_height"
         android:layout_alignParentTop="true"
-        
-        android:layout_marginBottom="@dimen/title_margin_vert"
-        android:layout_marginTop="@dimen/title_margin_vert"
-        
-		android:paddingLeft="8dp"
-        android:paddingRight="8dp"
         
         android:layout_toRightOf="@id/contactImage"
         android:layout_toLeftOf="@+id/share"
-        android:gravity="center_vertical"
         />
 
     <ImageView

@@ -14,11 +14,11 @@
 
         <TextView
             android:id="@+id/title"
-            style="@style/CardTitle"
+        	style="@style/CardTitle.Droidling"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="title" />
+	        android:text="@string/testTitle"
+            />
 
     </LinearLayout>
 
@@ -43,7 +43,7 @@
             android:layout_marginLeft="8dp"
             android:ellipsize="none"
             android:maxLines="100"
-            android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec viverra metus et ligula accumsan auctor. Nullam luctus neque quis nibh porttitor sagittis. Nunc dignissim quam nec quam scelerisque faucibus. Maecenas elementum ante eget felis vestibulum quis pharetra dui condimentum. In a ligula lectus, aliquet interdum diam. Fusce luctus bibendum tellus, sed iaculis mi vehicula vitae. Fusce quis ipsum in est ultricies egestas a vel orci." />
+            android:text="@string/testBody" />
 
     </LinearLayout>
 

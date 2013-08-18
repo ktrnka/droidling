@@ -76,8 +76,9 @@ public class ExtendedApplication extends Application
 		String idName = ContactsContract.CommonDataKinds.Phone._ID;
 		String photoIdName = ContactsContract.CommonDataKinds.Phone.PHOTO_ID;
 		String photoUriName = ContactsContract.CommonDataKinds.Phone.PHOTO_URI;
+		String typeName = ContactsContract.CommonDataKinds.Phone.TYPE;
 		
-		String[] phoneLookupProjection = new String[] { numberName, labelName, idName, photoIdName, photoUriName };
+		String[] phoneLookupProjection = new String[] { numberName, labelName, idName, photoIdName, photoUriName, typeName };
 
 		Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
 				phoneLookupProjection, null, null, null);
@@ -86,9 +87,8 @@ public class ExtendedApplication extends Application
 			{
 			final int phoneIndex = phones.getColumnIndex(numberName);
 			final int labelIndex = phones.getColumnIndex(labelName);
-			//final int photoIdIndex = phones.getColumnIndex(photoIdName);
 			final int photoUriIndex = phones.getColumnIndex(photoUriName);
-			//final int idIndex = phones.getColumnIndex(idName);
+			final int typeIndex = phones.getColumnIndex(typeName);
 			
 			do
 				{
@@ -97,6 +97,9 @@ public class ExtendedApplication extends Application
 				
 				//long photoId = phones.getLong(photoIdIndex);
 				String photoUri = phones.getString(photoUriIndex);
+				int type = phones.getInt(typeIndex);
+				
+				Log.i(TAG, "Loading contact " + label + " " + number + " " + type + " " + photoUri);
 				
 				if (photoUri != null)
 					{

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="16dp" >
+
+    <TextView
+        android:id="@+id/title"
+        android:text="@string/testTitle"
+        style="@style/CardTitle.Droidling"
+
+        android:layout_width="fill_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/share"
+        />
+
+    <ImageView
+        android:id="@+id/share"
+        android:padding="@dimen/imagebutton_margin"
+        android:layout_width="@dimen/imagebutton_size"
+        android:layout_height="@dimen/imagebutton_size"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/selectable_background_droidling"
+        android:contentDescription="@string/share"
+        android:src="@drawable/ic_menu_share" />
+    
+    <View
+        android:id="@+id/sep"
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="4dp"
+        android:background="@color/stroke"
+        android:layout_below="@id/title" />
+
+    <TextView
+        android:id="@+id/body"
+        android:text="@string/testBody"
+        style="@style/Card.RelativelayoutText.Subtext"
+        android:layout_below="@id/sep"
+		/>
+
+</RelativeLayout>

@@ -23,6 +23,7 @@
         <item name="android:maxLines">100</item>
         <item name="android:layout_alignParentLeft">true</item>
         <item name="android:layout_marginLeft">8dp</item>
+        <item name="android:layout_marginRight">8dp</item>
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         </style>
@@ -95,5 +96,34 @@
         <item name="popupMenuStyle">@style/PopupMenu.Droidling</item>
         <item name="dropDownListViewStyle">@style/DropDownListView.Droidling</item>
     </style>
+    
+    <!-- null background theme for Activites that use CardsUI.  It reduces overdraw. -->
+    <style name="Theme.CardsUIActivity" parent="@style/Theme.Droidling">
+        <item name="android:windowBackground">@null</item>
+    </style>
+    
+    <!-- 
+        style="@style/CardTitle"
+        android:layout_width="fill_parent"
+        android:layout_height="@dimen/title_height"
+        android:layout_alignParentTop="true"
+        
+        android:layout_marginBottom="@dimen/title_margin_vert"
+        android:layout_marginTop="@dimen/title_margin_vert"
+        
+		android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        
+        android:gravity="center_vertical"
+     -->
+    <style name="CardTitle.Droidling" parent="@style/CardTitle">
+        <item name="android:layout_height">@dimen/title_height</item>
+        <item name="android:layout_marginBottom">@dimen/title_margin_vert</item>
+        <item name="android:layout_marginTop">@dimen/title_margin_vert</item>
+        <item name="android:paddingLeft">8dp</item>
+        <item name="android:paddingRight">8dp</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+
 
 </resources>

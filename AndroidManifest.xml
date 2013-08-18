@@ -33,7 +33,8 @@
             android:configChanges="orientation|screenSize" />
         <activity
             android:name="com.github.ktrnka.droidling.InterpersonalActivity"
-            android:configChanges="orientation|screenSize" />
+            android:configChanges="orientation|screenSize"
+            android:theme="@style/Theme.CardsUIActivity"/>
         <activity
             android:name="com.github.ktrnka.droidling.LanguageIdentificationActivity"
             android:configChanges="orientation|screenSize" />
