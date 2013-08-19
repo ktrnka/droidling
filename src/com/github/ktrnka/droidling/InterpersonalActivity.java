@@ -480,7 +480,7 @@ public class InterpersonalActivity extends RefreshableActivity
 				
 
 				if (HomeActivity.DEVELOPER_MODE)
-					mCardView.addCard(new TitledCard(getString(R.string.runtime), HomeActivity.summarizeRuntime(getApplicationContext(), PROFILING_KEY_ORDER)));
+					mCardView.addCard(new ShareableCard(getString(R.string.runtime), HomeActivity.summarizeRuntime(getApplicationContext(), PROFILING_KEY_ORDER)));
 
 				mCardView.refresh();
 				}

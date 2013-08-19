@@ -28,6 +28,9 @@ import org.achartengine.renderer.SimpleSeriesRenderer;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYMultipleSeriesRenderer.Orientation;
 
+import com.fima.cardsui.views.CardUI;
+import com.github.ktrnka.droidling.helpers.Util;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -101,13 +104,21 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
 	private static final String PROCESSED_SENT_MESSAGES = "PersonalActivity.processedMessages";
 	
 	private File logFile;
+	private CardUI mCardView;
 	
 	public void onCreate(Bundle savedInstanceState)
 		{
 		super.onCreate(savedInstanceState);
 		setHelpActivity(AboutPersonalActivity.class);
 		
-		setContentView(R.layout.simple_scroll);
+		//setContentView(R.layout.simple_scroll);
+		// cards UI test
+		setContentView(R.layout.cardsui_main);
+		mCardView = (CardUI) findViewById(R.id.cardsview);
+		mCardView.setSwipeable(false);
+		
+		// draw empty list to start?
+		mCardView.refresh();
 		
 		displayPhraseIndex = 0;
 		}
@@ -648,6 +659,12 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
 
 		// time of day histogram
 		displayStats.hourHistogram = dates.computeHourHistogram();
+		
+		// clean up some of the strings for newlines
+		Util.strip(displayStats.contactsDisplay, '\n');
+		Util.strip(displayStats.generalDisplay, '\n');
+		for (StringBuilder b : displayStats.keyPhraseTexts)
+			Util.strip(b, '\n');
 
 		setPreference(GENERATE_DESCRIPTIONS_KEY, System.currentTimeMillis() - time);
 		
@@ -683,23 +700,25 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
 			{
 			public void run()
 				{
-				ViewGroup parent = (ViewGroup) findViewById(R.id.linear);
-				parent.removeAllViews();
-
-				LayoutInflater inflater = getLayoutInflater();
-
-				parent.addView(inflatePhraseResults(inflater, displayStats.keyPhraseTexts[displayPhraseIndex]));
-				parent.addView(inflateResults(inflater, getString(R.string.contacts), displayStats.contactsDisplay));
-				parent.addView(inflateResults(inflater, getString(R.string.stats), displayStats.generalDisplay));
+				mCardView.clearCards();
+				
+				String appName = getString(R.string.app_name);
+				Context shareContext = PersonalActivity.this;
+				
+				mCardView.addCard(new ShareableCard(getString(R.string.key_phrases), displayStats.keyPhraseTexts[displayPhraseIndex].toString(), appName, shareContext));
+				mCardView.addCard(new ShareableCard(getString(R.string.contacts), displayStats.contactsDisplay.toString(), appName, shareContext));
+				mCardView.addCard(new ShareableCard(getString(R.string.stats), displayStats.generalDisplay.toString(), appName, shareContext));
 				
 				GraphicalView dayChart = buildDayChart(PersonalActivity.this, displayStats.dayHistogram);
-				parent.addView(inflateChart(inflater, getString(R.string.day_of_week), dayChart));
+				mCardView.addCard(new GraphCard(getString(R.string.day_of_week), dayChart, appName, shareContext));
 				
 				GraphicalView hourChart = buildHourChart(PersonalActivity.this, displayStats.hourHistogram);
-				parent.addView(inflateChart(inflater, getString(R.string.time_of_day), hourChart));
-
+				mCardView.addCard(new GraphCard(getString(R.string.time_of_day), hourChart, appName, shareContext));
+				
 				if (runtimeString != null)
-					parent.addView(inflateResults(inflater, getString(R.string.runtime), runtimeString));
+					mCardView.addCard(new ShareableCard(getString(R.string.runtime), runtimeString, appName, shareContext));
+
+				mCardView.refresh();
 				
 				if (LOG_PHRASES)
 					{
@@ -926,45 +945,6 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
 				{
 				String subject = "Shared stats from " + getString(R.string.app_name);
 				String text = "Stats: " + getString(R.string.key_phrases) + ":\n" + details;
-
-				Intent sendIntent = new Intent(Intent.ACTION_SEND);
-				sendIntent.setType("text/plain");
-				sendIntent.putExtra(Intent.EXTRA_TEXT, text);
-				sendIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
-
-				startActivity(Intent.createChooser(sendIntent, "Share with..."));
-				}
-			});
-
-		return view;
-		}
-	
-	/**
-	 * Inflates a R.layout.result with the specified title and details, using
-	 * the specified inflater
-	 * 
-	 * @param inflater
-	 * @param title
-	 * @param details
-	 * @return the inflated view
-	 */
-	public View inflateResults(LayoutInflater inflater, final CharSequence title, final CharSequence details)
-		{
-		View view = inflater.inflate(R.layout.results_generic, null);
-		TextView  textView = (TextView) view.findViewById(android.R.id.text1);
-		textView.setText(title);
-
-
-		textView = (TextView) view.findViewById(android.R.id.text2);
-		textView.setText(details);
-
-		ImageView shareView = (ImageView) view.findViewById(R.id.share);
-		shareView.setOnClickListener(new View.OnClickListener()
-			{
-			public void onClick(View v)
-				{
-				String subject = "Shared stats from " + getString(R.string.app_name);
-				String text = "Stats: " + title + ":\n" + details;
 
 				Intent sendIntent = new Intent(Intent.ACTION_SEND);
 				sendIntent.setType("text/plain");

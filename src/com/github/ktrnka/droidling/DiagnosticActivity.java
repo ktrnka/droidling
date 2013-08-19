@@ -26,12 +26,12 @@ public class DiagnosticActivity extends SherlockActivity
 		mCardView = (CardUI) findViewById(R.id.cardsview);
 		mCardView.setSwipeable(false);
 		
-		mCardView.addCard(new TitledCard("Test Title"));
-		mCardView.addCard(new TitledCard("Test Title", "Test body content"));
-		mCardView.addCard(new TitledCard("Test Title", "Test body content 2\nThis is a newline!"));
-		mCardView.addCard(new TitledCard("Test Title", "Test body content 2\nThis is a newline!"));
-		mCardView.addCard(new TitledCard("Test Title", "Test body content 2\nThis is a newline!"));
-		mCardView.addCard(new TitledCard("Test Title", "Test body content 2\nThis is a newline!"));
+		mCardView.addCard(new ShareableCard("Test Title"));
+		mCardView.addCard(new ShareableCard("Test Title", "Test body content"));
+		mCardView.addCard(new ShareableCard("Test Title", "Test body content 2\nThis is a newline!"));
+		mCardView.addCard(new ShareableCard("Test Title", "Test body content 2\nThis is a newline!"));
+		mCardView.addCard(new ShareableCard("Test Title", "Test body content 2\nThis is a newline!"));
+		mCardView.addCard(new ShareableCard("Test Title", "Test body content 2\nThis is a newline!"));
 
 		// draw cards
 		mCardView.refresh();

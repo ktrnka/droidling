@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:paddingBottom="16dp" >
+    >
 
     <TextView
         android:id="@+id/title"
@@ -30,7 +30,6 @@
         android:id="@+id/sep"
         android:layout_width="fill_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="4dp"
         android:background="@color/stroke"
         android:layout_below="@id/title" />
 
@@ -39,6 +38,8 @@
         android:text="@string/testBody"
         style="@style/Card.RelativelayoutText.Subtext"
         android:layout_below="@id/sep"
+        android:layout_margin="8dp"
+        android:paddingBottom="8dp"
 		/>
 
 </RelativeLayout>
