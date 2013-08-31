@@ -28,7 +28,6 @@ import android.preference.PreferenceManager;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Profile;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageView;
@@ -111,7 +110,7 @@ public class MainActivity extends SherlockActivity
 	    cursor.close();
 	    
 	    Resources res = getResources();
-		int imageSize = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, res.getDimension(R.dimen.home_imagebutton_small_size), res.getDisplayMetrics());
+		int imageSize = res.getDimensionPixelSize(R.dimen.home_imagebutton_small_size);
 	    
 	    int photoIndex = 0;
 	    ImageAdapter adapter = new ImageAdapter((ExtendedApplication) getApplication(), photoUris, imageSize);
@@ -158,7 +157,7 @@ public class MainActivity extends SherlockActivity
 			});
 		
 		Resources res = getResources();
-		int imageSize = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, res.getDimension(R.dimen.home_imagebutton_size), res.getDisplayMetrics());
+		int imageSize = res.getDimensionPixelSize(R.dimen.home_imagebutton_size);
 
 	    final String[] projection = new String[]{ Profile._ID, Profile.DISPLAY_NAME_PRIMARY, Profile.PHOTO_URI, Profile.PHOTO_THUMBNAIL_URI };
 	    final Cursor cursor = getContentResolver().query(Profile.CONTENT_URI, projection, null, null, null);

@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -43,7 +42,7 @@ public class InterpersonalCard extends Card
 	private void apply(final View view)
 		{
 		Resources res = view.getResources();
-		int imageSize = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, res.getDimension(R.dimen.imagebutton_size), res.getDisplayMetrics());
+		int imageSize = res.getDimensionPixelSize(R.dimen.imagebutton_size);
 
 		((TextView) view.findViewById(R.id.title)).setText(title);
 		((TextView) view.findViewById(R.id.numSent)).setText(stats.numSentText);

@@ -19,4 +19,5 @@
 
 <resources>
     <color name="pressed_droidling">#CCA3D700</color>
+    <color name="home_button_background">#B2B2B200</color>
 </resources>
