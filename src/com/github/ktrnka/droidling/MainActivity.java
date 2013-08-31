@@ -145,7 +145,7 @@ public class MainActivity extends SherlockActivity
 		if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 			return;
 		
-		ImageButton profileButton = (ImageButton) findViewById(R.id.personalImageButton);
+		ImageView profileButton = (ImageView) findViewById(R.id.personalImageButton);
 		if (profileButton == null)
 			{
 			Log.e(TAG, "Failed to find ImageButton");

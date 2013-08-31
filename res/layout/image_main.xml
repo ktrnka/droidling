@@ -7,7 +7,7 @@
     
 <LinearLayout
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:gravity="center_horizontal"
     android:orientation="vertical" >
     
@@ -20,12 +20,16 @@
         android:layout_margin="16dp"
         >
 
-        <ImageButton
+        <ImageView
             android:id="@+id/personalImageButton"
             android:layout_width="@dimen/home_imagebutton_size"
             android:layout_height="@dimen/home_imagebutton_size"
             android:src="@drawable/ic_contact_picture"
-            android:contentDescription="@string/personalLabel" />
+            android:contentDescription="@string/personalLabel"
+            android:background="@drawable/selectable_background_droidling"
+            android:padding="8dp"
+            android:clickable="true"
+            />
 
         <TextView
             android:id="@+id/personalLabel"
@@ -49,9 +53,10 @@
             android:id="@+id/interpersonalTable"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:clickable="true"
-            android:background="@android:drawable/list_selector_background"
-            >
+            android:background="@drawable/selectable_background_droidling"
+            android:padding="8dp"
+            android:clickable="true" >
+
         </TableLayout>
 
         <TextView
