@@ -31,7 +31,6 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -46,10 +45,10 @@ public class MainActivity extends SherlockActivity
 	
 	public static final boolean DEVELOPER_MODE = true;
 	
-	public static final String TAG = "com.github.ktrnka.droidling.MainActivity";
+	public static final String TAG = "MainActivity";
 	
 	private static final long VERSION_NOT_FOUND = -1;
-	
+		
 	public void onCreate(Bundle savedInstanceState)
 		{
 		super.onCreate(savedInstanceState);
@@ -99,19 +98,14 @@ public class MainActivity extends SherlockActivity
 	    if (cursor.moveToFirst())
 	    	{
 	    	final int PHOTO_COL = cursor.getColumnIndex(Contacts.PHOTO_URI);
-	    	final int NAME_COL = cursor.getColumnIndex(Contacts.DISPLAY_NAME);
-	    	final int TIMES_CONTACTED_COL = cursor.getColumnIndex(Contacts.TIMES_CONTACTED);
 	    	
 	    	do {
-	    		String name = cursor.getString(NAME_COL);
-	    		int timesContacted = cursor.getInt(TIMES_CONTACTED_COL);
 	    		String photoUri = cursor.getString(PHOTO_COL);
 	    		
 	    		photoUris[numImages++] = photoUri;
 	    		if (numImages >= desiredImages)
 	    			break;
-	    		
-	    		//Log.i(TAG, name + ", contacted " + timesContacted + " times, " + photoUri);
+
 	    		} while (cursor.moveToNext());
 	    	}
 	    cursor.close();
@@ -142,6 +136,8 @@ public class MainActivity extends SherlockActivity
 	@SuppressLint("NewApi")
 	private void loadProfilePhoto()
 	    {
+	    final String TAG = MainActivity.TAG + ".loadProfilePhoto()";
+	    
 		if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 			return;
 		
@@ -179,15 +175,14 @@ public class MainActivity extends SherlockActivity
 	    		return;
 	    		}
 	    	
-			Log.d(TAG, "Photo uri: " + photoUri);
+			Log.i(TAG, "Photo uri: " + photoUri);
             try
 	            {
 	            setImage(profileButton, this, Uri.parse(photoUri), imageSize, imageSize);
 	            }
             catch (IOException e)
 	            {
-	            // TODO Auto-generated catch block
-	            e.printStackTrace();
+	            Log.e(TAG, "IOException in setting image", e);
 	            }
 	    	}
 	    cursor.close();

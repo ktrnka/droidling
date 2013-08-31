@@ -35,7 +35,7 @@ public class LanguageIdentificationActivity extends RefreshableActivity
 	private HashMap<String,CorpusStats> sentStats;
 	private HashMap<String,LanguageIdentifier.Identification> identifications;
 	
-	private static final String TAG = "com.github.ktrnka.droidling/LanguageIdentificationActivity";
+	private static final String TAG = "LanguageIdentificationActivity";
 	static final int PROGRESS_DIALOG = 0;
 	
 	public static final String LOAD_CONTACTS_KEY = "LanguageIdentificationActivity: loading contacts";

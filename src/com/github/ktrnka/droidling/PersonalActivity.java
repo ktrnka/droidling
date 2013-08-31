@@ -74,7 +74,7 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
 	public static final double shortMessageFactor = 1.3;
 	public static final double simplePhraseFactor = 1.6;
 	
-	private static final String TAG = "com.github.ktrnka.droidling.PersonalActivity";
+	private static final String TAG = "PersonalActivity";
 	
 	/**
 	 * the string or near-string stats to display

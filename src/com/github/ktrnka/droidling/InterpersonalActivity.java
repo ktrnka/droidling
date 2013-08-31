@@ -29,7 +29,7 @@ public class InterpersonalActivity extends RefreshableActivity
 	private boolean scanned;
 	private CardUI mCardView;
 
-	public static final String TAG = "com.github.ktrnka.droidling.InterpersonalActivity";
+	public static final String TAG = "InterpersonalActivity";
 	private static final String CONTACT_NAME = "contact";
 	private static final String DISPLAY_FILENAME = "InterpersonalActivity.cache";
 

@@ -14,7 +14,7 @@ import android.os.Bundle;
  */
 public class DiagnosticActivity extends SherlockActivity
 	{
-	private static final String TAG = "com.github.ktrnka.droidling/DiagnosticActivity";
+	private static final String TAG = "DiagnosticActivity";
 	private CardUI mCardView;
 
 	public void onCreate(Bundle savedInstanceState)

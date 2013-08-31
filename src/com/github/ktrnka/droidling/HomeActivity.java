@@ -38,7 +38,7 @@ public class HomeActivity extends SherlockListActivity
 	
 	public static final boolean DEVELOPER_MODE = true;
 	
-	public static final String TAG = "com.github.ktrnka.droidling.HomeActivity";
+	public static final String TAG = "HomeActivity";
 	
 	private static final long VERSION_NOT_FOUND = -1;
 	

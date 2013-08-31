@@ -19,7 +19,7 @@ import com.github.ktrnka.droidling.helpers.BitmapLoaderTask;
 
 public class InterpersonalCard extends Card
 	{
-	private static final String TAG = "com.github.ktrnka.droidling.InterpersonalCard";
+	private static final String TAG = "InterpersonalCard";
 	// TODO: Investigate whether this will cause memory leaks by preventing GC
 	// of the activity.
 	private Context activityContext;

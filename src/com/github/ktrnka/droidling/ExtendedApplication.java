@@ -26,7 +26,7 @@ import android.util.Log;
  */
 public class ExtendedApplication extends Application
 	{
-	private static final String TAG = "com.github.ktrnka.droidling.ExtendedApplication";
+	private static final String TAG = "ExtendedApplication";
 	private HashMap<String,ArrayList<String[]>> contactMap;
 	private Runnable contactThread;
 	
@@ -66,6 +66,7 @@ public class ExtendedApplication extends Application
 	 */
 	public boolean blockingLoadContacts()
 		{
+		final String TAG = ExtendedApplication.TAG + ".blockingLoadContacts()";
 		if (contactMap != null)
 			return true;
 		
@@ -232,6 +233,7 @@ public class ExtendedApplication extends Application
 	 */
 	public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight)
 		{
+		final String TAG = ExtendedApplication.TAG + ".calculateInSampleSize(...)";
 		// Raw height and width of image
 		final int height = options.outHeight;
 		final int width = options.outWidth;
@@ -245,7 +247,7 @@ public class ExtendedApplication extends Application
 			final int heightRatio = Math.round((float) height / (float) reqHeight);
 			final int widthRatio = Math.round((float) width / (float) reqWidth);
 			
-			Log.d(TAG, String.format("Suggesting resample from %d x %d to %d x %d", width, height, reqWidth, reqHeight));
+			Log.i(TAG, String.format("Suggesting resample from %d x %d to %d x %d", width, height, reqWidth, reqHeight));
 
 			// Choose the smallest ratio as inSampleSize value, this will
 			// guarantee
@@ -255,7 +257,7 @@ public class ExtendedApplication extends Application
 			}
 		else
 			{
-			Log.d(TAG, String.format("Not suggesting resample; at %d x %d, need %d x %d", width, height, reqWidth, reqHeight));
+			Log.i(TAG, String.format("Not suggesting resample; at %d x %d, need %d x %d", width, height, reqWidth, reqHeight));
 			}
 
 		return inSampleSize;
@@ -263,6 +265,7 @@ public class ExtendedApplication extends Application
 	
 	public Bitmap loadBitmapFromUri(Context context, Uri imageUri, int reqWidth, int reqHeight) throws IOException
 		{
+		final String TAG = ExtendedApplication.TAG + ".loadBitmapFromUri(...)";
 		// check the cache
 		if (bitmapCache != null)
 			{
@@ -306,6 +309,8 @@ public class ExtendedApplication extends Application
 	
 	public Bitmap loadBitmapFromResources(Context context, int drawableId, int reqWidth, int reqHeight)
 		{
+		final String TAG = ExtendedApplication.TAG + ".loadBitmapFromResources(...)";
+
 		// check the cache
 		if (bitmapCache != null)
 			{
