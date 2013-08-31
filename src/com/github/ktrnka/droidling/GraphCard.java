@@ -121,7 +121,7 @@ public class GraphCard extends Card
 				return;
 			
 			File file;
-			if (android.os.Build.VERSION.SDK_INT >= 1000)
+			if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO)
 				{
 				file = new File(context.getExternalFilesDir(null), FILENAME);
 				Log.i("GraphCard", "Sharing using external files dir new API");

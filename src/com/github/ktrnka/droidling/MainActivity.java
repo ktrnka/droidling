@@ -5,9 +5,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Formatter;
 
-import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.app.SherlockActivity;
 import com.github.ktrnka.droidling.R;
+import com.github.ktrnka.droidling.helpers.AsyncDrawable;
+import com.github.ktrnka.droidling.helpers.BitmapLoaderTask;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -15,30 +18,35 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.ContactsContract.Contacts;
+import android.provider.ContactsContract.Profile;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TableLayout;
+import android.widget.TableRow;
+
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
-import android.view.View;
-import android.widget.ListView;
-import android.widget.Toast;
 
-public class HomeActivity extends SherlockListActivity
+public class MainActivity extends SherlockActivity
 	{
 	public static final String PACKAGE_NAME = "com.github.ktrnka.droidling";
-	private static final int[] nameIDs = { R.string.personal_name, R.string.interpersonal_name, R.string.lid_name, R.string.email_name, R.string.rate_name, R.string.diagnostics, R.string.diagnostics };
-	private static final int[] descriptionIDs = { R.string.personal_description, R.string.interpersonal_description, 0, R.string.email_description, R.string.rate_description, 0, 0 };
-	
-	// TODO:  I don't like how this uses parallel arrays.  I'd much rather do something like make an instance that has all this
-	private static final Class<?>[] activities = { PersonalActivity.class, InterpersonalActivity.class, LanguageIdentificationActivity.class, null, null, DiagnosticActivity.class, MainActivity.class };
 	
 	public static final boolean DEVELOPER_MODE = true;
 	
-	public static final String TAG = "com.github.ktrnka.droidling.HomeActivity";
+	public static final String TAG = "com.github.ktrnka.droidling.MainActivity";
 	
 	private static final long VERSION_NOT_FOUND = -1;
 	
@@ -46,9 +54,154 @@ public class HomeActivity extends SherlockListActivity
 		{
 		super.onCreate(savedInstanceState);
 		
-		checkShowWhatsNew();
+		setContentView(R.layout.image_main);
+		loadContactPhotos();
 		
-		setListAdapter(new DescriptionMenuAdapter(this, getStrings(nameIDs), getStrings(descriptionIDs)));
+		checkShowWhatsNew();
+		}
+	
+	public void onStart()
+		{
+		super.onStart();
+		
+		loadProfilePhoto();
+		}
+
+	// TODO: run this as an asynctask
+	private void loadContactPhotos()
+	    {
+	    TableLayout photoTable = (TableLayout) findViewById(R.id.interpersonalTable);
+	    if (photoTable == null)
+	    	{
+	    	Log.e(TAG, "Failed to find interpersonal table");
+	    	return;
+	    	}
+	    
+	    photoTable.setOnClickListener(new OnClickListener()
+			{
+			public void onClick(View v)
+	            {
+	            Intent intent = new Intent(MainActivity.this, InterpersonalActivity.class);
+				startActivity(intent);
+	            }
+			});
+	    
+	    final int COLUMNS = 3;
+	    final int ROWS = 3;
+	    int desiredImages = COLUMNS * ROWS;
+	    String[] photoUris = new String[desiredImages];
+	    int numImages = 0;
+	    
+	    final String[] projection = new String[] { Contacts._ID, Contacts.DISPLAY_NAME, Contacts.PHOTO_URI, Contacts.PHOTO_THUMBNAIL_URI, Contacts.TIMES_CONTACTED };
+	    final String selection = Contacts.PHOTO_URI + "!=? AND " + Contacts.TIMES_CONTACTED + ">?";
+	    final String[] selectionArgs = new String[]{ "null", "0" };
+	    final Cursor cursor = getContentResolver().query(Contacts.CONTENT_URI, projection, selection, selectionArgs, Contacts.TIMES_CONTACTED + " DESC");
+	    if (cursor.moveToFirst())
+	    	{
+	    	final int PHOTO_COL = cursor.getColumnIndex(Contacts.PHOTO_URI);
+	    	final int NAME_COL = cursor.getColumnIndex(Contacts.DISPLAY_NAME);
+	    	final int TIMES_CONTACTED_COL = cursor.getColumnIndex(Contacts.TIMES_CONTACTED);
+	    	
+	    	do {
+	    		String name = cursor.getString(NAME_COL);
+	    		int timesContacted = cursor.getInt(TIMES_CONTACTED_COL);
+	    		String photoUri = cursor.getString(PHOTO_COL);
+	    		
+	    		photoUris[numImages++] = photoUri;
+	    		if (numImages >= desiredImages)
+	    			break;
+	    		
+	    		//Log.i(TAG, name + ", contacted " + timesContacted + " times, " + photoUri);
+	    		} while (cursor.moveToNext());
+	    	}
+	    cursor.close();
+	    
+	    Resources res = getResources();
+		int imageSize = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, res.getDimension(R.dimen.home_imagebutton_small_size), res.getDisplayMetrics());
+	    
+	    int photoIndex = 0;
+	    ImageAdapter adapter = new ImageAdapter((ExtendedApplication) getApplication(), photoUris, imageSize);
+	    for (int row = 0; row < ROWS; row++)
+	    	{
+	    	TableRow tableRow = new TableRow(this);
+	    	for (int col = 0; col < COLUMNS; col++)
+	    		{
+	    		View photoView = adapter.getView(photoIndex, null, tableRow);
+	    		
+	    		TableRow.LayoutParams params = new TableRow.LayoutParams();
+	    		params.width = imageSize;
+	    		params.height = imageSize;
+	    		
+	    		tableRow.addView(photoView, params);
+	    		photoIndex++;
+	    		}
+	    	photoTable.addView(tableRow);
+	    	}
+	    }
+
+	@SuppressLint("NewApi")
+	private void loadProfilePhoto()
+	    {
+		if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+			return;
+		
+		ImageButton profileButton = (ImageButton) findViewById(R.id.personalImageButton);
+		if (profileButton == null)
+			{
+			Log.e(TAG, "Failed to find ImageButton");
+			return;
+			}
+		
+		profileButton.setOnClickListener(new OnClickListener()
+			{
+			public void onClick(View v)
+	            {
+	            Intent intent = new Intent(MainActivity.this, PersonalActivity.class);
+				startActivity(intent);
+	            }
+			});
+		
+		Resources res = getResources();
+		int imageSize = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, res.getDimension(R.dimen.home_imagebutton_size), res.getDisplayMetrics());
+
+	    final String[] projection = new String[]{ Profile._ID, Profile.DISPLAY_NAME_PRIMARY, Profile.PHOTO_URI, Profile.PHOTO_THUMBNAIL_URI };
+	    final Cursor cursor = getContentResolver().query(Profile.CONTENT_URI, projection, null, null, null);
+	    Log.i(TAG, "Number of profile entries: " + cursor.getCount());
+	    if (cursor.moveToFirst())
+	    	{
+	    	final int PHOTO_URI_COL = cursor.getColumnIndex(Profile.PHOTO_URI);
+	    	
+	    	String photoUri = cursor.getString(PHOTO_URI_COL);
+	    	if (photoUri == null)
+	    		{
+	    		Log.e(TAG, "Profile photo URI is null!");
+	    		cursor.close();
+	    		return;
+	    		}
+	    	
+			Log.d(TAG, "Photo uri: " + photoUri);
+            try
+	            {
+	            setImage(profileButton, this, Uri.parse(photoUri), imageSize, imageSize);
+	            }
+            catch (IOException e)
+	            {
+	            // TODO Auto-generated catch block
+	            e.printStackTrace();
+	            }
+	    	}
+	    cursor.close();
+	    }
+	
+	private void setImage(ImageView imageView, Context context, Uri imageUri, int width, int height) throws IOException
+		{
+		if (!BitmapLoaderTask.cancelPotentialWork(imageView, imageUri))
+			{
+			BitmapLoaderTask task = new BitmapLoaderTask(imageView, width, height, (ExtendedApplication) getApplication());
+			AsyncDrawable placeholder = new AsyncDrawable(context.getResources(), null, task);
+			imageView.setImageDrawable(placeholder);
+			task.execute(imageUri);
+			}
 		}
 
 	/**
@@ -89,7 +242,7 @@ public class HomeActivity extends SherlockListActivity
 	public boolean onCreateOptionsMenu(Menu menu)
 		{
 		MenuInflater inflater = getSupportMenuInflater();
-		inflater.inflate(R.menu.help, menu);
+		inflater.inflate(R.menu.new_help, menu);
 		return true;
 		}
 	
@@ -102,30 +255,16 @@ public class HomeActivity extends SherlockListActivity
 				Intent intent = new Intent(this, AboutActivity.class);
 				startActivity(intent);
 				break;
+			case R.id.rateMenu:
+				rateApp();
+				break;
+			case R.id.feedbackMenu:
+				sendFeedback();
+				break;
 			default:
 				Log.e(TAG, "Undefined menu item selected");
 			}
 		return false;
-		}
-
-	/**
-	 * Utility function to get strings for an array of IDs.
-	 * @param stringIDs
-	 * @return
-	 */
-	private String[] getStrings(int[] stringIDs)
-		{
-		if (stringIDs == null)
-			return null;
-		
-		String[] strings = new String[stringIDs.length];
-		for (int i = 0; i < stringIDs.length; i++)
-			if (stringIDs[i] != 0)
-				strings[i] = getString(stringIDs[i]);
-			else
-				strings[i] = null;
-		
-		return strings;
 		}
 
 	/**
@@ -165,7 +304,7 @@ public class HomeActivity extends SherlockListActivity
 				if (isCancelled() || result == null)
 					return;
 				
-				AlertDialog.Builder alertBuilder = new AlertDialog.Builder(HomeActivity.this);
+				AlertDialog.Builder alertBuilder = new AlertDialog.Builder(MainActivity.this);
 				alertBuilder.setTitle("What's New");
 				alertBuilder.setMessage(result);
 				alertBuilder.setIcon(android.R.drawable.ic_menu_help);
@@ -175,28 +314,6 @@ public class HomeActivity extends SherlockListActivity
 				}
 			
 			}.execute();
-		}
-
-	public void onListItemClick(ListView list, View view, int position, long id)
-		{
-		if (position < activities.length && activities[position] != null)
-			{
-			// launch the activity if it's found
-			Intent intent = new Intent(this, activities[position]);
-			startActivity(intent);
-			}
-		else if (position < nameIDs.length && nameIDs[position] == R.string.email_name)
-			{
-			sendFeedback();
-			}
-		else if (position < nameIDs.length && nameIDs[position] == R.string.rate_name)
-			{
-			rateApp();
-			}
-		else
-			{
-			Toast.makeText(getApplicationContext(), getString(R.string.not_implemented), Toast.LENGTH_SHORT).show();
-			}
 		}
 	
 	private void rateApp()
