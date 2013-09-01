@@ -3,6 +3,7 @@
  */
 package com.github.ktrnka.droidling;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -10,12 +11,17 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import android.app.Application;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.CommonDataKinds;
+import android.provider.ContactsContract.Contacts;
 import android.support.v4.util.LruCache;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
@@ -72,33 +78,66 @@ public class ExtendedApplication extends Application
 		
 		contactMap = new HashMap<String,ArrayList<String[]>>();
 
-		String numberName = ContactsContract.CommonDataKinds.Phone.NUMBER;
-		String labelName = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME;
-		String idName = ContactsContract.CommonDataKinds.Phone._ID;
-		String photoIdName = ContactsContract.CommonDataKinds.Phone.PHOTO_ID;
-		String photoUriName = ContactsContract.CommonDataKinds.Phone.PHOTO_URI;
-		String typeName = ContactsContract.CommonDataKinds.Phone.TYPE;
+		String numberName = CommonDataKinds.Phone.NUMBER;
+		String labelName = CommonDataKinds.Phone.DISPLAY_NAME;
+		String idName = CommonDataKinds.Phone._ID;
+		String photoIdName = CommonDataKinds.Phone.PHOTO_ID;
+		String photoUriName = CommonDataKinds.Phone.PHOTO_URI;
+		String typeName = CommonDataKinds.Phone.TYPE;
 		
-		String[] phoneLookupProjection = new String[] { numberName, labelName, idName, photoIdName, photoUriName, typeName };
+		String[] phoneLookupProjection;
+		if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+			phoneLookupProjection = new String[] { numberName, labelName, idName, photoIdName, photoUriName, typeName };
+		else
+			phoneLookupProjection = new String[] { numberName, labelName, idName, CommonDataKinds.Phone.CONTACT_ID, photoIdName, typeName };
 
-		Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+		ContentResolver cr = getContentResolver();
+		Cursor phones = cr.query(CommonDataKinds.Phone.CONTENT_URI,
 				phoneLookupProjection, null, null, null);
 
 		if (phones.moveToFirst())
 			{
 			final int phoneIndex = phones.getColumnIndex(numberName);
 			final int labelIndex = phones.getColumnIndex(labelName);
-			final int photoUriIndex = phones.getColumnIndex(photoUriName);
 			final int typeIndex = phones.getColumnIndex(typeName);
 			
+			final int idIndex = phones.getColumnIndex(CommonDataKinds.Phone.CONTACT_ID);
+			final int photoUriIndex = phones.getColumnIndex(photoUriName);
+
 			do
 				{
 				String number = phones.getString(phoneIndex);
 				String label = phones.getString(labelIndex);
-				
-				//long photoId = phones.getLong(photoIdIndex);
-				String photoUri = phones.getString(photoUriIndex);
 				int type = phones.getInt(typeIndex);
+
+				String photoUri;
+				if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+					{
+					photoUri = phones.getString(photoUriIndex);
+					}
+				else
+					{
+					int contactId = phones.getInt(idIndex);
+		    		Uri contactPhotoUri = ContentUris.withAppendedId(Contacts.CONTENT_URI, contactId);
+	    			InputStream input = ContactsContract.Contacts.openContactPhotoInputStream(cr, contactPhotoUri);
+	    			if (input != null)
+	    				{
+	    				photoUri = contactPhotoUri.toString();
+	    				try
+	                        {
+	                        input.close();
+	                        }
+                        catch (IOException e)
+	                        {
+	                        Log.e(TAG, "Failed to close InputStream", e);
+	                        }
+	    				}
+	    			else
+	    				{
+	    				photoUri = null;
+	    				}
+					}
+				
 				
 				Log.i(TAG, "Loading contact " + label + " " + number + " " + type + " " + photoUri);
 				
@@ -281,7 +320,8 @@ public class ExtendedApplication extends Application
 				}
 			}
 		
-		InputStream in = context.getContentResolver().openInputStream(imageUri);
+		ContentResolver cr = context.getContentResolver();
+		InputStream in = openInputStream(cr, imageUri);
 	
 		// check dimensions
 		final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -294,7 +334,7 @@ public class ExtendedApplication extends Application
 	
 		// Decode bitmap with inSampleSize set
 		options.inJustDecodeBounds = false;
-		in = context.getContentResolver().openInputStream(imageUri);           
+		in = openInputStream(cr, imageUri);         
 		Bitmap bitmap = BitmapFactory.decodeStream(in, null, options);
 		in.close();
 		
@@ -305,6 +345,14 @@ public class ExtendedApplication extends Application
 			}
 
 		return bitmap;
+		}
+	
+	private InputStream openInputStream(ContentResolver cr, Uri contactPhotoUri) throws FileNotFoundException
+		{
+		if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+			return cr.openInputStream(contactPhotoUri);
+		else
+			return ContactsContract.Contacts.openContactPhotoInputStream(cr, contactPhotoUri);
 		}
 	
 	public Bitmap loadBitmapFromResources(Context context, int drawableId, int reqWidth, int reqHeight)

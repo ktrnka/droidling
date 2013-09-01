@@ -2,6 +2,7 @@ package com.github.ktrnka.droidling;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Formatter;
 
@@ -12,6 +13,8 @@ import com.github.ktrnka.droidling.helpers.BitmapLoaderTask;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -25,7 +28,10 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.ContactsContract;
+import android.provider.ContactsContract.CommonDataKinds;
 import android.provider.ContactsContract.Contacts;
+import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.Profile;
 import android.util.Log;
 import android.view.View;
@@ -68,8 +74,6 @@ public class MainActivity extends SherlockActivity
 	// TODO: run this as an asynctask
 	private void loadContactPhotos()
 	    {
-		if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB)
-			return;
 
 	    TableLayout photoTable = (TableLayout) findViewById(R.id.interpersonalTable);
 	    if (photoTable == null)
@@ -91,26 +95,8 @@ public class MainActivity extends SherlockActivity
 	    final int ROWS = 3;
 	    int desiredImages = COLUMNS * ROWS;
 	    String[] photoUris = new String[desiredImages];
-	    int numImages = 0;
-	    
-	    final String[] projection = new String[] { Contacts._ID, Contacts.DISPLAY_NAME, Contacts.PHOTO_URI, Contacts.PHOTO_THUMBNAIL_URI, Contacts.TIMES_CONTACTED };
-	    final String selection = Contacts.PHOTO_URI + "!=? AND " + Contacts.TIMES_CONTACTED + ">?";
-	    final String[] selectionArgs = new String[]{ "null", "0" };
-	    final Cursor cursor = getContentResolver().query(Contacts.CONTENT_URI, projection, selection, selectionArgs, Contacts.TIMES_CONTACTED + " DESC");
-	    if (cursor.moveToFirst())
-	    	{
-	    	final int PHOTO_COL = cursor.getColumnIndex(Contacts.PHOTO_URI);
-	    	
-	    	do {
-	    		String photoUri = cursor.getString(PHOTO_COL);
-	    		
-	    		photoUris[numImages++] = photoUri;
-	    		if (numImages >= desiredImages)
-	    			break;
 
-	    		} while (cursor.moveToNext());
-	    	}
-	    cursor.close();
+	    int numImages = loadContactPhotoUris(photoUris);
 	    
 	    Resources res = getResources();
 		int imageSize = res.getDimensionPixelSize(R.dimen.home_imagebutton_small_size);
@@ -122,6 +108,9 @@ public class MainActivity extends SherlockActivity
 	    	TableRow tableRow = new TableRow(this);
 	    	for (int col = 0; col < COLUMNS; col++)
 	    		{
+	    		if (photoIndex >= numImages)
+	    			break;
+	    		
 	    		View photoView = adapter.getView(photoIndex, null, tableRow);
 	    		
 	    		TableRow.LayoutParams params = new TableRow.LayoutParams();
@@ -135,14 +124,99 @@ public class MainActivity extends SherlockActivity
 	    	}
 	    }
 
+	/**
+	 * 
+	 * @param photoUris array to populate, assumed non-null
+	 * @return number of URIs loaded into photoUris
+	 */
+	private int loadContactPhotoUris(String[] photoUris)
+	    {
+	    int numImages = 0;
+	    
+		if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+			{
+		    final String[] projection = new String[] { Contacts._ID, Contacts.DISPLAY_NAME, Contacts.PHOTO_ID, Contacts.PHOTO_URI, Contacts.PHOTO_THUMBNAIL_URI, Contacts.TIMES_CONTACTED };
+		    final String selection = Contacts.PHOTO_URI + "!=? AND " + Contacts.TIMES_CONTACTED + ">?";
+		    final String[] selectionArgs = new String[]{ "null", "0" };
+		    final Cursor cursor = getContentResolver().query(Contacts.CONTENT_URI, projection, selection, selectionArgs, Contacts.TIMES_CONTACTED + " DESC");
+		    
+		    if (cursor.moveToFirst())
+		    	{
+		    	final int DISPLAY_COL = cursor.getColumnIndex(Contacts.DISPLAY_NAME);
+		    	final int PHOTO_COL = cursor.getColumnIndex(Contacts.PHOTO_URI);
+		    	final int PHOTO_THUMB_COL = cursor.getColumnIndex(Contacts.PHOTO_THUMBNAIL_URI);
+		    	final int PHOTO_ID_COL = cursor.getColumnIndex(Contacts.PHOTO_ID);
+		    	
+		    	do {
+		    		String photoUri = cursor.getString(PHOTO_COL);
+		    		
+		    		int photoId = cursor.getInt(PHOTO_ID_COL);
+		    		String thumbUri = cursor.getString(PHOTO_THUMB_COL);
+		    		String name = cursor.getString(DISPLAY_COL);
+		    		
+		    		Log.i(TAG, String.format("loadContactPhotoUris(%s): ID=%d, full URI=%s, thumb=%s", name, photoId, photoUri, thumbUri));
+		    		
+		    		photoUris[numImages++] = photoUri;
+		    		if (numImages >= photoUris.length)
+		    			break;
+	
+		    		} while (cursor.moveToNext());
+		    	}
+		    cursor.close();
+			}
+		else
+			{
+			// basic query without the honeycomb stuff
+		    final String[] projection = new String[] { Contacts._ID, Contacts.DISPLAY_NAME, Contacts.PHOTO_ID, Contacts.TIMES_CONTACTED };
+		    final String selection = Contacts.TIMES_CONTACTED + ">?";
+		    final String[] selectionArgs = new String[]{ "0" };
+		    final ContentResolver cr = getContentResolver();
+		    final Cursor cursor = cr.query(Contacts.CONTENT_URI, projection, selection, selectionArgs, Contacts.TIMES_CONTACTED + " DESC");
+
+		    if (cursor.moveToFirst())
+		    	{
+		    	final int ID_COL = cursor.getColumnIndex(Contacts._ID);
+		    	final int DISPLAY_COL = cursor.getColumnIndex(Contacts.DISPLAY_NAME);
+		    	final int PHOTO_ID_COL = cursor.getColumnIndex(Contacts.PHOTO_ID);
+		    	
+		    	do {
+		    		int contactId = cursor.getInt(ID_COL);
+		    		int photoId = cursor.getInt(PHOTO_ID_COL);
+		    		String name = cursor.getString(DISPLAY_COL);
+		    		
+		    		Uri contactPhotoUri = ContentUris.withAppendedId(Contacts.CONTENT_URI, contactId);
+	    			InputStream input = ContactsContract.Contacts.openContactPhotoInputStream(cr, contactPhotoUri);
+		    		Log.i(TAG, String.format("loadContactPhotoUris(%s): ID=%d, PHOTO_ID=%s, InputStream=%s, URI=%s", name, contactId, photoId, (input == null ? "null" : "non-null"), contactPhotoUri.toString()));
+
+		    		if (input == null)
+		    			continue;
+		    		
+		    		try
+	                    {
+	                    input.close();
+	                    }
+                    catch (IOException e)
+	                    {
+	                    Log.e(TAG, "Failed to close InputStream", e);
+	                    }
+		    		
+		    		photoUris[numImages++] = contactPhotoUri.toString();
+		    		if (numImages >= photoUris.length)
+		    			break;
+	
+		    		} while (cursor.moveToNext());
+		    	}
+		    cursor.close();
+			}
+	    
+	    return numImages;
+	    }
+
 	@SuppressLint("NewApi")
 	private void loadProfilePhoto()
 	    {
 	    final String TAG = MainActivity.TAG + ".loadProfilePhoto()";
 	    
-		if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-			return;
-		
 		ImageView profileButton = (ImageView) findViewById(R.id.personalImageButton);
 		if (profileButton == null)
 			{
@@ -159,6 +233,9 @@ public class MainActivity extends SherlockActivity
 	            }
 			});
 		
+		if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+			return;
+
 		Resources res = getResources();
 		int imageSize = res.getDimensionPixelSize(R.dimen.home_imagebutton_size);
 
