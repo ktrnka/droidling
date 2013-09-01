@@ -68,6 +68,9 @@ public class MainActivity extends SherlockActivity
 	// TODO: run this as an asynctask
 	private void loadContactPhotos()
 	    {
+		if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB)
+			return;
+
 	    TableLayout photoTable = (TableLayout) findViewById(R.id.interpersonalTable);
 	    if (photoTable == null)
 	    	{
@@ -243,10 +246,11 @@ public class MainActivity extends SherlockActivity
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 		{
+		Intent intent;
 		switch (item.getItemId())
 			{
 			case R.id.helpMenu:
-				Intent intent = new Intent(this, AboutActivity.class);
+				intent = new Intent(this, AboutActivity.class);
 				startActivity(intent);
 				break;
 			case R.id.rateMenu:
@@ -254,6 +258,10 @@ public class MainActivity extends SherlockActivity
 				break;
 			case R.id.feedbackMenu:
 				sendFeedback();
+				break;
+			case R.id.lidMenu:
+				intent = new Intent(this, LanguageIdentificationActivity.class);
+				startActivity(intent);
 				break;
 			default:
 				Log.e(TAG, "Undefined menu item selected");

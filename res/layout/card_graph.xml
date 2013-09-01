@@ -41,6 +41,7 @@
         android:layout_centerHorizontal="true"
         android:layout_below="@id/sep"
         android:layout_alignParentLeft="true"
+        android:layout_marginTop="16dp"
         >
     </LinearLayout>
 
