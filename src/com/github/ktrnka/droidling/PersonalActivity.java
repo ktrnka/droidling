@@ -691,8 +691,8 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
 	    {
 		// RUNTIME DISPLAY
 		final String runtimeString;
-		if (HomeActivity.DEVELOPER_MODE)
-			runtimeString = HomeActivity.summarizeRuntime(getApplicationContext(), PROFILING_KEY_ORDER);
+		if (MainActivity.DEVELOPER_MODE)
+			runtimeString = MainActivity.summarizeRuntime(getApplicationContext(), PROFILING_KEY_ORDER);
 		else
 			runtimeString = null;
 		

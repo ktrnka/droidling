@@ -65,7 +65,7 @@
 	<string name="shared_with_them">with texts to them: %.1f%%</string>
 	<string name="shared_with_all">with ALL your texts: %.1f%%</string>
 	<string name="credits_other">Language resources provided by\n   Hans Christensen (<a href="http://corpora.heliohost.org">web</a>, <a href="mailto:hc.corpus@gmail.com">email</a>)\n   Hermit Dave (<a href="http://invokeit.wordpress.com/frequency-word-lists/">web</a>)\n   Keith Vertanen (<a href="http://www.keithv.com/software/">web</a>)</string>
-	<string name="credits_libraries">Third-party libraries\n   <a href="http://www.achartengine.org/">AChartEngine</a> for the graphs\n   <a href="http://actionbarsherlock.com/">ActionBarSherlock</a> for action bars on older Android versions</string>
+	<string name="credits_libraries">Third-party libraries\n   <a href="http://www.achartengine.org/">AChartEngine</a> for the graphs\n   <a href="http://actionbarsherlock.com/">ActionBarSherlock</a> for action bars on older Android versions\n    <a href="https://github.com/Androguide/cardsui-for-android">CardsUI</a> for card layouts</string>
 	<string name="credits_author">Keith Trnka (<a href="mailto:trnka.dev@gmail.com">email</a>)</string>
 	<string name="menu_refresh">Refresh</string>
 	<string name="menu_help">Help</string>

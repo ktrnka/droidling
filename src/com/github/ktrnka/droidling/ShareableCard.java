@@ -61,7 +61,7 @@ public class ShareableCard extends Card
 
 	public int getCardContentId()
 		{
-		return R.layout.card_example_relative;
+		return R.layout.card_shareable;
 		}
 
 	@Override

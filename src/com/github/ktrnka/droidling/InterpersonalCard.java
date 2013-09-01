@@ -36,7 +36,7 @@ public class InterpersonalCard extends Card
 
 	public int getCardContentId()
 		{
-		return R.layout.card_interpersonal2;
+		return R.layout.card_interpersonal;
 		}
 	
 	private void apply(final View view)

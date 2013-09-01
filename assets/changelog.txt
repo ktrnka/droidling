@@ -1,7 +1,9 @@
 Version 1.2 (2013-09-??)
--UI resdesign to use Google cards
--Contact photos in interpersonal stats
 -More beautiful navigation screen
+-Contact photos in interpersonal stats
+-UI resdesign to use Google cards
+-Themed colors
+-Redesigned icon
 
 Version 1.1 (2013-07-03)
 -Saves your stats for faster load next time

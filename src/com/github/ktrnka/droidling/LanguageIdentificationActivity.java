@@ -105,7 +105,7 @@ public class LanguageIdentificationActivity extends RefreshableActivity
 
 	private void buildRuntimeDisplay()
 		{
-		final String runtimeString = HomeActivity.summarizeRuntime(getApplicationContext(), PROFILING_KEY_ORDER);
+		final String runtimeString = MainActivity.summarizeRuntime(getApplicationContext(), PROFILING_KEY_ORDER);
 		
 		runOnUiThread(new Runnable()
 			{
@@ -294,7 +294,7 @@ public class LanguageIdentificationActivity extends RefreshableActivity
 		buildLIDDisplays();
 		setPreference(GENERATE_TEXT_KEY, System.currentTimeMillis() - time);
 		
-		if (HomeActivity.DEVELOPER_MODE)
+		if (MainActivity.DEVELOPER_MODE)
 			buildRuntimeDisplay();
 	    }
 

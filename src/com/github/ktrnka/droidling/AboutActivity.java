@@ -24,7 +24,7 @@ public class AboutActivity extends SherlockActivity
     public void onCreate(Bundle savedInstanceState)
 		{
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.about);
+		setContentView(R.layout.about_app);
 		
 		// add version string
 		PackageManager manager = this.getPackageManager();

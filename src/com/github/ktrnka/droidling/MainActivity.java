@@ -29,9 +29,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
-import android.provider.ContactsContract.CommonDataKinds;
 import android.provider.ContactsContract.Contacts;
-import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.Profile;
 import android.util.Log;
 import android.view.View;
@@ -58,7 +56,7 @@ public class MainActivity extends SherlockActivity
 		{
 		super.onCreate(savedInstanceState);
 		
-		setContentView(R.layout.image_main);
+		setContentView(R.layout.main_activity);
 		loadContactPhotos();
 		
 		checkShowWhatsNew();
