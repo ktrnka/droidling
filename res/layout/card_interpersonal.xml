@@ -42,96 +42,14 @@
         android:layout_height="1dp"
         android:background="@color/stroke"
         android:layout_below="@id/title" />
-
+    
     <TextView
-        android:id="@+id/numSent"
-        android:text="They sent X You sent Y"
+        android:id="@+id/mainText"
         style="@style/Card.RelativelayoutText.Subtext"
-        android:layout_below="@id/sep"
         android:layout_alignParentLeft="true"
+        android:layout_below="@id/sep"
         android:layout_marginTop="@dimen/title_margin_vert"
-        />
-    
-    <TextView
-        android:id="@+id/averageMessageLengthTitle"
-        android:text="@string/average_message_length_header"
-        android:layout_below="@id/numSent"
-        style="@style/Card.RelativelayoutText.Subtitle"
-        />
-    
-    <TextView
-        android:id="@+id/averageMessageLength"
-        android:text="The average message length goes here!"
-        style="@style/Card.RelativelayoutText.Subtext"
-        android:layout_below="@id/averageMessageLengthTitle"
-        />
-    
-    <TextView
-        android:id="@+id/sharedVocabTitle"
-        android:text="@string/shared_vocabulary_header"
-        style="@style/Card.RelativelayoutText.Subtitle"
-        android:layout_below="@id/averageMessageLength"
-        />
-    
-    <TextView
-        android:id="@+id/sharedVocab"
-        android:text="Shared vocabulary stat goes here!"
-        style="@style/Card.RelativelayoutText.Subtext"
-        android:layout_below="@id/sharedVocabTitle"
-        />
-    
-    <TextView
-        android:id="@+id/sharedPhrasesTitle"
-        android:text="@string/shared_phrases_title"
-        style="@style/Card.RelativelayoutText.Subtitle"
-        android:layout_below="@id/sharedVocab"
-        />
-    
-    <TextView
-        android:id="@+id/sharedPhrases"
-        android:text="Shared vocabulary list goes here!"
-        style="@style/Card.RelativelayoutText.Subtext"
-        android:layout_below="@id/sharedPhrasesTitle"
-        />
-    
-    <TextView
-        android:id="@+id/responseTimeTitle"
-        android:text="@string/response_time_title"
-        style="@style/Card.RelativelayoutText.Subtitle"
-        android:layout_below="@id/sharedPhrases"
-        />
-    
-    <TextView
-        android:id="@+id/responseTime"
-        android:text="Response time goes here!"
-        style="@style/Card.RelativelayoutText.Subtext"
-        android:layout_below="@id/responseTimeTitle"
-        />
-    
-    <TextView
-        android:id="@+id/bigramGenerationTitle"
-        style="@style/Card.RelativelayoutText.Subtitle"
-        android:layout_below="@id/responseTime"
-        android:text="@string/randomBigramTitle" />
-    
-    <TextView
-        android:id="@+id/bigramGeneration"
-        android:text="Bigram generation goes here!"
-        style="@style/Card.RelativelayoutText.Subtext"
-        android:layout_below="@id/bigramGenerationTitle"
-        />
-    
-    <TextView
-        android:id="@+id/trigramGenerationTitle"
-        style="@style/Card.RelativelayoutText.Subtitle"
-        android:layout_below="@id/bigramGeneration"
-        android:text="@string/randomTrigramTitle" />
-    
-    <TextView
-        android:id="@+id/trigramGeneration"
-        android:text="Trigrammmmm generation goes here!"
-        style="@style/Card.RelativelayoutText.Subtext"
-        android:layout_below="@id/trigramGenerationTitle"
+        android:bufferType="spannable"
         />
 
 </RelativeLayout>

@@ -57,16 +57,16 @@ public class MainActivity extends SherlockActivity
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.main_activity);
-		loadContactPhotos();
 		
 		checkShowWhatsNew();
+
+		loadProfilePhoto();
+		loadContactPhotos();
 		}
 	
 	public void onStart()
 		{
 		super.onStart();
-		
-		loadProfilePhoto();
 		}
 
 	// TODO: run this as an asynctask

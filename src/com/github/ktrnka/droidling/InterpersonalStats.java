@@ -9,6 +9,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import android.content.Context;
+
 /**
  * Wrapper around the stats from InterpersonalActivity to load/save.
  */
@@ -24,6 +26,12 @@ public class InterpersonalStats
 	public InterpersonalStats(FileInputStream in) throws IOException
 		{
 		readFrom(in);
+		}
+	
+	public void cacheStrings(Context context)
+		{
+		for (Item item : list)
+			item.details.buildFormattedString(context);
 		}
 	
 	private void readFrom(FileInputStream in) throws IOException

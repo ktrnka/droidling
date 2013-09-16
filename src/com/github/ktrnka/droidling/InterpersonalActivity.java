@@ -96,6 +96,7 @@ public class InterpersonalActivity extends RefreshableActivity
 	    	try
 	            {
 	            displayStats = new InterpersonalStats(openFileInput(DISPLAY_FILENAME));
+	            displayStats.cacheStrings(this);
 	            }
             catch (IOException e)
 	            {
@@ -441,6 +442,7 @@ public class InterpersonalActivity extends RefreshableActivity
 
 			displayStats.add(contactName, stats);
 			}
+		displayStats.cacheStrings(this);
 		setPreference(SELECT_CANDIDATES_KEY, System.currentTimeMillis() - time);
 
 		time = System.currentTimeMillis();

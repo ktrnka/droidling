@@ -24,6 +24,7 @@ public class InterpersonalCard extends Card
 	private Context activityContext;
 	private InterpersonalSingleStats stats;
 	private ExtendedApplication application;
+	private View.OnClickListener shareListener;
 
 	public InterpersonalCard(String title, InterpersonalSingleStats stats, Context activityContext, ExtendedApplication application)
 		{
@@ -32,6 +33,25 @@ public class InterpersonalCard extends Card
 		this.activityContext = activityContext;
 		this.stats = stats;
 		this.application = application;
+		
+		shareListener = new View.OnClickListener()
+			{
+			public void onClick(View v)
+				{
+				if (InterpersonalCard.this.activityContext == null)
+					return;
+
+				String subject = "Shared stats from " + InterpersonalCard.this.activityContext.getString(R.string.app_name);
+				String text = "Stats: " + InterpersonalCard.this.title + ":\n" + InterpersonalCard.this.stats.toString(InterpersonalCard.this.activityContext);
+
+				Intent sendIntent = new Intent(Intent.ACTION_SEND);
+				sendIntent.setType("text/plain");
+				sendIntent.putExtra(Intent.EXTRA_TEXT, text);
+				sendIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
+
+				InterpersonalCard.this.activityContext.startActivity(Intent.createChooser(sendIntent, InterpersonalCard.this.activityContext.getString(R.string.share_intent)));
+				}
+			};
 		}
 
 	public int getCardContentId()
@@ -45,13 +65,7 @@ public class InterpersonalCard extends Card
 		int imageSize = res.getDimensionPixelSize(R.dimen.imagebutton_size);
 
 		((TextView) view.findViewById(R.id.title)).setText(title);
-		((TextView) view.findViewById(R.id.numSent)).setText(stats.numSentText);
-		((TextView) view.findViewById(R.id.averageMessageLength)).setText(stats.messageLengthText);
-		((TextView) view.findViewById(R.id.sharedVocab)).setText(stats.sharedVocabPercentText);
-		((TextView) view.findViewById(R.id.sharedPhrases)).setText(stats.sharedPhrasesText);
-		((TextView) view.findViewById(R.id.responseTime)).setText(stats.responseTimeText);
-		((TextView) view.findViewById(R.id.bigramGeneration)).setText(stats.bigramGenerationText);
-		((TextView) view.findViewById(R.id.trigramGeneration)).setText(stats.trigramGenerationText);
+		((TextView) view.findViewById(R.id.mainText)).setText(stats.getFormatted(view.getContext()));
 
 		ImageView contactImageView = (ImageView) view.findViewById(R.id.contactImage);
 		if (stats.photoUri != null)
@@ -80,30 +94,11 @@ public class InterpersonalCard extends Card
 	            // TODO Auto-generated catch block
 	            e.printStackTrace();
 	            }
-			//contactImageView.setImageResource(R.drawable.ic_contact_picture);
-            //contactImageView.setImageBitmap(ExtendedApplication.decodeSampledBitmapFromRes(view.getContext(), R.drawable.ic_contact_picture, imageSize, imageSize));
 			}
 
 		
 		ImageView shareView = (ImageView) view.findViewById(R.id.share);
-		shareView.setOnClickListener(new View.OnClickListener()
-			{
-			public void onClick(View v)
-				{
-				if (activityContext == null)
-					return;
-
-				String subject = "Shared stats from " + activityContext.getString(R.string.app_name);
-				String text = "Stats: " + title + ":\n" + stats.toString(view.getContext());
-
-				Intent sendIntent = new Intent(Intent.ACTION_SEND);
-				sendIntent.setType("text/plain");
-				sendIntent.putExtra(Intent.EXTRA_TEXT, text);
-				sendIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
-
-				activityContext.startActivity(Intent.createChooser(sendIntent, activityContext.getString(R.string.share_intent)));
-				}
-			});
+		shareView.setOnClickListener(shareListener);
 		}
 	
 	private void setImage(ImageView imageView, Context context, Uri imageUri, int width, int height) throws IOException
