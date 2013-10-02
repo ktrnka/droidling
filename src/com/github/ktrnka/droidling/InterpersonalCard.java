@@ -7,16 +7,15 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.fima.cardsui.objects.Card;
+import com.fima.cardsui.objects.RecyclableCard;
 import com.github.ktrnka.droidling.helpers.AsyncDrawable;
 import com.github.ktrnka.droidling.helpers.BitmapLoaderTask;
 
-public class InterpersonalCard extends Card
+public class InterpersonalCard extends RecyclableCard
 	{
 	private static final String TAG = "InterpersonalCard";
 	// TODO: Investigate whether this will cause memory leaks by preventing GC
@@ -54,26 +53,28 @@ public class InterpersonalCard extends Card
 			};
 		}
 
-	public int getCardContentId()
+	@Override
+    protected int getCardLayoutId()
 		{
 		return R.layout.card_interpersonal;
 		}
 	
-	private void apply(final View view)
+	@Override
+    protected void applyTo(View convertView)
 		{
-		Resources res = view.getResources();
+		Resources res = convertView.getResources();
 		int imageSize = res.getDimensionPixelSize(R.dimen.imagebutton_size);
 
-		((TextView) view.findViewById(R.id.title)).setText(title);
-		((TextView) view.findViewById(R.id.mainText)).setText(stats.getFormatted(view.getContext()));
+		((TextView) convertView.findViewById(R.id.title)).setText(title);
+		((TextView) convertView.findViewById(R.id.mainText)).setText(stats.getFormatted(convertView.getContext()));
 
-		ImageView contactImageView = (ImageView) view.findViewById(R.id.contactImage);
+		ImageView contactImageView = (ImageView) convertView.findViewById(R.id.contactImage);
 		if (stats.photoUri != null)
 			{
 			Log.d(TAG, "Photo uri for " + title + ": " + stats.photoUri);
             try
 	            {
-	            setImage(contactImageView, view.getContext(), Uri.parse(stats.photoUri), imageSize, imageSize);
+	            setImage(contactImageView, convertView.getContext(), Uri.parse(stats.photoUri), imageSize, imageSize);
 	            }
             catch (IOException e)
 	            {
@@ -87,7 +88,7 @@ public class InterpersonalCard extends Card
 			// temporary hack to work better with card recycling
 			try
 	            {
-	            setImage(contactImageView, view.getContext(), BitmapLoaderTask.packIntoUri(R.drawable.ic_contact_picture), imageSize, imageSize);
+	            setImage(contactImageView, convertView.getContext(), BitmapLoaderTask.packIntoUri(R.drawable.ic_contact_picture), imageSize, imageSize);
 	            }
             catch (IOException e)
 	            {
@@ -97,7 +98,7 @@ public class InterpersonalCard extends Card
 			}
 
 		
-		ImageView shareView = (ImageView) view.findViewById(R.id.share);
+		ImageView shareView = (ImageView) convertView.findViewById(R.id.share);
 		shareView.setOnClickListener(shareListener);
 		}
 	
@@ -115,33 +116,5 @@ public class InterpersonalCard extends Card
 			}
 		}
 
-	@Override
-	public View getCardContent(final Context context)
-		{
-		View view = LayoutInflater.from(context).inflate(getCardContentId(), null);
-
-		apply(view);
-
-		Log.d("com.github.droidling.InterpersonalCard", "Inflated card for " + title);
-
-		return view;
-		}
-
-	@Override
-    public boolean convert(final View convertCardView)
-	    {
-	    View view = convertCardView.findViewById(R.id.cardContentRoot);
-	    if (view == null)
-	    	{
-	    	Log.d(TAG, "Can't find card content root");
-	    	return false;
-	    	}
-	    
-	    apply(view);
-
-		Log.d("com.github.droidling.InterpersonalCard", "Reused card for " + title);
-
-	    return true;
-	    }
 
 	}

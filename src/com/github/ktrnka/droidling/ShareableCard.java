@@ -4,17 +4,16 @@ import java.lang.ref.WeakReference;
 
 import android.content.Context;
 import android.content.Intent;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.fima.cardsui.objects.Card;
+import com.fima.cardsui.objects.RecyclableCard;
 
 /**
  * Card with title, description, and share button.
  */
-public class ShareableCard extends Card
+public class ShareableCard extends RecyclableCard
 	{
 	private View.OnClickListener shareListener;
 	
@@ -50,32 +49,13 @@ public class ShareableCard extends Card
 		}
 
 	@Override
-	public View getCardContent(Context context)
-		{
-		View view = LayoutInflater.from(context).inflate(getCardContentId(), null);
-
-		apply(view);
-
-		return view;
-		}
-
-	public int getCardContentId()
+	protected int getCardLayoutId()
 		{
 		return R.layout.card_shareable;
 		}
-
-	@Override
-    public boolean convert(View convertCardView)
-	    {
-	    View view = convertCardView.findViewById(getCardContentId());
-	    if (view == null)
-	    	return false;
-	    
-	    apply(view);
-	    return true;
-	    }
 	
-	private void apply(View view)
+	@Override
+	protected void applyTo(View view)
 		{
 		((TextView) view.findViewById(R.id.title)).setText(title);
 		((TextView) view.findViewById(R.id.body)).setText(desc);

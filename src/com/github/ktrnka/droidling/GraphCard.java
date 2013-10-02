@@ -18,22 +18,20 @@ import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 import android.view.Display;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.fima.cardsui.objects.Card;
+import com.fima.cardsui.objects.RecyclableCard;
 
 /**
  * Plain card that has a title and description.
  */
-public class GraphCard extends Card
+public class GraphCard extends RecyclableCard
 	{
 	private GraphicalView graphView;
-	private static final int layoutId = R.layout.card_graph;
 	private View.OnClickListener shareListener;
 	
 	/**
@@ -41,7 +39,6 @@ public class GraphCard extends Card
 	 */
 	private WeakReference<Context> weakContext;
 
-	
 	public GraphCard(String title, GraphicalView graphView, String applicationName, Context shareContext)
 		{
 		super(title, null, 0);
@@ -51,37 +48,24 @@ public class GraphCard extends Card
 		weakContext = new WeakReference<Context>(shareContext);
 		shareListener = new ShareListener("Shared histogram from " + applicationName);
 		}
-
-	@Override
-	public View getCardContent(Context context)
-		{
-		View view = LayoutInflater.from(context).inflate(layoutId, null);
-		apply(view);
-		return view;
-		}
-
-	@Override
-    public boolean convert(View convertCardView)
-	    {
-	    View view = convertCardView.findViewById(layoutId);
-	    if (view == null)
-	    	return false;
-	    
-	    apply(view);
-	    
-	    return true;
-	    }
 	
-	private void apply(View view)
+	@Override
+    protected int getCardLayoutId()
+	    {
+	    return R.layout.card_graph;
+	    }
+
+	@Override
+    protected void applyTo(View convertView)
 		{
-		((TextView) view.findViewById(R.id.title)).setText(title);
+		((TextView) convertView.findViewById(R.id.title)).setText(title);
 
 		// setup the graph
-		ViewGroup container = (ViewGroup) view.findViewById(R.id.graphGroup);
+		ViewGroup container = (ViewGroup) convertView.findViewById(R.id.graphGroup);
 
 		// TODO: This method for getting height is deprecated
 		// Maybe I should set a target aspect ratio for the graph and trigger from the width.
-		WindowManager wm = (WindowManager) view.getContext().getSystemService(Context.WINDOW_SERVICE);
+		WindowManager wm = (WindowManager) convertView.getContext().getSystemService(Context.WINDOW_SERVICE);
 		Display display = wm.getDefaultDisplay();
 		int screenHeight = display.getHeight();
 		
@@ -94,7 +78,7 @@ public class GraphCard extends Card
 		
 		if (shareListener != null)
 			{
-			ImageView shareButton = (ImageView) view.findViewById(R.id.share);
+			ImageView shareButton = (ImageView) convertView.findViewById(R.id.share);
 			shareButton.setOnClickListener(shareListener);
 			}
 		}
