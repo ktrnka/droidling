@@ -7,7 +7,9 @@
 
     <dimen name="imagebutton_size">48dp</dimen>
     <dimen name="imagebutton_margin">8dp</dimen>
-    <dimen name="home_imagebutton_size">144dp</dimen>
+    
+    <dimen name="home_imagebutton_size">160dp</dimen>
+    <dimen name="home_imagebutton_padding">8dp</dimen>
     <dimen name="home_imagebutton_small_size">48dp</dimen>
 
 </resources>

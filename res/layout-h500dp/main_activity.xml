@@ -5,13 +5,18 @@
     android:gravity="center_horizontal"
     android:orientation="vertical" >
     
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_weight="1" />    
+        
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center"
         android:layout_margin="16dp"
-        android:layout_weight="1"
+        android:layout_weight="0"
         >
 
         <ImageView
@@ -21,7 +26,7 @@
             android:src="@drawable/ic_contact_picture"
             android:contentDescription="@string/personalLabel"
             android:background="@drawable/selectable_background_droidling"
-            android:padding="8dp"
+            android:padding="@dimen/home_imagebutton_padding"
             android:clickable="true"
             />
 
@@ -34,21 +39,26 @@
         
     </LinearLayout>
     
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_weight="0.5" />    
+            
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center"
         android:layout_margin="16dp"
-        android:layout_weight="1"
+        android:layout_weight="0"
         >
 
         <TableLayout
             android:id="@+id/interpersonalTable"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/home_imagebutton_size"
+            android:layout_height="@dimen/home_imagebutton_size"
             android:background="@drawable/selectable_background_droidling"
-            android:padding="8dp"
+            android:padding="@dimen/home_imagebutton_padding"
             android:clickable="true" >
 
         </TableLayout>
@@ -62,4 +72,9 @@
         
     </LinearLayout>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_weight="1.1" />    
+    
 </LinearLayout>

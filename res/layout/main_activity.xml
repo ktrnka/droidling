@@ -26,7 +26,7 @@
             android:src="@drawable/ic_contact_picture"
             android:contentDescription="@string/personalLabel"
             android:background="@drawable/selectable_background_droidling"
-            android:padding="8dp"
+            android:padding="@dimen/home_imagebutton_padding"
             android:clickable="true"
             />
 
@@ -53,7 +53,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/selectable_background_droidling"
-            android:padding="8dp"
+            android:padding="@dimen/home_imagebutton_padding"
             android:clickable="true" >
 
         </TableLayout>
