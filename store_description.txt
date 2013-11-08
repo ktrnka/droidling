@@ -1,0 +1,34 @@
+Text message analytics for data junkies.  (Only compatible with standard SMS, not Google Voice, WhatsApp, or other alternative texting apps)
+
+Apply text analytics to your sent messages and see what makes your texts unique! You can also apply analytics to conversations with contacts to describe personal relationships.
+
+STATS
+-Phrases that are unique to you.
+-Top contacts
+-Texts sent per month
+-Average sent message length
+-Number of sent messages by day of week
+-Number of sent messages by time of day
+-(Per contact) vocabulary overlap
+-(Per contact) response time
+-(Per contact) randomly generated messages
+-(Per contact) see how common language identification algorithms work
+
+IN DEVELOPMENT
+This is my first app and I'm still learning, so this is a work in progress.  Please post or email any feedback!  If you find any bugs, please describe your hardware and short steps to reproduce the bug.
+
+Source code is available at https://github.com/ktrnka/droidling
+
+PRIVACY
+The app doesn't send your info to anyone unless you choose to do so by sharing.
+
+The "write to external storage" permission is only used to draw the graphs to a temporary file for sharing.  The "read call log" permission was added automatically by Play Store.  The app doesn't use your call log.
+
+COMPATIBILITY
+This will only work if you have sent and received text messages and they're stored on your device in the typical place.  (Won't work with Google Voice SMS)
+
+Key phrases may be poor in languages other than English, Spanish, French, Italian, German, Dutch, Russian, Norwegian, Portuguese, or Korean.  I've only done automated testing for non-English languages so let me know if it's good/bad.
+
+Key phrases will be poor quality if you don't text much.  I'll be working to improve this in upcoming releases.
+
+Interpersonal Stats' shared phrases may be poor if you text in different languages with different people.
