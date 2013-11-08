@@ -1,4 +1,4 @@
-Version 1.2 (2013-09-??)
+Version 1.2 (2013-11-08)
 -More beautiful navigation screen
 -Contact photos in interpersonal stats
 -UI resdesign to use Google cards

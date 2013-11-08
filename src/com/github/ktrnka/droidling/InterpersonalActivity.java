@@ -477,7 +477,6 @@ public class InterpersonalActivity extends RefreshableActivity
 				for (Item item : displayStats.list)
 					{
 					mCardView.addCard(new InterpersonalCard(item.name.toString(), item.details, InterpersonalActivity.this, application));
-					Log.d("com.github.droidling.InterpersonalActivity", "Adding item for " + item.name);
 					}
 				
 
