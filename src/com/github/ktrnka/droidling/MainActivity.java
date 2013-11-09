@@ -131,6 +131,7 @@ public class MainActivity extends SherlockActivity
 	    {
 	    int numImages = 0;
 	    
+	    /*
 	    if (ExtendedApplication.DEMO_MODE) {
 	    	int i;
 	    	for (i = 0; i < photoUris.length && i < ExtendedApplication.demoResources.length; i++)
@@ -140,6 +141,7 @@ public class MainActivity extends SherlockActivity
 	    	
 	    	return i;
 	    }
+	    */
 	    
 		if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
 			{

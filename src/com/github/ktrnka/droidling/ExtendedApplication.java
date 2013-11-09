@@ -8,8 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Locale;
-
 import com.github.ktrnka.droidling.helpers.BitmapLoaderTask;
 
 import android.app.Application;
@@ -36,9 +34,10 @@ public class ExtendedApplication extends Application
 	{
 	private static final String TAG = "ExtendedApplication";
 	private HashMap<String,ArrayList<String[]>> contactMap;
-	private Runnable contactThread;
 	
 	public static enum ContactInfo { NAME, PHOTO_URI };
+	
+	/*
 	public static boolean DEMO_MODE = true;
 	public static final int[] demoResources = new int[] { 
 			R.drawable.demo_overly_attached_girlfriend, 
@@ -62,6 +61,7 @@ public class ExtendedApplication extends Application
 			"Lars",
 			"Joe"
 			};
+	*/
 	
 	private LruCache<String,Bitmap> bitmapCache;
 
@@ -124,7 +124,6 @@ public class ExtendedApplication extends Application
 			{
 			final int phoneIndex = phones.getColumnIndex(numberName);
 			final int labelIndex = phones.getColumnIndex(labelName);
-			final int typeIndex = phones.getColumnIndex(typeName);
 			
 			final int idIndex = phones.getColumnIndex(CommonDataKinds.Phone.CONTACT_ID);
 			final int photoUriIndex = phones.getColumnIndex(photoUriName);
@@ -132,18 +131,20 @@ public class ExtendedApplication extends Application
 			do
 				{
 				String number = phones.getString(phoneIndex);
-				String label = phones.getString(labelIndex);
-				int type = phones.getInt(typeIndex);
-				
+				String label = phones.getString(labelIndex);				
 
 				String photoUri;
+				
+				/*
 				if (DEMO_MODE)
 					{
 					int index = phones.getPosition() + 1;
 					label = demoNames[index % demoNames.length];
 					photoUri = BitmapLoaderTask.packIntoUri(demoResources[index % demoResources.length]).toString();
 					}
-				else if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+				else 
+				*/
+				if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
 					{
 					photoUri = phones.getString(photoUriIndex);
 					}
@@ -244,44 +245,6 @@ public class ExtendedApplication extends Application
 		
 		return null;
 		}
-
-	/**
-	 * start processing contacts in another thread and return
-	 */
-	private void nonblockingLoadContacts()
-		{
-		
-		}
-	
-	/**
-	 * The intention is for this to see if a contact thread is running already
-	 * and fail if one is.  If one isn't, it can create the thread and return it.
-	 * @return a new thread if one doesn't already exist, null if a thread already exists
-	 */
-	private synchronized Runnable createContactThread()
-		{
-		if (contactThread != null)
-			return null;
-		
-		return new Thread()
-			{
-			public void run()
-				{
-				blockingLoadContacts();
-				contactThread = null;
-				}
-			};
-		}
-	
-	private boolean blockingLoadUnigrams(Locale locale)
-		{
-		return true;
-		}
-	
-	private void nonblockingLoadUnigrams()
-		{
-		
-		}
 	
 	/**
 	 * Helper to compute inSampleSize, given an image height/width and target height/width.
@@ -293,7 +256,7 @@ public class ExtendedApplication extends Application
 	 */
 	public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight)
 		{
-		final String TAG = ExtendedApplication.TAG + ".calculateInSampleSize(...)";
+		//final String TAG = ExtendedApplication.TAG + ".calculateInSampleSize(...)";
 		// Raw height and width of image
 		final int height = options.outHeight;
 		final int width = options.outWidth;
@@ -325,7 +288,7 @@ public class ExtendedApplication extends Application
 	
 	public Bitmap loadBitmapFromUri(Context context, Uri imageUri, int reqWidth, int reqHeight) throws IOException
 		{
-		final String TAG = ExtendedApplication.TAG + ".loadBitmapFromUri(...)";
+		//final String TAG = ExtendedApplication.TAG + ".loadBitmapFromUri(...)";
 		// check the cache
 		if (bitmapCache != null)
 			{
@@ -378,7 +341,7 @@ public class ExtendedApplication extends Application
 	
 	public Bitmap loadBitmapFromResources(Context context, int drawableId, int reqWidth, int reqHeight)
 		{
-		final String TAG = ExtendedApplication.TAG + ".loadBitmapFromResources(...)";
+		//final String TAG = ExtendedApplication.TAG + ".loadBitmapFromResources(...)";
 
 		// check the cache
 		if (bitmapCache != null)
