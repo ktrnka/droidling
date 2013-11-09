@@ -108,11 +108,9 @@ public class GraphCard extends RecyclableCard
 			if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO)
 				{
 				file = new File(context.getExternalFilesDir(null), FILENAME);
-				Log.i("GraphCard", "Sharing using external files dir new API");
 				}
 			else
 				{
-				Log.i("GraphCard", "Sharing using external old API");
 				String packageName = context.getPackageName();
 				File externalRoot = Environment.getExternalStorageDirectory();
 				File externalDir = new File(externalRoot.getAbsolutePath() + "/Android/data/" + packageName + "/files");

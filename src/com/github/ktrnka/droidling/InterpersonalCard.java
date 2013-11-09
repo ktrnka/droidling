@@ -71,7 +71,7 @@ public class InterpersonalCard extends RecyclableCard
 		ImageView contactImageView = (ImageView) convertView.findViewById(R.id.contactImage);
 		if (stats.photoUri != null)
 			{
-			Log.d(TAG, "Photo uri for " + title + ": " + stats.photoUri);
+			//Log.v(TAG, "Photo uri for " + title + ": " + stats.photoUri);
             try
 	            {
 	            setImage(contactImageView, convertView.getContext(), Uri.parse(stats.photoUri), imageSize, imageSize);
@@ -84,7 +84,7 @@ public class InterpersonalCard extends RecyclableCard
 			}
 		else
 			{
-			Log.d(TAG, "Photo uri for " + title + " is null");
+			//Log.v(TAG, "Photo uri for " + title + " is null");
 			// temporary hack to work better with card recycling
 			try
 	            {

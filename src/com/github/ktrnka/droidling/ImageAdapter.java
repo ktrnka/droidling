@@ -26,9 +26,6 @@ public class ImageAdapter extends BaseAdapter
 		this.application = application;
 		this.imageUris = imageUris;
 		this.imageSizePixels = imageSizePixels;
-		
-		for (String uri : imageUris)
-		    Log.i("ImageAdapter", "Image URI " + uri);
 		}
 
 	public int getCount()
@@ -62,7 +59,7 @@ public class ImageAdapter extends BaseAdapter
 
 	    // set the image
 	    Uri imageUri = Uri.parse(imageUris[position]);
-	    Log.i("ImageAdapter", "Setting " + imageUri + ", want " + imageSizePixels + " px");
+	    //Log.v("ImageAdapter", "Setting " + imageUri + ", want " + imageSizePixels + " px");
 		if (!BitmapLoaderTask.cancelPotentialWork(imageView, imageUri))
 			{
 			BitmapLoaderTask task = new BitmapLoaderTask(imageView, imageSizePixels, imageSizePixels, application);

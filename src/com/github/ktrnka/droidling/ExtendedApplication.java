@@ -171,17 +171,6 @@ public class ExtendedApplication extends Application
 					}
 				
 				
-				Log.i(TAG, "Loading contact " + label + " " + number + " " + type + " " + photoUri);
-				
-				if (photoUri != null)
-					{
-					Log.d(TAG, "Non-null photo uri for " + label + ": " + photoUri);
-					}
-				else
-					{
-					Log.d(TAG, "Null photo uri for " + label);
-					}
-
 				String minMatch = PhoneNumberUtils.toCallerIDMinMatch(number);
 				
 				if (contactMap.containsKey(minMatch))
@@ -318,7 +307,7 @@ public class ExtendedApplication extends Application
 			final int heightRatio = Math.round((float) height / (float) reqHeight);
 			final int widthRatio = Math.round((float) width / (float) reqWidth);
 			
-			Log.i(TAG, String.format("Suggesting resample from %d x %d to %d x %d", width, height, reqWidth, reqHeight));
+			//Log.v(TAG, String.format("Suggesting resample from %d x %d to %d x %d", width, height, reqWidth, reqHeight));
 
 			// Choose the smallest ratio as inSampleSize value, this will
 			// guarantee
@@ -328,7 +317,7 @@ public class ExtendedApplication extends Application
 			}
 		else
 			{
-			Log.i(TAG, String.format("Not suggesting resample; at %d x %d, need %d x %d", width, height, reqWidth, reqHeight));
+			//Log.v(TAG, String.format("Not suggesting resample; at %d x %d, need %d x %d", width, height, reqWidth, reqHeight));
 			}
 
 		return inSampleSize;
@@ -343,12 +332,12 @@ public class ExtendedApplication extends Application
 			Bitmap cachedBitmap = bitmapCache.get(imageUri.toString());
 			if (cachedBitmap != null)
 				{
-				Log.i(TAG, "Image cache hit: " + imageUri.toString());
+				//Log.v(TAG, "Image cache hit: " + imageUri.toString());
 				return cachedBitmap;
 				}
 			else
 				{
-				Log.i(TAG, "Image cache miss: " + imageUri.toString());
+				//Log.v(TAG, "Image cache miss: " + imageUri.toString());
 				}
 			}
 		
@@ -397,12 +386,12 @@ public class ExtendedApplication extends Application
 			Bitmap cachedBitmap = bitmapCache.get(String.valueOf(drawableId));
 			if (cachedBitmap != null)
 				{
-				Log.i(TAG, "Image cache hit: " + drawableId);
+				//Log.v(TAG, "Image cache hit: " + drawableId);
 				return cachedBitmap;
 				}
 			else
 				{
-				Log.i(TAG, "Image cache miss: " + drawableId);
+				//Log.v(TAG, "Image cache miss: " + drawableId);
 				}
 			}
 

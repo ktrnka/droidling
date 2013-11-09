@@ -162,7 +162,7 @@ public class MainActivity extends SherlockActivity
 		    		String thumbUri = cursor.getString(PHOTO_THUMB_COL);
 		    		String name = cursor.getString(DISPLAY_COL);
 		    		
-		    		Log.i(TAG, String.format("loadContactPhotoUris(%s): ID=%d, full URI=%s, thumb=%s", name, photoId, photoUri, thumbUri));
+		    		//Log.i(TAG, String.format("loadContactPhotoUris(%s): ID=%d, full URI=%s, thumb=%s", name, photoId, photoUri, thumbUri));
 		    		
 		    		photoUris[numImages++] = photoUri;
 		    		if (numImages >= photoUris.length)
@@ -194,7 +194,7 @@ public class MainActivity extends SherlockActivity
 		    		
 		    		Uri contactPhotoUri = ContentUris.withAppendedId(Contacts.CONTENT_URI, contactId);
 	    			InputStream input = ContactsContract.Contacts.openContactPhotoInputStream(cr, contactPhotoUri);
-		    		Log.i(TAG, String.format("loadContactPhotoUris(%s): ID=%d, PHOTO_ID=%s, InputStream=%s, URI=%s", name, contactId, photoId, (input == null ? "null" : "non-null"), contactPhotoUri.toString()));
+		    		//Log.i(TAG, String.format("loadContactPhotoUris(%s): ID=%d, PHOTO_ID=%s, InputStream=%s, URI=%s", name, contactId, photoId, (input == null ? "null" : "non-null"), contactPhotoUri.toString()));
 
 		    		if (input == null)
 		    			continue;
@@ -249,7 +249,7 @@ public class MainActivity extends SherlockActivity
 
 	    final String[] projection = new String[]{ Profile._ID, Profile.DISPLAY_NAME_PRIMARY, Profile.PHOTO_URI, Profile.PHOTO_THUMBNAIL_URI };
 	    final Cursor cursor = getContentResolver().query(Profile.CONTENT_URI, projection, null, null, null);
-	    Log.i(TAG, "Number of profile entries: " + cursor.getCount());
+	    //Log.v(TAG, "Number of profile entries: " + cursor.getCount());
 	    if (cursor.moveToFirst())
 	    	{
 	    	final int PHOTO_URI_COL = cursor.getColumnIndex(Profile.PHOTO_URI);
@@ -262,7 +262,7 @@ public class MainActivity extends SherlockActivity
 	    		return;
 	    		}
 	    	
-			Log.i(TAG, "Photo uri: " + photoUri);
+			//Log.v(TAG, "Photo uri: " + photoUri);
             try
 	            {
 	            setImage(profileButton, this, Uri.parse(photoUri), imageSize, imageSize);
