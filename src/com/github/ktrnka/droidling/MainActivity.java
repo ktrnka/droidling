@@ -46,7 +46,7 @@ public class MainActivity extends SherlockActivity
 	{
 	public static final String PACKAGE_NAME = "com.github.ktrnka.droidling";
 	
-	public static final boolean DEVELOPER_MODE = true;
+	public static final boolean DEVELOPER_MODE = false;
 	
 	public static final String TAG = "MainActivity";
 	
