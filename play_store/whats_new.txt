@@ -1,0 +1,8 @@
+Version 1.1 (2013-07-03)
+-Saves your stats for faster load next time
+-Refresh indicator if the stats are outdated
+-Speedups in all analyses
+-Action bars with activity-specific help
+-"Send Feedback" now shares more stats about speed
+-Many UI fixes
+-Fixed a few crash bugs
