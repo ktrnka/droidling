@@ -131,6 +131,16 @@ public class MainActivity extends SherlockActivity
 	    {
 	    int numImages = 0;
 	    
+	    if (ExtendedApplication.DEMO_MODE) {
+	    	int i;
+	    	for (i = 0; i < photoUris.length && i < ExtendedApplication.demoResources.length; i++)
+	    		{
+	    		photoUris[i] = BitmapLoaderTask.packIntoUri(ExtendedApplication.demoResources[i]).toString();
+	    		}
+	    	
+	    	return i;
+	    }
+	    
 		if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
 			{
 		    final String[] projection = new String[] { Contacts._ID, Contacts.DISPLAY_NAME, Contacts.PHOTO_ID, Contacts.PHOTO_URI, Contacts.PHOTO_THUMBNAIL_URI, Contacts.TIMES_CONTACTED };

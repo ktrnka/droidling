@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 
+import com.github.ktrnka.droidling.helpers.BitmapLoaderTask;
+
 import android.app.Application;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -37,6 +39,29 @@ public class ExtendedApplication extends Application
 	private Runnable contactThread;
 	
 	public static enum ContactInfo { NAME, PHOTO_URI };
+	public static boolean DEMO_MODE = true;
+	public static final int[] demoResources = new int[] { 
+			R.drawable.demo_overly_attached_girlfriend, 
+			R.drawable.demo_grumpy_cat,
+			R.drawable.demo_lazy_college_senior,
+			R.drawable.demo_manlyman,
+			R.drawable.demo_bad_luck_brian,
+			R.drawable.demo_first_world_problems,
+			R.drawable.demo_high_guy,
+			R.drawable.demo_scary_dude,
+			R.drawable.demo_ye_old
+			};
+	public static final String[] demoNames = new String[] {
+			"Laina",
+			"Timmy",
+			"Jet",
+			"Harold",
+			"Brian",
+			"Beth",
+			"Mark",
+			"Lars",
+			"Joe"
+			};
 	
 	private LruCache<String,Bitmap> bitmapCache;
 
@@ -109,9 +134,16 @@ public class ExtendedApplication extends Application
 				String number = phones.getString(phoneIndex);
 				String label = phones.getString(labelIndex);
 				int type = phones.getInt(typeIndex);
+				
 
 				String photoUri;
-				if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+				if (DEMO_MODE)
+					{
+					int index = phones.getPosition() + 1;
+					label = demoNames[index % demoNames.length];
+					photoUri = BitmapLoaderTask.packIntoUri(demoResources[index % demoResources.length]).toString();
+					}
+				else if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
 					{
 					photoUri = phones.getString(photoUriIndex);
 					}
