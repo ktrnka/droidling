@@ -433,12 +433,12 @@ public class InterpersonalActivity extends RefreshableActivity
 			details.setLength(0);
 			f.format("%s: %s\n", firstName, receivedStats.get(contactName).generateRandomMessage(true));
 			f.format("You: %s", sentStats.get(contactName).generateRandomMessage(true));
-			stats.bigramGenerationText = details.toString();
+			stats.trigramGenerationText = details.toString();
 
 			details.setLength(0);
 			f.format("%s: %s\n", firstName, receivedStats.get(contactName).generateRandomMessage(false));
 			f.format("You: %s", sentStats.get(contactName).generateRandomMessage(false));
-			stats.trigramGenerationText = details.toString();
+			stats.bigramGenerationText = details.toString();
 
 			displayStats.add(contactName, stats);
 			}
