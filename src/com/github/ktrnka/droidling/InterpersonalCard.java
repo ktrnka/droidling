@@ -73,7 +73,6 @@ public class InterpersonalCard extends RecyclableCard {
 
         ImageView contactImageView = (ImageView) convertView.findViewById(R.id.contactImage);
         if (stats.photoUri != null) {
-            // Log.v(TAG, "Photo uri for " + title + ": " + stats.photoUri);
             try {
                 setImage(contactImageView, convertView.getContext(), Uri.parse(stats.photoUri),
                         imageSize, imageSize);
@@ -83,7 +82,6 @@ public class InterpersonalCard extends RecyclableCard {
             }
         }
         else {
-            // Log.v(TAG, "Photo uri for " + title + " is null");
             // temporary hack to work better with card recycling
             try {
                 setImage(contactImageView, convertView.getContext(),
@@ -101,10 +99,6 @@ public class InterpersonalCard extends RecyclableCard {
 
     private void setImage(ImageView imageView, Context context, Uri imageUri, int width, int height)
             throws IOException {
-        // old code
-        // imageView.setImageBitmap(ExtendedApplication.decodeSampledBitmapFromUri(context,
-        // imageUri, width, height));
-
         if (!BitmapLoaderTask.cancelPotentialWork(imageView, imageUri)) {
             BitmapLoaderTask task = new BitmapLoaderTask(imageView, width, height, application);
             AsyncDrawable placeholder = new AsyncDrawable(context.getResources(), null, task);

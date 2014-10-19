@@ -233,8 +233,6 @@ public class ExtendedApplication extends Application {
      */
     public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth,
             int reqHeight) {
-        // final String TAG = ExtendedApplication.TAG +
-        // ".calculateInSampleSize(...)";
         // Raw height and width of image
         final int height = options.outHeight;
         final int width = options.outWidth;
@@ -248,20 +246,11 @@ public class ExtendedApplication extends Application {
             final int heightRatio = Math.round((float) height / (float) reqHeight);
             final int widthRatio = Math.round((float) width / (float) reqWidth);
 
-            // Log.v(TAG,
-            // String.format("Suggesting resample from %d x %d to %d x %d",
-            // width, height, reqWidth, reqHeight));
-
             // Choose the smallest ratio as inSampleSize value, this will
             // guarantee
             // a final image with both dimensions larger than or equal to the
             // requested height and width.
             inSampleSize = heightRatio < widthRatio ? heightRatio : widthRatio;
-        }
-        else {
-            // Log.v(TAG,
-            // String.format("Not suggesting resample; at %d x %d, need %d x %d",
-            // width, height, reqWidth, reqHeight));
         }
 
         return inSampleSize;
@@ -269,18 +258,13 @@ public class ExtendedApplication extends Application {
 
     public Bitmap loadBitmapFromUri(Context context, Uri imageUri, int reqWidth, int reqHeight)
             throws IOException {
-        // final String TAG = ExtendedApplication.TAG +
-        // ".loadBitmapFromUri(...)";
         // check the cache
         if (bitmapCache != null) {
             Bitmap cachedBitmap = bitmapCache.get(imageUri.toString());
             if (cachedBitmap != null) {
-                // Log.v(TAG, "Image cache hit: " + imageUri.toString());
                 return cachedBitmap;
             }
-            else {
-                // Log.v(TAG, "Image cache miss: " + imageUri.toString());
-            }
+
         }
 
         ContentResolver cr = context.getContentResolver();
@@ -319,19 +303,13 @@ public class ExtendedApplication extends Application {
 
     public Bitmap loadBitmapFromResources(Context context, int drawableId, int reqWidth,
             int reqHeight) {
-        // final String TAG = ExtendedApplication.TAG +
-        // ".loadBitmapFromResources(...)";
-
         // check the cache
         if (bitmapCache != null) {
             Bitmap cachedBitmap = bitmapCache.get(String.valueOf(drawableId));
             if (cachedBitmap != null) {
-                // Log.v(TAG, "Image cache hit: " + drawableId);
                 return cachedBitmap;
             }
-            else {
-                // Log.v(TAG, "Image cache miss: " + drawableId);
-            }
+
         }
 
         // check dimensions

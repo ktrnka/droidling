@@ -6,7 +6,6 @@ import static com.github.ktrnka.droidling.Tokenizer.messageEnd;
 import static com.github.ktrnka.droidling.Tokenizer.messageStart;
 import static com.github.ktrnka.droidling.Tokenizer.nospacePunctPattern;
 import static com.github.ktrnka.droidling.Tokenizer.tokenize;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -93,11 +92,11 @@ public class CorpusStats {
             if (unigrams.containsKey(token))
                 unigrams.get(token)[0]++;
             else
-                unigrams.put(token, new int[] {
-                    1
-                }); // OutOfMemory error here
-                    // in the put call at
-                    // HashMap.doubleCapacity
+                // OutOfMemory error here
+                // in the put call at
+                // HashMap.doubleCapacity
+                unigrams.put(token, new int[] { 1 }); 
+
             unigramTotal++;
             unfilteredWords++;
 
@@ -137,7 +136,7 @@ public class CorpusStats {
                     HashMap<String, int[]> dist = bigramSubdist.get(previous);
 
                     if (!dist.containsKey(token))
-                        dist.put(token, new int[] {1});
+                        dist.put(token, new int[] { 1 });
                     else
                         dist.get(token)[0]++;
 
@@ -517,31 +516,6 @@ public class CorpusStats {
             messages.add(generateRandomMessage(false));
         }
         return messages;
-    }
-
-    /**
-     * Generate a set of messages of size M, then select the N most probable.
-     * 
-     * @param N The number of messages you want
-     * @param M The number to pick N from (if you pick too many, you'll likely
-     *            get similar messages, but too few and they'll be too random)
-     * @return The most probable subset of the messages.
-     */
-    public ArrayList<String> generateSemiRandom(int N, int M) {
-        ArrayList<ArrayList<String>> messages = new ArrayList<ArrayList<String>>();
-
-        // generate M
-        for (int i = 0; i < M; i++) {
-            messages.add(generateRandomMessageTokens(false));
-        }
-
-        // score them all
-
-        // sort
-
-        // pick the top
-        assert (false);
-        return null;
     }
 
     public HashMap<String, int[]> getUnigrams() {

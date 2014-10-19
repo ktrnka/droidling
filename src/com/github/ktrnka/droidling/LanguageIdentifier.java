@@ -141,7 +141,9 @@ public class LanguageIdentifier {
                     scores.get(modelList.get(1))[0]);
             f.format("3rd choice %s (score %.2f)\n", modelList.get(2).languageName,
                     scores.get(modelList.get(2))[0]);
-            return f.toString();
+            String s = f.toString();
+            f.close();
+            return s;
         }
 
         /**
@@ -474,9 +476,7 @@ public class LanguageIdentifier {
 
                     if (wordFeatureValues != null) {
                         if (!wordFeatureValues.containsKey(lowercaseWord)) {
-                            wordFeatureValues.put(lowercaseWord, new int[] {
-                                1
-                            });
+                            wordFeatureValues.put(lowercaseWord, new int[] { 1 });
                         }
                         else {
                             wordFeatureValues.get(lowercaseWord)[0]++;
@@ -488,9 +488,7 @@ public class LanguageIdentifier {
 
                     if (wordFeatureValues != null) {
                         if (!wordFeatureValues.containsKey(lowercaseWord)) {
-                            wordFeatureValues.put(lowercaseWord, new int[] {
-                                1
-                            });
+                            wordFeatureValues.put(lowercaseWord, new int[] { 1 });
                         }
                         else {
                             wordFeatureValues.get(lowercaseWord)[0]++;
@@ -518,9 +516,7 @@ public class LanguageIdentifier {
 
                             if (charFeatureValues != null) {
                                 if (!charFeatureValues.containsKey(charString)) {
-                                    charFeatureValues.put(charString, new int[] {
-                                        1
-                                    });
+                                    charFeatureValues.put(charString, new int[] { 1 });
                                 }
                                 else {
                                     charFeatureValues.get(charString)[0]++;
@@ -532,9 +528,7 @@ public class LanguageIdentifier {
 
                             if (charFeatureValues != null) {
                                 if (!charFeatureValues.containsKey(charString)) {
-                                    charFeatureValues.put(charString, new int[] {
-                                        1
-                                    });
+                                    charFeatureValues.put(charString, new int[] { 1 });
                                 }
                                 else {
                                     charFeatureValues.get(charString)[0]++;
@@ -553,9 +547,7 @@ public class LanguageIdentifier {
                                 String pair = scratch.toString();
 
                                 if (!charFeatureValues.containsKey(pair)) {
-                                    charFeatureValues.put(pair, new int[] {
-                                        1
-                                    });
+                                    charFeatureValues.put(pair, new int[] { 1 });
                                 }
                                 else {
                                     charFeatureValues.get(pair)[0]++;
@@ -579,9 +571,7 @@ public class LanguageIdentifier {
                         String pair = scratch.toString();
 
                         if (!charFeatureValues.containsKey(pair)) {
-                            charFeatureValues.put(pair, new int[] {
-                                1
-                            });
+                            charFeatureValues.put(pair, new int[] { 1 });
                         }
                         else {
                             charFeatureValues.get(pair)[0]++;

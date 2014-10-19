@@ -401,9 +401,7 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
                     if (personCounts.containsKey(displayName))
                         personCounts.get(displayName)[0]++;
                     else
-                        personCounts.put(displayName, new int[] {
-                            1
-                        });
+                        personCounts.put(displayName, new int[] { 1 });
                 }
             } while (messages.moveToNext());
         }
@@ -721,8 +719,7 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
 
         char sep = '\t';
         // header
-        scoresOut
-                .println("Phrase\tFrequency\tExpected Frequency\tHas Nonwords\tStopword Start\tStopword End\tSimple Phrase Count\tShort Message Count\tCombined Score");
+        scoresOut.println("Phrase\tFrequency\tExpected Frequency\tHas Nonwords\tStopword Start\tStopword End\tSimple Phrase Count\tShort Message Count\tCombined Score");
 
         // unigrams
         for (String word : sentStats.unigrams.keySet()) {

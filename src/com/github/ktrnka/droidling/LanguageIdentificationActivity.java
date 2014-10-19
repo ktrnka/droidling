@@ -141,8 +141,8 @@ public class LanguageIdentificationActivity extends RefreshableActivity {
         String localeLanguageCode2 = Locale.getDefault().getLanguage();
         for (String contactName : sentStats.keySet()) {
             CorpusStats stats = sentStats.get(contactName);
-            LanguageIdentifier.Identification identification = langID.identify(stats.getUnigrams(),
-                    localeLanguageCode2, 1.1);
+            LanguageIdentifier.Identification identification = 
+                    langID.identify(stats.getUnigrams(), localeLanguageCode2, 1.1);
             identifications.put(contactName, identification);
         }
 
@@ -271,9 +271,8 @@ public class LanguageIdentificationActivity extends RefreshableActivity {
 
     @Override
     protected boolean hasNewData() {
-        Cursor messages = getContentResolver().query(Sms.SENT_URI, new String[] {
-            Sms.ADDRESS
-        }, null, null, null);
+        Cursor messages = getContentResolver().query
+                (Sms.SENT_URI, new String[] { Sms.ADDRESS }, null, null, null);
         int numMessages = messages.getCount();
         messages.close();
 

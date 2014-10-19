@@ -53,9 +53,6 @@ public class InterpersonalActivity extends RefreshableActivity {
         super.onCreate(savedInstanceState);
         setHelpActivity(AboutInterpersonalActivity.class);
 
-        // old layout code
-        // setContentView(R.layout.simple_scroll);
-
         // cards UI test
         setContentView(R.layout.cardsui_main);
         mCardView = (CardUI) findViewById(R.id.cardsview);
@@ -144,9 +141,7 @@ public class InterpersonalActivity extends RefreshableActivity {
                     if (sentCounts.containsKey(recipientName))
                         sentCounts.get(recipientName)[0]++;
                     else
-                        sentCounts.put(recipientName, new int[] {
-                            1
-                        });
+                        sentCounts.put(recipientName, new int[] { 1 });
 
                     String body = messages.getString(bodyIndex);
                     if (!sentStats.containsKey(recipientName))
@@ -200,9 +195,7 @@ public class InterpersonalActivity extends RefreshableActivity {
                     if (receivedCounts.containsKey(senderName))
                         receivedCounts.get(senderName)[0]++;
                     else
-                        receivedCounts.put(senderName, new int[] {
-                            1
-                        });
+                        receivedCounts.put(senderName, new int[] { 1 });
 
                     if (!receivedStats.containsKey(senderName))
                         receivedStats.put(senderName, new CorpusStats());
@@ -275,27 +268,21 @@ public class InterpersonalActivity extends RefreshableActivity {
                             if (!theirReplyTimes.containsKey(person))
                                 theirReplyTimes.put(person, new ArrayList<long[]>());
 
-                            theirReplyTimes.get(person).add(new long[] {
-                                diff
-                            });
+                            theirReplyTimes.get(person).add(new long[] { diff });
                         }
                         else {
                             // sent message
                             if (!yourReplyTimes.containsKey(person))
                                 yourReplyTimes.put(person, new ArrayList<long[]>());
 
-                            yourReplyTimes.get(person).add(new long[] {
-                                diff
-                            });
+                            yourReplyTimes.get(person).add(new long[] { diff });
                         }
                     }
                 }
 
                 // update our tracking listData structure
                 if (!previousMessage.containsKey(person))
-                    previousMessage.put(person, new long[] {
-                            type, millis
-                    });
+                    previousMessage.put(person, new long[] { type, millis });
                 else {
                     previousMessage.get(person)[0] = type;
                     previousMessage.get(person)[1] = millis;
@@ -325,9 +312,7 @@ public class InterpersonalActivity extends RefreshableActivity {
                 score += receivedStats.get(contact).getMessages();
 
             if (score > 0)
-                scoredContacts.put(contact, new int[] {
-                    score
-                });
+                scoredContacts.put(contact, new int[] { score });
         }
 
         ArrayList<String> contactList = new ArrayList<String>(scoredContacts.keySet());
@@ -434,6 +419,8 @@ public class InterpersonalActivity extends RefreshableActivity {
                     receivedStats.get(contactName).generateRandomMessage(false));
             f.format("You: %s", sentStats.get(contactName).generateRandomMessage(false));
             stats.bigramGenerationText = details.toString();
+            
+            f.close();
 
             displayStats.add(contactName, stats);
         }
@@ -492,12 +479,16 @@ public class InterpersonalActivity extends RefreshableActivity {
         if (sec < 60) {
             Formatter f = new Formatter();
             f.format("%d sec", (int) (sec + 0.5));
-            return f.toString();
+            String s = f.toString();
+            f.close();
+            return s;
         }
         else {
             Formatter f = new Formatter();
             f.format("%d min", (int) (sec / 60));
-            return f.toString() + ", " + formatTime(sec % 60);
+            String s = f.toString() + ", " + formatTime(sec % 60);
+            f.close();
+            return s;
         }
     }
 

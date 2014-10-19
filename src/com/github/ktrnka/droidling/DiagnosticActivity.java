@@ -27,14 +27,10 @@ public class DiagnosticActivity extends SherlockActivity {
 
         mCardView.addCard(new ShareableCard("Test Title"));
         mCardView.addCard(new ShareableCard("Test Title", "Test body content"));
-        mCardView
-                .addCard(new ShareableCard("Test Title", "Test body content 2\nThis is a newline!"));
-        mCardView
-                .addCard(new ShareableCard("Test Title", "Test body content 2\nThis is a newline!"));
-        mCardView
-                .addCard(new ShareableCard("Test Title", "Test body content 2\nThis is a newline!"));
-        mCardView
-                .addCard(new ShareableCard("Test Title", "Test body content 2\nThis is a newline!"));
+        mCardView.addCard(new ShareableCard("Test Title", "Test body content 2\nThis is a newline!"));
+        mCardView.addCard(new ShareableCard("Test Title", "Test body content 2\nThis is a newline!"));
+        mCardView.addCard(new ShareableCard("Test Title", "Test body content 2\nThis is a newline!"));
+        mCardView.addCard(new ShareableCard("Test Title", "Test body content 2\nThis is a newline!"));
 
         // draw cards
         mCardView.refresh();
