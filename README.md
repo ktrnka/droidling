@@ -10,6 +10,7 @@ Setup
 -Clone this project and import droidling into workspace (import as existing Eclipse project)
 -Clone https://github.com/ktrnka/cardsui-for-android abd import cardsuilib into workspace (import as existing Eclipse project). Make sure it's set as a library project and that droidling is pointing to it in the build path.
 -Download ActionBarSherlock and import existing Android code in the menus. Make sure it's set as library project and point droidling to it.
+-You may need to install API 14 (4.0) for ActionBarSherlock
 
 Before ActionBarSherlock is setup, you'll get errors about missing classes from LruCache and other classes in Android support v4. ABS includes that lib so it can't be included as part of droidling.
 
