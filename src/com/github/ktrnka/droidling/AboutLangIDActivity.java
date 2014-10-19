@@ -1,21 +1,20 @@
-package com.github.ktrnka.droidling;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.github.ktrnka.droidling.R;
+package com.github.ktrnka.droidling;
 
 import android.os.Bundle;
 
+import com.actionbarsherlock.app.SherlockActivity;
+
 /**
- * The activity that describes the app, the author, etc.  Not much code,
- * most of the work is in the XML file.
+ * The activity that describes the app, the author, etc. Not much code, most of
+ * the work is in the XML file.
+ * 
  * @author keith.trnka
- *
  */
-public class AboutLangIDActivity extends SherlockActivity
-	{
-    public void onCreate(Bundle savedInstanceState)
-		{
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.about_langid);
-		}
-	}
+public class AboutLangIDActivity extends SherlockActivity {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.about_langid);
+    }
+}
