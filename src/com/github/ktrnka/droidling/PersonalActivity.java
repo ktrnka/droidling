@@ -28,6 +28,7 @@ import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.renderer.SimpleSeriesRenderer;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYMultipleSeriesRenderer.Orientation;
+import org.json.JSONException;
 
 import android.content.Context;
 import android.content.Intent;
@@ -158,6 +159,8 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
             try {
                 displayStats = new PersonalStats(openFileInput(DISPLAY_FILENAME));
             } catch (IOException e) {
+                scanSMS();
+            } catch (JSONException e) {
                 scanSMS();
             }
         }
@@ -645,6 +648,9 @@ public class PersonalActivity extends RefreshableActivity implements OnItemSelec
         try {
             displayStats.writeTo(openFileOutput(DISPLAY_FILENAME, Context.MODE_PRIVATE));
         } catch (IOException e) {
+            Log.e(TAG, "Failed to save displayStats");
+            Log.e(TAG, Log.getStackTraceString(e));
+        } catch (JSONException e) {
             Log.e(TAG, "Failed to save displayStats");
             Log.e(TAG, Log.getStackTraceString(e));
         }
