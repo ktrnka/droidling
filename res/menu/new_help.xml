@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android" >
-    <item android:id="@+id/helpMenu" android:icon="@drawable/ic_action_help" android:title="@string/menu_help" android:showAsAction="ifRoom"></item>
-    <item android:id="@+id/lidMenu" android:title="@string/lid_name" android:showAsAction="never"></item>
-    <item android:id="@+id/rateMenu" android:title="@string/rate_name" android:showAsAction="never"></item>
-    <item android:id="@+id/feedbackMenu" android:title="@string/email_name" android:showAsAction="never"></item>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/helpMenu" android:icon="@drawable/ic_action_help" android:title="@string/menu_help" app:showAsAction="ifRoom"></item>
+    <item android:id="@+id/lidMenu" android:title="@string/lid_name" app:showAsAction="never"></item>
+    <item android:id="@+id/rateMenu" android:title="@string/rate_name" app:showAsAction="never"></item>
+    <item android:id="@+id/feedbackMenu" android:title="@string/email_name" app:showAsAction="never"></item>
 
 </menu>
