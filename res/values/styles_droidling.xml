@@ -48,6 +48,7 @@
         <item name="actionModeBackground">@drawable/cab_background_top_droidling</item>
         <item name="actionModeSplitBackground">@drawable/cab_background_bottom_droidling</item>
         <item name="actionModeCloseButtonStyle">@style/ActionButton.CloseMode.Droidling</item>
+        <item name="logo">@drawable/ic_action_logo</item>
 
                 <!-- Light.DarkActionBar specific -->
         <item name="actionBarWidgetTheme">@style/Theme.Droidling.Widget</item>
