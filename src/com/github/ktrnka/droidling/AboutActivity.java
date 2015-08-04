@@ -9,17 +9,16 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.text.method.LinkMovementMethod;
 import android.widget.TextView;
-
-import com.actionbarsherlock.app.SherlockActivity;
 
 /**
  * Basic activity to show info about the app/author.
  * 
  * @author keith.trnka
  */
-public class AboutActivity extends SherlockActivity {
+public class AboutActivity extends ActionBarActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

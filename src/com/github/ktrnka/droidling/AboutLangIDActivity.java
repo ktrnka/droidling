@@ -2,8 +2,7 @@
 package com.github.ktrnka.droidling;
 
 import android.os.Bundle;
-
-import com.actionbarsherlock.app.SherlockActivity;
+import android.support.v7.app.ActionBarActivity;
 
 /**
  * The activity that describes the app, the author, etc. Not much code, most of
@@ -11,7 +10,7 @@ import com.actionbarsherlock.app.SherlockActivity;
  * 
  * @author keith.trnka
  */
-public class AboutLangIDActivity extends SherlockActivity {
+public class AboutLangIDActivity extends ActionBarActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

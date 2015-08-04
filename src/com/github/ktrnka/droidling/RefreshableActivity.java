@@ -5,19 +5,19 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.ActionBarActivity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Toast;
-
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
 
 /**
  * Superclass for activities that want a menu bar, etc.
  * 
  * @author keith.trnka
  */
-public abstract class RefreshableActivity extends SherlockActivity {
+public abstract class RefreshableActivity extends ActionBarActivity {
     private Menu optionsMenu;
     private Class<? extends Activity> helpActivityClass;
     private boolean initializeAsLoading = false;
@@ -26,7 +26,7 @@ public abstract class RefreshableActivity extends SherlockActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         optionsMenu = menu;
 
-        MenuInflater inflater = getSupportMenuInflater();
+        MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.refreshable, menu);
 
         if (initializeAsLoading) {
@@ -68,7 +68,7 @@ public abstract class RefreshableActivity extends SherlockActivity {
                 if (refreshing) {
                     runOnUiThread(new Runnable() {
                         public void run() {
-                            refreshItem.setActionView(R.layout.actionbar_progress);
+                        	MenuItemCompat.setActionView(refreshItem, R.layout.actionbar_progress);
                         }
                     });
                 }
@@ -76,7 +76,7 @@ public abstract class RefreshableActivity extends SherlockActivity {
                     runOnUiThread(new Runnable() {
                         public void run() {
                             refreshItem.setIcon(R.drawable.ic_action_refresh);
-                            refreshItem.setActionView(null);
+                        	MenuItemCompat.setActionView(refreshItem, null);
                         }
                     });
                 }

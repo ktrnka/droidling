@@ -2,8 +2,8 @@
 package com.github.ktrnka.droidling;
 
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 
-import com.actionbarsherlock.app.SherlockActivity;
 import com.fima.cardsui.views.CardUI;
 
 /**
@@ -11,7 +11,7 @@ import com.fima.cardsui.views.CardUI;
  *
  * @author keith.trnka
  */
-public class DiagnosticActivity extends SherlockActivity {
+public class DiagnosticActivity extends ActionBarActivity {
     @SuppressWarnings("unused")
     private static final String TAG = "DiagnosticActivity";
     private CardUI mCardView;

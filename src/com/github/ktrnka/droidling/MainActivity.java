@@ -28,21 +28,21 @@ import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Profile;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
 import com.github.ktrnka.droidling.helpers.AsyncDrawable;
 import com.github.ktrnka.droidling.helpers.BitmapLoaderTask;
 
-public class MainActivity extends SherlockActivity {
+public class MainActivity extends ActionBarActivity {
     public static final String PACKAGE_NAME = "com.github.ktrnka.droidling";
 
     public static final boolean DEVELOPER_MODE = false;
@@ -303,7 +303,7 @@ public class MainActivity extends SherlockActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getSupportMenuInflater();
+        MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.new_help, menu);
         return true;
     }

@@ -2,10 +2,9 @@
 package com.github.ktrnka.droidling;
 
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.text.method.LinkMovementMethod;
 import android.widget.TextView;
-
-import com.actionbarsherlock.app.SherlockActivity;
 
 /**
  * The activity that describes the app, the author, etc. Not much code, most of
@@ -13,7 +12,7 @@ import com.actionbarsherlock.app.SherlockActivity;
  * 
  * @author keith.trnka
  */
-public class AboutInterpersonalActivity extends SherlockActivity {
+public class AboutInterpersonalActivity extends ActionBarActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
